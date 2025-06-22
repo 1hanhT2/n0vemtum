@@ -313,7 +313,7 @@ export function WeeklyView() {
         <CardContent>
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 What was my biggest accomplishment this week?
               </label>
               <Textarea
@@ -325,7 +325,7 @@ export function WeeklyView() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Where did my schedule break down and why?
               </label>
               <Textarea
@@ -337,7 +337,7 @@ export function WeeklyView() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 What is one adjustment I will make for next week?
               </label>
               <Textarea
