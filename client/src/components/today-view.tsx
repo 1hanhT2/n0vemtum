@@ -125,8 +125,9 @@ export function TodayView() {
       updateDailyEntry.mutate(
         { date: today, ...entryData },
         {
-          onSuccess: () => {
+          onSuccess: (data) => {
             setIsDayCompleted(true);
+            queryClient.invalidateQueries({ queryKey: ['/api/daily-entries', today] });
             toast({
               title: "Day completed successfully!",
               description: "Your progress has been locked and saved.",
@@ -136,8 +137,9 @@ export function TodayView() {
       );
     } else {
       createDailyEntry.mutate(entryData, {
-        onSuccess: () => {
+        onSuccess: (data) => {
           setIsDayCompleted(true);
+          queryClient.invalidateQueries({ queryKey: ['/api/daily-entries', today] });
           toast({
             title: "Day completed successfully!",
             description: "Your progress has been locked and saved.",
