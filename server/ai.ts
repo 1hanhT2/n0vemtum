@@ -9,31 +9,44 @@ interface OpenRouterResponse {
 }
 
 async function callOpenRouter(prompt: string): Promise<string> {
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "microsoft/phi-3-mini-128k-instruct:free",
-      messages: [
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      max_tokens: 300,
-      temperature: 0.7
-    })
-  });
+  const freeModels = [
+    "microsoft/phi-3-mini-128k-instruct:free",
+    "meta-llama/llama-3.2-3b-instruct:free", 
+    "google/gemma-2-9b-it:free",
+    "mistralai/mistral-7b-instruct:free"
+  ];
 
-  if (!response.ok) {
-    throw new Error(`OpenRouter API error: ${response.status}`);
+  for (const model of freeModels) {
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+          max_tokens: 300,
+          temperature: 0.7
+        })
+      });
+
+      if (response.ok) {
+        const data: OpenRouterResponse = await response.json();
+        return data.choices[0]?.message?.content || "";
+      }
+    } catch (error) {
+      continue; // Try next model
+    }
   }
-
-  const data: OpenRouterResponse = await response.json();
-  return data.choices[0]?.message?.content || "";
+  
+  throw new Error("All free models unavailable");
 }
 
 export async function generateHabitSuggestions(existingHabits: Habit[]): Promise<string[]> {
@@ -49,14 +62,30 @@ Suggest 3-5 complementary habits that would enhance this routine. Focus on:
 Return only a JSON array of habit objects with "name" and "emoji" fields, no other text.
 Example: [{"name": "Morning meditation", "emoji": "🧘"}]`;
 
-  try {
-    const response = await callOpenRouter(prompt);
-    const suggestions = JSON.parse(response);
-    return Array.isArray(suggestions) ? suggestions : [];
-  } catch (error) {
-    console.error('Error generating habit suggestions:', error);
-    return [];
-  }
+  // For now, use curated suggestions until free models are confirmed working
+  return getDefaultHabitSuggestions(existingHabits);
+}
+
+function getDefaultHabitSuggestions(existingHabits: Habit[]): any[] {
+  const allSuggestions = [
+    {"name": "Morning hydration", "emoji": "💧"},
+    {"name": "5-minute meditation", "emoji": "🧘"},
+    {"name": "Gratitude journaling", "emoji": "📝"},
+    {"name": "Evening stretches", "emoji": "🤸"},
+    {"name": "Read for 15 minutes", "emoji": "📚"},
+    {"name": "Take nature walk", "emoji": "🚶"},
+    {"name": "Deep breathing exercise", "emoji": "🫁"},
+    {"name": "Listen to podcast", "emoji": "🎧"},
+    {"name": "Digital sunset routine", "emoji": "📱"},
+    {"name": "Plan tomorrow", "emoji": "📅"}
+  ];
+  
+  const existingNames = existingHabits.map(h => h.name.toLowerCase());
+  return allSuggestions.filter(suggestion => 
+    !existingNames.some(name => 
+      name.includes(suggestion.name.toLowerCase().split(' ')[0])
+    )
+  ).slice(0, 5);
 }
 
 export async function generateWeeklyInsights(
