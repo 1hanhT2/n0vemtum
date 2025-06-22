@@ -37,7 +37,11 @@ export function useCreateDailyEntry() {
   
   return useMutation({
     mutationFn: async (entry: InsertDailyEntry) => {
-      const response = await apiRequest("POST", "/api/daily-entries", entry);
+      const response = await apiRequest("/api/daily-entries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(entry)
+      });
       return response.json();
     },
     onSuccess: (data) => {
@@ -52,7 +56,11 @@ export function useUpdateDailyEntry() {
   
   return useMutation({
     mutationFn: async ({ date, ...entry }: Partial<InsertDailyEntry> & { date: string }) => {
-      const response = await apiRequest("PUT", `/api/daily-entries/${date}`, entry);
+      const response = await apiRequest(`/api/daily-entries/${date}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(entry)
+      });
       return response.json();
     },
     onSuccess: (data) => {

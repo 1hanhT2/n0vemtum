@@ -40,7 +40,11 @@ export function useUpdateWeeklyReview() {
   
   return useMutation({
     mutationFn: async ({ weekStartDate, ...review }: Partial<InsertWeeklyReview> & { weekStartDate: string }) => {
-      const response = await apiRequest("PUT", `/api/weekly-reviews/${weekStartDate}`, review);
+      const response = await apiRequest(`/api/weekly-reviews/${weekStartDate}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(review)
+      });
       return response.json();
     },
     onSuccess: (data) => {

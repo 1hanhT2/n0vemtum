@@ -13,7 +13,11 @@ export function useCreateHabit() {
   
   return useMutation({
     mutationFn: async (habit: InsertHabit) => {
-      const response = await apiRequest("POST", "/api/habits", habit);
+      const response = await apiRequest("/api/habits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(habit)
+      });
       return response.json();
     },
     onSuccess: () => {
@@ -27,7 +31,11 @@ export function useUpdateHabit() {
   
   return useMutation({
     mutationFn: async ({ id, ...habit }: Partial<InsertHabit> & { id: number }) => {
-      const response = await apiRequest("PUT", `/api/habits/${id}`, habit);
+      const response = await apiRequest(`/api/habits/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(habit)
+      });
       return response.json();
     },
     onSuccess: () => {
@@ -41,7 +49,9 @@ export function useDeleteHabit() {
   
   return useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest("DELETE", `/api/habits/${id}`);
+      const response = await apiRequest(`/api/habits/${id}`, {
+        method: "DELETE"
+      });
       return response.json();
     },
     onSuccess: () => {
