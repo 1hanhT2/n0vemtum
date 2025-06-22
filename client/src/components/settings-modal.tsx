@@ -225,7 +225,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           {/* Habit Names */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">📝 Customize Habits</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">📝 Customize Habits</h3>
               <Button
                 onClick={addNewHabit}
                 variant="outline"
