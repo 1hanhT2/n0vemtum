@@ -281,24 +281,32 @@ export function TodayView() {
                 key={habit.id}
                 initial={{ scale: 1 }}
                 whileHover={{ scale: 1.02 }}
-                className="flex items-center space-x-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                className="p-4 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors space-y-4"
               >
-                <Checkbox
-                  id={`habit-${habit.id}`}
-                  checked={habitCompletions[habit.id] || false}
-                  onCheckedChange={(checked) => handleHabitToggle(habit.id, !!checked)}
-                  disabled={isDayCompleted}
-                  className="w-6 h-6"
+                <div className="flex items-center space-x-4">
+                  <Checkbox
+                    id={`habit-${habit.id}`}
+                    checked={habitCompletions[habit.id] || false}
+                    onCheckedChange={(checked) => handleHabitToggle(habit.id, !!checked)}
+                    disabled={isDayCompleted}
+                    className="w-6 h-6"
+                  />
+                  <label
+                    htmlFor={`habit-${habit.id}`}
+                    className={`flex-1 flex items-center space-x-3 cursor-pointer ${
+                      habitCompletions[habit.id] ? 'line-through text-gray-500 dark:text-gray-400' : ''
+                    }`}
+                  >
+                    <span className="text-2xl">{habit.emoji}</span>
+                    <span className="text-lg font-medium text-gray-800 dark:text-gray-200 group-hover:dark:text-white transition-colors">{habit.name}</span>
+                  </label>
+                </div>
+                
+                <HabitDifficultyDisplay
+                  habit={habit}
+                  onAnalyze={handleAnalyzeHabit}
+                  isAnalyzing={analyzingHabit === habit.id}
                 />
-                <label
-                  htmlFor={`habit-${habit.id}`}
-                  className={`flex-1 flex items-center space-x-3 cursor-pointer ${
-                    habitCompletions[habit.id] ? 'line-through text-gray-500 dark:text-gray-400' : ''
-                  }`}
-                >
-                  <span className="text-2xl">{habit.emoji}</span>
-                  <span className="text-lg font-medium text-gray-800 dark:text-gray-200 group-hover:dark:text-white transition-colors">{habit.name}</span>
-                </label>
               </motion.div>
             ))}
           </div>
