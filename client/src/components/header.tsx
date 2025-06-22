@@ -10,9 +10,9 @@ export function Header({ onSettingsClick }: HeaderProps) {
     <header className="gradient-bg text-white shadow-lg">
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <img src="/logo-white.png" alt="m0mentum logo" className="w-10 h-10" />
-            <h1 className="text-3xl logo-text cursor-pointer hover:scale-105 transform" style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 200 }}>m0mentum</h1>
+          <div className="flex items-center space-x-3 cursor-pointer group">
+            <img src="/logo-white.png" alt="m0mentum logo" className="w-10 h-10 transition-all duration-300 group-hover:brightness-110" />
+            <h1 className="text-3xl logo-text transition-all duration-300 group-hover:opacity-80" style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300 }}>m0mentum</h1>
           </div>
           <Button
             onClick={onSettingsClick}
