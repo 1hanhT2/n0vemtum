@@ -23,6 +23,7 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles } from "lucide-react";
+import { queryClient } from "@/lib/queryClient";
 
 export function TodayView() {
   const { toast } = useToast();
@@ -39,7 +40,7 @@ export function TodayView() {
   const [adherenceScore, setAdherenceScore] = useState<number[]>([3]);
   const [notes, setNotes] = useState('');
   const [motivationalMessage, setMotivationalMessage] = useState('');
-  const [isDayCompleted, setIsDayCompleted] = useState(false);
+  const [isDayCompleted, setIsDayCompleted] = useState(dailyEntry?.isCompleted || false);
 
   // Load existing data when dailyEntry changes
   useEffect(() => {
