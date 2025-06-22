@@ -8,6 +8,9 @@ export const habits = pgTable("habits", {
   emoji: text("emoji").notNull(),
   order: integer("order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
+  difficultyRating: integer("difficulty_rating").default(3),
+  aiAnalysis: text("ai_analysis"),
+  lastAnalyzed: timestamp("last_analyzed"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

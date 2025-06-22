@@ -35,6 +35,8 @@ export function TodayView() {
   const createDailyEntry = useCreateDailyEntry();
   const updateDailyEntry = useUpdateDailyEntry();
   const { data: currentStreak } = useStreak('daily_completion');
+  
+  const [analyzingHabit, setAnalyzingHabit] = useState<number | null>(null);
   const motivationMutation = useMotivationalMessage();
 
   const [habitCompletions, setHabitCompletions] = useState<Record<number, boolean>>({});

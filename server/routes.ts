@@ -10,7 +10,7 @@ import {
   insertStreakSchema
 } from "@shared/schema";
 import { z } from "zod";
-import { generateHabitSuggestions, generateWeeklyInsights, generateMotivationalMessage } from "./ai";
+import { generateHabitSuggestions, generateWeeklyInsights, generateMotivationalMessage, analyzeHabitDifficulty } from "./ai";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
