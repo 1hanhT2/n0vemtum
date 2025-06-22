@@ -14,7 +14,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
             <div className="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
               <span className="text-2xl">⚡</span>
             </div>
-            <h1 className="text-3xl font-bold logo-text cursor-pointer hover:scale-105 transform">m0mentum</h1>
+            <h1 className="text-3xl font-bold logo-text cursor-pointer hover:scale-105 transform" style={{ fontFamily: 'Manrope, sans-serif' }}>m0mentum</h1>
           </div>
           <Button
             onClick={onSettingsClick}
