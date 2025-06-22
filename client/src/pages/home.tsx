@@ -9,7 +9,7 @@ import { AnalyticsView } from "@/components/analytics-view";
 import { AchievementToast } from "@/components/achievement-toast";
 import { SettingsModal } from "@/components/settings-modal";
 
-type View = 'today' | 'weekly' | 'history' | 'achievements';
+type View = 'today' | 'weekly' | 'history' | 'achievements' | 'analytics';
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<View>('today');
@@ -25,6 +25,8 @@ export default function Home() {
         return <HistoryView />;
       case 'achievements':
         return <AchievementsPanel />;
+      case 'analytics':
+        return <AnalyticsView />;
       default:
         return <TodayView />;
     }
