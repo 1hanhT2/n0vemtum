@@ -35,7 +35,23 @@ export function AchievementsPanel() {
     >
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">🏆 Achievements & Streaks</h2>
-        <p className="text-gray-600 dark:text-gray-300">Track your progress and unlock badges</p>
+        <p className="text-gray-600 dark:text-gray-300">Track your progress and unlock badges as you build healthy habits</p>
+        
+        {/* Quick Stats */}
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <div className="text-center p-3 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl border border-yellow-200 dark:border-yellow-800">
+            <div className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+              {unlockedAchievements.length}
+            </div>
+            <div className="text-sm text-gray-600 dark:text-gray-300">Unlocked</div>
+          </div>
+          <div className="text-center p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl border border-gray-200 dark:border-gray-600">
+            <div className="text-lg font-bold text-gray-600 dark:text-gray-400">
+              {lockedAchievements.length}
+            </div>
+            <div className="text-sm text-gray-600 dark:text-gray-300">To Unlock</div>
+          </div>
+        </div>
       </div>
 
       {/* Current Streaks */}

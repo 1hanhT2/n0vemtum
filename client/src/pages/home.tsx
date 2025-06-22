@@ -38,6 +38,7 @@ export default function Home() {
         {renderCurrentView()}
       </main>
 
+      <AchievementToast />
       <SettingsModal 
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)} 
