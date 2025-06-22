@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useHabits } from "@/hooks/use-habits";
 import { useDailyEntries } from "@/hooks/use-daily-entries";
+import { useWeeklyReview, useCreateWeeklyReview, useUpdateWeeklyReview } from "@/hooks/use-weekly-reviews";
 import { getWeekDates, getWeekStartDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -31,18 +32,31 @@ export function WeeklyView() {
     weekDates[0], 
     weekDates[6]
   );
+  const { data: weeklyReview } = useWeeklyReview(weekStartDate);
+  const createWeeklyReview = useCreateWeeklyReview();
+  const updateWeeklyReview = useUpdateWeeklyReview();
 
   const [accomplishment, setAccomplishment] = useState('');
   const [breakdown, setBreakdown] = useState('');
   const [adjustment, setAdjustment] = useState('');
 
+  // Load existing weekly review data
+  useEffect(() => {
+    if (weeklyReview) {
+      setAccomplishment(weeklyReview.accomplishment || '');
+      setBreakdown(weeklyReview.breakdown || '');
+      setAdjustment(weeklyReview.adjustment || '');
+    }
+  }, [weeklyReview]);
+
   // Calculate weekly statistics
   const weeklyStats = {
-    onTimeMornings: 0,
-    workoutsCompleted: 0,
+    totalDays: dailyEntries?.length || 0,
+    completedDays: dailyEntries?.filter(entry => entry.completedAt).length || 0,
     avgScore: 0,
     totalHabits: 0,
     completedHabits: 0,
+    completionRate: 0,
   };
 
   if (dailyEntries && habits) {
@@ -52,24 +66,25 @@ export function WeeklyView() {
     dailyEntries.forEach(entry => {
       const habitData = entry.habitCompletions as Record<string, boolean>;
       
-      // Count specific habits
-      if (habitData['1']) weeklyStats.onTimeMornings++; // Wake up on time
-      if (habitData['3']) weeklyStats.workoutsCompleted++; // Workout
-      
       // Calculate average score
       if (entry.punctualityScore && entry.adherenceScore) {
         totalScore += (entry.punctualityScore + entry.adherenceScore) / 2;
         scoreDays++;
       }
 
-      // Count all habits
-      Object.values(habitData).forEach(completed => {
+      // Count all habits for this day
+      habits.forEach(habit => {
         weeklyStats.totalHabits++;
-        if (completed) weeklyStats.completedHabits++;
+        if (habitData[habit.id.toString()]) {
+          weeklyStats.completedHabits++;
+        }
       });
     });
 
     weeklyStats.avgScore = scoreDays > 0 ? totalScore / scoreDays : 0;
+    weeklyStats.completionRate = weeklyStats.totalHabits > 0 
+      ? (weeklyStats.completedHabits / weeklyStats.totalHabits) * 100 
+      : 0;
   }
 
   // Prepare chart data
@@ -90,12 +105,32 @@ export function WeeklyView() {
     { name: 'Missed', value: weeklyStats.totalHabits - weeklyStats.completedHabits, color: '#EF4444' },
   ];
 
-  const handleSaveReview = () => {
-    // TODO: Implement weekly review saving
-    toast({
-      title: "Review saved successfully! 💾",
-      description: "Your weekly reflection has been recorded.",
-    });
+  const handleSaveReview = async () => {
+    const reviewData = {
+      weekStartDate,
+      accomplishment,
+      breakdown,
+      adjustment,
+    };
+
+    try {
+      if (weeklyReview) {
+        await updateWeeklyReview.mutateAsync({ weekStartDate, ...reviewData });
+      } else {
+        await createWeeklyReview.mutateAsync(reviewData);
+      }
+      
+      toast({
+        title: "Review saved successfully!",
+        description: "Your weekly reflection has been recorded.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error saving review",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (habitsLoading || entriesLoading) {
@@ -131,21 +166,21 @@ export function WeeklyView() {
       <div className="grid md:grid-cols-3 gap-6">
         <Card className="rounded-2xl shadow-lg text-center">
           <CardContent className="pt-6">
-            <div className="text-3xl mb-2">⏰</div>
+            <div className="text-3xl mb-2">📅</div>
             <div className="text-2xl font-bold text-primary">
-              {weeklyStats.onTimeMornings}/7
+              {weeklyStats.completedDays}/7
             </div>
-            <div className="text-gray-600">On-Time Mornings</div>
+            <div className="text-gray-600">Days Completed</div>
           </CardContent>
         </Card>
         
         <Card className="rounded-2xl shadow-lg text-center">
           <CardContent className="pt-6">
-            <div className="text-3xl mb-2">💪</div>
+            <div className="text-3xl mb-2">✅</div>
             <div className="text-2xl font-bold text-accent">
-              {weeklyStats.workoutsCompleted}/7
+              {weeklyStats.completionRate.toFixed(0)}%
             </div>
-            <div className="text-gray-600">Workouts Completed</div>
+            <div className="text-gray-600">Habit Completion</div>
           </CardContent>
         </Card>
         
@@ -276,9 +311,13 @@ export function WeeklyView() {
             >
               <Button
                 onClick={handleSaveReview}
+                disabled={createWeeklyReview.isPending || updateWeeklyReview.isPending}
                 className="gradient-bg text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl"
               >
-                Save Review 💾
+                {createWeeklyReview.isPending || updateWeeklyReview.isPending 
+                  ? "Saving..." 
+                  : "Save Review"
+                }
               </Button>
             </motion.div>
           </div>
