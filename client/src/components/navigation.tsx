@@ -13,6 +13,7 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
     { value: 'today' as const, icon: '📅', label: 'Today' },
     { value: 'weekly' as const, icon: '📊', label: 'Weekly Review' },
     { value: 'history' as const, icon: '🗓️', label: 'History' },
+    { value: 'achievements' as const, icon: '🏆', label: 'Achievements' },
   ];
 
   return (

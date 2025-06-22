@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
+import { useStreak } from "@/hooks/use-streaks";
 
 export function TodayView() {
   const { toast } = useToast();
@@ -33,6 +34,7 @@ export function TodayView() {
   const { data: dailyEntry, isLoading: entryLoading } = useDailyEntry(today);
   const createDailyEntry = useCreateDailyEntry();
   const updateDailyEntry = useUpdateDailyEntry();
+  const { data: currentStreak } = useStreak('daily_completion');
   const motivationMutation = useMotivationalMessage();
 
   const [habitCompletions, setHabitCompletions] = useState<Record<number, boolean>>({});
@@ -60,10 +62,10 @@ export function TodayView() {
   useEffect(() => {
     if (habits && Object.keys(habitCompletions).length > 0) {
       const completionRate = (Object.values(habitCompletions).filter(Boolean).length / habits.length) * 100;
-      const currentStreak = 1; // Simple implementation, could be enhanced with streak tracking
+      const currentStreakValue = currentStreak?.currentStreak ?? 0;
       
       motivationMutation.mutate(
-        { completionRate, currentStreak },
+        { completionRate, currentStreak: currentStreakValue },
         {
           onSuccess: (data) => {
             setMotivationalMessage(data.message);

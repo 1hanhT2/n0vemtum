@@ -4,9 +4,10 @@ import { Navigation } from "@/components/navigation";
 import { TodayView } from "@/components/today-view";
 import { WeeklyView } from "@/components/weekly-view";
 import { HistoryView } from "@/components/history-view";
+import { AchievementsPanel } from "@/components/achievements-panel";
 import { SettingsModal } from "@/components/settings-modal";
 
-type View = 'today' | 'weekly' | 'history';
+type View = 'today' | 'weekly' | 'history' | 'achievements';
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<View>('today');
@@ -20,6 +21,8 @@ export default function Home() {
         return <WeeklyView />;
       case 'history':
         return <HistoryView />;
+      case 'achievements':
+        return <AchievementsPanel />;
       default:
         return <TodayView />;
     }
