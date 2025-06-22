@@ -12,6 +12,8 @@ import {
   type Setting,
   type InsertSetting
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // Habits
@@ -38,174 +40,183 @@ export interface IStorage {
   setSetting(setting: InsertSetting): Promise<Setting>;
 }
 
-export class MemStorage implements IStorage {
-  private habits: Map<number, Habit>;
-  private dailyEntries: Map<string, DailyEntry>;
-  private weeklyReviews: Map<string, WeeklyReview>;
-  private settings: Map<string, Setting>;
-  private currentHabitId: number;
-  private currentDailyEntryId: number;
-  private currentWeeklyReviewId: number;
-  private currentSettingId: number;
-
+export class DatabaseStorage implements IStorage {
   constructor() {
-    this.habits = new Map();
-    this.dailyEntries = new Map();
-    this.weeklyReviews = new Map();
-    this.settings = new Map();
-    this.currentHabitId = 1;
-    this.currentDailyEntryId = 1;
-    this.currentWeeklyReviewId = 1;
-    this.currentSettingId = 1;
-
-    // Initialize with default habits
     this.initializeDefaultHabits();
   }
 
   private async initializeDefaultHabits() {
-    const defaultHabits = [
-      { name: 'Wake up on time', emoji: '⏰', order: 1, isActive: true },
-      { name: 'Focus Session #1', emoji: '🎯', order: 2, isActive: true },
-      { name: 'Workout/Exercise', emoji: '💪', order: 3, isActive: true },
-      { name: 'Focus Session #2', emoji: '🎯', order: 4, isActive: true },
-      { name: 'Review & wind-down', emoji: '🌙', order: 5, isActive: true },
-    ];
+    try {
+      const existingHabits = await db.select().from(habits);
+      if (existingHabits.length === 0) {
+        const defaultHabits = [
+          { name: 'Wake up on time', emoji: '⏰', order: 1, isActive: true },
+          { name: 'Focus Session #1', emoji: '🎯', order: 2, isActive: true },
+          { name: 'Workout/Exercise', emoji: '💪', order: 3, isActive: true },
+          { name: 'Focus Session #2', emoji: '🎯', order: 4, isActive: true },
+          { name: 'Review & wind-down', emoji: '🌙', order: 5, isActive: true },
+        ];
 
-    for (const habit of defaultHabits) {
-      await this.createHabit(habit);
+        for (const habit of defaultHabits) {
+          await db.insert(habits).values(habit);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to initialize default habits:', error);
     }
   }
 
   // Habits
   async getHabits(): Promise<Habit[]> {
-    return Array.from(this.habits.values()).sort((a, b) => a.order - b.order);
+    return await db.select().from(habits).orderBy(habits.order);
   }
 
   async createHabit(insertHabit: InsertHabit): Promise<Habit> {
-    const id = this.currentHabitId++;
-    const habit: Habit = {
-      ...insertHabit,
-      id,
-      createdAt: new Date(),
-    };
-    this.habits.set(id, habit);
+    const [habit] = await db
+      .insert(habits)
+      .values(insertHabit)
+      .returning();
     return habit;
   }
 
   async updateHabit(id: number, updateData: Partial<InsertHabit>): Promise<Habit> {
-    const habit = this.habits.get(id);
+    const [habit] = await db
+      .update(habits)
+      .set(updateData)
+      .where(eq(habits.id, id))
+      .returning();
+    
     if (!habit) {
       throw new Error(`Habit with id ${id} not found`);
     }
-    const updatedHabit = { ...habit, ...updateData };
-    this.habits.set(id, updatedHabit);
-    return updatedHabit;
+    return habit;
   }
 
   async deleteHabit(id: number): Promise<void> {
-    if (!this.habits.has(id)) {
+    const result = await db
+      .delete(habits)
+      .where(eq(habits.id, id));
+    
+    if (result.rowCount === 0) {
       throw new Error(`Habit with id ${id} not found`);
     }
-    this.habits.delete(id);
   }
 
   // Daily Entries
   async getDailyEntry(date: string): Promise<DailyEntry | undefined> {
-    return this.dailyEntries.get(date);
+    const [entry] = await db
+      .select()
+      .from(dailyEntries)
+      .where(eq(dailyEntries.date, date));
+    return entry || undefined;
   }
 
   async getDailyEntries(startDate?: string, endDate?: string): Promise<DailyEntry[]> {
-    let entries = Array.from(this.dailyEntries.values());
+    let query = db.select().from(dailyEntries);
     
-    if (startDate) {
-      entries = entries.filter(entry => entry.date >= startDate);
-    }
-    if (endDate) {
-      entries = entries.filter(entry => entry.date <= endDate);
+    if (startDate && endDate) {
+      query = query.where(and(
+        gte(dailyEntries.date, startDate),
+        lte(dailyEntries.date, endDate)
+      ));
+    } else if (startDate) {
+      query = query.where(gte(dailyEntries.date, startDate));
+    } else if (endDate) {
+      query = query.where(lte(dailyEntries.date, endDate));
     }
     
-    return entries.sort((a, b) => a.date.localeCompare(b.date));
+    return await query.orderBy(dailyEntries.date);
   }
 
   async createDailyEntry(insertEntry: InsertDailyEntry): Promise<DailyEntry> {
-    const id = this.currentDailyEntryId++;
-    const entry: DailyEntry = {
-      ...insertEntry,
-      id,
-      createdAt: new Date(),
-    };
-    this.dailyEntries.set(insertEntry.date, entry);
+    const [entry] = await db
+      .insert(dailyEntries)
+      .values(insertEntry)
+      .returning();
     return entry;
   }
 
   async updateDailyEntry(date: string, updateData: Partial<InsertDailyEntry>): Promise<DailyEntry> {
-    const entry = this.dailyEntries.get(date);
+    const [entry] = await db
+      .update(dailyEntries)
+      .set(updateData)
+      .where(eq(dailyEntries.date, date))
+      .returning();
+    
     if (!entry) {
       throw new Error(`Daily entry for date ${date} not found`);
     }
-    const updatedEntry = { ...entry, ...updateData };
-    this.dailyEntries.set(date, updatedEntry);
-    return updatedEntry;
+    return entry;
   }
 
   // Weekly Reviews
   async getWeeklyReview(weekStartDate: string): Promise<WeeklyReview | undefined> {
-    return this.weeklyReviews.get(weekStartDate);
+    const [review] = await db
+      .select()
+      .from(weeklyReviews)
+      .where(eq(weeklyReviews.weekStartDate, weekStartDate));
+    return review || undefined;
   }
 
   async getWeeklyReviews(): Promise<WeeklyReview[]> {
-    return Array.from(this.weeklyReviews.values()).sort((a, b) => 
-      b.weekStartDate.localeCompare(a.weekStartDate)
-    );
+    return await db
+      .select()
+      .from(weeklyReviews)
+      .orderBy(weeklyReviews.weekStartDate);
   }
 
   async createWeeklyReview(insertReview: InsertWeeklyReview): Promise<WeeklyReview> {
-    const id = this.currentWeeklyReviewId++;
-    const review: WeeklyReview = {
-      ...insertReview,
-      id,
-      createdAt: new Date(),
-    };
-    this.weeklyReviews.set(insertReview.weekStartDate, review);
+    const [review] = await db
+      .insert(weeklyReviews)
+      .values(insertReview)
+      .returning();
     return review;
   }
 
   async updateWeeklyReview(weekStartDate: string, updateData: Partial<InsertWeeklyReview>): Promise<WeeklyReview> {
-    const review = this.weeklyReviews.get(weekStartDate);
+    const [review] = await db
+      .update(weeklyReviews)
+      .set(updateData)
+      .where(eq(weeklyReviews.weekStartDate, weekStartDate))
+      .returning();
+    
     if (!review) {
       throw new Error(`Weekly review for week ${weekStartDate} not found`);
     }
-    const updatedReview = { ...review, ...updateData };
-    this.weeklyReviews.set(weekStartDate, updatedReview);
-    return updatedReview;
+    return review;
   }
 
   // Settings
   async getSetting(key: string): Promise<Setting | undefined> {
-    return this.settings.get(key);
+    const [setting] = await db
+      .select()
+      .from(settings)
+      .where(eq(settings.key, key));
+    return setting || undefined;
   }
 
   async getSettings(): Promise<Setting[]> {
-    return Array.from(this.settings.values());
+    return await db.select().from(settings);
   }
 
   async setSetting(insertSetting: InsertSetting): Promise<Setting> {
-    const existing = this.settings.get(insertSetting.key);
+    const existing = await this.getSetting(insertSetting.key);
+    
     if (existing) {
-      const updated = { ...existing, value: insertSetting.value, updatedAt: new Date() };
-      this.settings.set(insertSetting.key, updated);
-      return updated;
+      const [setting] = await db
+        .update(settings)
+        .set({ value: insertSetting.value, updatedAt: new Date() })
+        .where(eq(settings.key, insertSetting.key))
+        .returning();
+      return setting;
     } else {
-      const id = this.currentSettingId++;
-      const setting: Setting = {
-        ...insertSetting,
-        id,
-        updatedAt: new Date(),
-      };
-      this.settings.set(insertSetting.key, setting);
+      const [setting] = await db
+        .insert(settings)
+        .values(insertSetting)
+        .returning();
       return setting;
     }
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
