@@ -195,8 +195,8 @@ export function TodayView() {
       className="space-y-6"
     >
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">✨ Today's Focus</h2>
-        <p className="text-gray-600">{formatDate(today)}</p>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">✨ Today's Focus</h2>
+        <p className="text-gray-600 dark:text-gray-400">{formatDate(today)}</p>
         {habits && (
           <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
             <div className="flex items-center justify-between">
@@ -345,9 +345,9 @@ export function TodayView() {
       </div>
 
       {/* Daily Notes */}
-      <Card className="rounded-2xl shadow-lg">
+      <Card className="rounded-2xl shadow-lg bg-card dark:bg-gray-800 border-border dark:border-gray-700">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-800 flex items-center">
+          <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
             <span className="mr-2">📝</span>
             Daily Log & Notes
           </CardTitle>
@@ -366,12 +366,12 @@ export function TodayView() {
       {/* Complete Day Button */}
       <div className="text-center">
         {isDayCompleted ? (
-          <Card className="rounded-2xl shadow-lg bg-green-50 border-green-200">
+          <Card className="rounded-2xl shadow-lg bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="text-center">
                 <div className="text-4xl mb-2">🎉</div>
-                <h3 className="text-lg font-semibold text-green-800 mb-2">Day Completed!</h3>
-                <p className="text-green-700">Your progress has been locked and saved successfully.</p>
+                <h3 className="text-lg font-semibold text-green-800 dark:text-green-300 mb-2">Day Completed!</h3>
+                <p className="text-green-700 dark:text-green-400">Your progress has been locked and saved successfully.</p>
               </div>
             </CardContent>
           </Card>

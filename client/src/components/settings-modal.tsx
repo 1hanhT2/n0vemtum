@@ -291,9 +291,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             
             {/* Dark/Light Mode Toggle */}
             <div className="mb-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
                 <div className="flex items-center space-x-3">
-                  <span className="text-sm font-medium">🌙 Dark Mode</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">🌙 Dark Mode</span>
                 </div>
                 <button
                   onClick={() => setIsDarkMode(!isDarkMode)}
