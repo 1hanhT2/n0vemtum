@@ -11,17 +11,30 @@ function extractInsight(text: string, key: string): string | null {
 }
 
 async function callGemini(prompt: string): Promise<string> {
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
+  const models = [
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite-preview-06-17", 
+    "gemini-2.0-flash"
+  ];
 
-    return response.text || "No response generated";
-  } catch (error) {
-    console.error("Gemini API error:", error);
-    throw new Error("Failed to generate response from Gemini");
+  for (const model of models) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+      });
+
+      if (response.text) {
+        console.log(`Successfully used Gemini model: ${model}`);
+        return response.text;
+      }
+    } catch (error) {
+      console.log(`Gemini model ${model} failed:`, error);
+      continue;
+    }
   }
+  
+  throw new Error("All Gemini models unavailable");
 }
 
 export async function generateHabitSuggestions(existingHabits: Habit[]): Promise<string[]> {
