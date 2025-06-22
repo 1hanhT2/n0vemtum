@@ -41,8 +41,13 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  constructor() {
-    this.initializeDefaultHabits();
+  private initialized = false;
+
+  private async ensureInitialized() {
+    if (!this.initialized) {
+      await this.initializeDefaultHabits();
+      this.initialized = true;
+    }
   }
 
   private async initializeDefaultHabits() {
@@ -68,10 +73,12 @@ export class DatabaseStorage implements IStorage {
 
   // Habits
   async getHabits(): Promise<Habit[]> {
+    await this.ensureInitialized();
     return await db.select().from(habits).orderBy(habits.order);
   }
 
   async createHabit(insertHabit: InsertHabit): Promise<Habit> {
+    await this.ensureInitialized();
     const [habit] = await db
       .insert(habits)
       .values(insertHabit)
@@ -80,6 +87,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateHabit(id: number, updateData: Partial<InsertHabit>): Promise<Habit> {
+    await this.ensureInitialized();
     const [habit] = await db
       .update(habits)
       .set(updateData)
@@ -93,6 +101,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteHabit(id: number): Promise<void> {
+    await this.ensureInitialized();
     const result = await db
       .delete(habits)
       .where(eq(habits.id, id));
@@ -104,6 +113,7 @@ export class DatabaseStorage implements IStorage {
 
   // Daily Entries
   async getDailyEntry(date: string): Promise<DailyEntry | undefined> {
+    await this.ensureInitialized();
     const [entry] = await db
       .select()
       .from(dailyEntries)
@@ -112,6 +122,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDailyEntries(startDate?: string, endDate?: string): Promise<DailyEntry[]> {
+    await this.ensureInitialized();
     let query = db.select().from(dailyEntries);
     
     if (startDate && endDate) {
@@ -129,6 +140,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createDailyEntry(insertEntry: InsertDailyEntry): Promise<DailyEntry> {
+    await this.ensureInitialized();
     const [entry] = await db
       .insert(dailyEntries)
       .values(insertEntry)
@@ -137,6 +149,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDailyEntry(date: string, updateData: Partial<InsertDailyEntry>): Promise<DailyEntry> {
+    await this.ensureInitialized();
     const [entry] = await db
       .update(dailyEntries)
       .set(updateData)
