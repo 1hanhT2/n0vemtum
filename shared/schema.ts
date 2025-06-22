@@ -39,6 +39,28 @@ export const settings = pgTable("settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const achievements = pgTable("achievements", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // 'streak', 'completion', 'consistency', 'milestone'
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  badge: text("badge").notNull(), // emoji for the badge
+  requirement: integer("requirement").notNull(), // numeric requirement (days, count, etc.)
+  isUnlocked: boolean("is_unlocked").notNull().default(false),
+  unlockedAt: timestamp("unlocked_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const streaks = pgTable("streaks", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // 'daily_completion', 'habit_specific', 'weekly_review'
+  currentStreak: integer("current_streak").notNull().default(0),
+  longestStreak: integer("longest_streak").notNull().default(0),
+  lastActiveDate: text("last_active_date"), // YYYY-MM-DD format
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const insertHabitSchema = createInsertSchema(habits).omit({
   id: true,
   createdAt: true,
@@ -59,6 +81,17 @@ export const insertSettingSchema = createInsertSchema(settings).omit({
   updatedAt: true,
 });
 
+export const insertAchievementSchema = createInsertSchema(achievements).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertStreakSchema = createInsertSchema(streaks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type InsertHabit = z.infer<typeof insertHabitSchema>;
 export type Habit = typeof habits.$inferSelect;
 
@@ -70,6 +103,12 @@ export type WeeklyReview = typeof weeklyReviews.$inferSelect;
 
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
 export type Setting = typeof settings.$inferSelect;
+
+export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
+export type Achievement = typeof achievements.$inferSelect;
+
+export type InsertStreak = z.infer<typeof insertStreakSchema>;
+export type Streak = typeof streaks.$inferSelect;
 
 export type User = {
   id: number;

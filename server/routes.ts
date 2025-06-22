@@ -5,7 +5,9 @@ import {
   insertHabitSchema, 
   insertDailyEntrySchema, 
   insertWeeklyReviewSchema,
-  insertSettingSchema 
+  insertSettingSchema,
+  insertAchievementSchema,
+  insertStreakSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { generateHabitSuggestions, generateWeeklyInsights, generateMotivationalMessage } from "./ai";

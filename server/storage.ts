@@ -3,6 +3,8 @@ import {
   dailyEntries, 
   weeklyReviews, 
   settings,
+  achievements,
+  streaks,
   type Habit, 
   type InsertHabit,
   type DailyEntry,
@@ -10,7 +12,11 @@ import {
   type WeeklyReview,
   type InsertWeeklyReview,
   type Setting,
-  type InsertSetting
+  type InsertSetting,
+  type Achievement,
+  type InsertAchievement,
+  type Streak,
+  type InsertStreak
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lte } from "drizzle-orm";
@@ -38,6 +44,17 @@ export interface IStorage {
   getSetting(key: string): Promise<Setting | undefined>;
   getSettings(): Promise<Setting[]>;
   setSetting(setting: InsertSetting): Promise<Setting>;
+
+  // Achievements
+  getAchievements(): Promise<Achievement[]>;
+  unlockAchievement(id: number): Promise<Achievement>;
+  initializeAchievements(): Promise<void>;
+
+  // Streaks
+  getStreaks(): Promise<Streak[]>;
+  getStreak(type: string): Promise<Streak | undefined>;
+  updateStreak(type: string, streak: Partial<InsertStreak>): Promise<Streak>;
+  calculateStreaks(date: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -45,9 +62,14 @@ export class DatabaseStorage implements IStorage {
 
   private async ensureInitialized() {
     if (!this.initialized) {
-      await this.initializeDefaultHabits();
+      await this.initializeDefaults();
       this.initialized = true;
     }
+  }
+
+  private async initializeDefaults() {
+    await this.initializeDefaultHabits();
+    await this.initializeAchievements();
   }
 
   private async initializeDefaultHabits() {
@@ -228,6 +250,202 @@ export class DatabaseStorage implements IStorage {
         .values(insertSetting)
         .returning();
       return setting;
+    }
+  }
+
+  // Achievements
+  async getAchievements(): Promise<Achievement[]> {
+    await this.ensureInitialized();
+    return await db.select().from(achievements).orderBy(achievements.createdAt);
+  }
+
+  async unlockAchievement(id: number): Promise<Achievement> {
+    await this.ensureInitialized();
+    const [achievement] = await db
+      .update(achievements)
+      .set({ isUnlocked: true, unlockedAt: new Date() })
+      .where(eq(achievements.id, id))
+      .returning();
+    
+    if (!achievement) {
+      throw new Error(`Achievement with id ${id} not found`);
+    }
+    return achievement;
+  }
+
+  async initializeAchievements(): Promise<void> {
+    try {
+      const existingAchievements = await db.select().from(achievements);
+      if (existingAchievements.length === 0) {
+        const defaultAchievements = [
+          {
+            type: 'streak',
+            name: 'First Steps',
+            description: 'Complete your first day',
+            badge: '🌱',
+            requirement: 1,
+          },
+          {
+            type: 'streak',
+            name: 'Getting Started',
+            description: 'Maintain a 3-day streak',
+            badge: '🔥',
+            requirement: 3,
+          },
+          {
+            type: 'streak',
+            name: 'Week Warrior',
+            description: 'Maintain a 7-day streak',
+            badge: '⚡',
+            requirement: 7,
+          },
+          {
+            type: 'streak',
+            name: 'Momentum Master',
+            description: 'Maintain a 14-day streak',
+            badge: '🚀',
+            requirement: 14,
+          },
+          {
+            type: 'streak',
+            name: 'Habit Hero',
+            description: 'Maintain a 30-day streak',
+            badge: '🏆',
+            requirement: 30,
+          },
+          {
+            type: 'completion',
+            name: 'Perfect Day',
+            description: 'Complete all habits in a day',
+            badge: '⭐',
+            requirement: 100,
+          },
+          {
+            type: 'consistency',
+            name: 'Weekly Champion',
+            description: 'Complete 5 weekly reviews',
+            badge: '👑',
+            requirement: 5,
+          },
+          {
+            type: 'milestone',
+            name: 'Century Club',
+            description: 'Complete 100 total days',
+            badge: '💯',
+            requirement: 100,
+          },
+        ];
+
+        for (const achievement of defaultAchievements) {
+          await db.insert(achievements).values(achievement);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to initialize achievements:', error);
+    }
+  }
+
+  // Streaks
+  async getStreaks(): Promise<Streak[]> {
+    await this.ensureInitialized();
+    return await db.select().from(streaks).orderBy(streaks.type);
+  }
+
+  async getStreak(type: string): Promise<Streak | undefined> {
+    await this.ensureInitialized();
+    const [streak] = await db
+      .select()
+      .from(streaks)
+      .where(eq(streaks.type, type));
+    return streak || undefined;
+  }
+
+  async updateStreak(type: string, streakData: Partial<InsertStreak>): Promise<Streak> {
+    await this.ensureInitialized();
+    const existing = await this.getStreak(type);
+    
+    if (existing) {
+      const [streak] = await db
+        .update(streaks)
+        .set({ ...streakData, updatedAt: new Date() })
+        .where(eq(streaks.type, type))
+        .returning();
+      return streak;
+    } else {
+      const [streak] = await db
+        .insert(streaks)
+        .values({ type, ...streakData })
+        .returning();
+      return streak;
+    }
+  }
+
+  async calculateStreaks(date: string): Promise<void> {
+    await this.ensureInitialized();
+    try {
+      // Get today's entry
+      const todayEntry = await this.getDailyEntry(date);
+      if (!todayEntry || !todayEntry.isCompleted) return;
+
+      // Calculate daily completion streak
+      const dailyStreak = await this.getStreak('daily_completion');
+      const yesterday = new Date(date);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      let newCurrentStreak = 1;
+      
+      if (dailyStreak && dailyStreak.lastActiveDate === yesterdayStr) {
+        newCurrentStreak = dailyStreak.currentStreak + 1;
+      }
+
+      const newLongestStreak = Math.max(
+        newCurrentStreak,
+        dailyStreak?.longestStreak || 0
+      );
+
+      await this.updateStreak('daily_completion', {
+        currentStreak: newCurrentStreak,
+        longestStreak: newLongestStreak,
+        lastActiveDate: date,
+      });
+
+      // Check for achievement unlocks
+      await this.checkAchievements(newCurrentStreak, todayEntry);
+      
+    } catch (error) {
+      console.error('Failed to calculate streaks:', error);
+    }
+  }
+
+  private async checkAchievements(currentStreak: number, dailyEntry: DailyEntry): Promise<void> {
+    const allAchievements = await db.select().from(achievements);
+    
+    for (const achievement of allAchievements) {
+      if (achievement.isUnlocked) continue;
+
+      let shouldUnlock = false;
+
+      switch (achievement.type) {
+        case 'streak':
+          shouldUnlock = currentStreak >= achievement.requirement;
+          break;
+        case 'completion':
+          if (dailyEntry.habitCompletions) {
+            const completionRate = Object.values(dailyEntry.habitCompletions as Record<string, boolean>)
+              .filter(Boolean).length / Object.keys(dailyEntry.habitCompletions as Record<string, boolean>).length * 100;
+            shouldUnlock = completionRate >= achievement.requirement;
+          }
+          break;
+        case 'milestone':
+          const totalCompletedDays = await db.select().from(dailyEntries).where(eq(dailyEntries.isCompleted, true));
+          shouldUnlock = totalCompletedDays.length >= achievement.requirement;
+          break;
+      }
+
+      if (shouldUnlock) {
+        await this.unlockAchievement(achievement.id);
+      }
     }
   }
 }
