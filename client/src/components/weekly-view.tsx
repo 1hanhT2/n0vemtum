@@ -173,8 +173,8 @@ export function WeeklyView() {
       className="space-y-6"
     >
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">📊 Weekly Review</h2>
-        <p className="text-gray-600">Reflect on your progress and plan ahead</p>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">📊 Weekly Review</h2>
+        <p className="text-gray-600 dark:text-gray-300">Reflect on your progress and plan ahead</p>
       </div>
 
       {/* Statistics Cards */}
@@ -185,7 +185,7 @@ export function WeeklyView() {
             <div className="text-2xl font-bold text-primary">
               {weeklyStats.completedDays}/7
             </div>
-            <div className="text-gray-600">Days Completed</div>
+            <div className="text-gray-600 dark:text-gray-300">Days Completed</div>
           </CardContent>
         </Card>
         
@@ -195,7 +195,7 @@ export function WeeklyView() {
             <div className="text-2xl font-bold text-accent">
               {weeklyStats.completionRate.toFixed(0)}%
             </div>
-            <div className="text-gray-600">Habit Completion</div>
+            <div className="text-gray-600 dark:text-gray-300">Habit Completion</div>
           </CardContent>
         </Card>
         
@@ -205,7 +205,7 @@ export function WeeklyView() {
             <div className="text-2xl font-bold text-secondary">
               {weeklyStats.avgScore.toFixed(1)}
             </div>
-            <div className="text-gray-600">Average Score</div>
+            <div className="text-gray-600 dark:text-gray-300">Average Score</div>
           </CardContent>
         </Card>
       </div>
@@ -214,7 +214,7 @@ export function WeeklyView() {
       <div className="grid md:grid-cols-2 gap-6">
         <Card className="rounded-2xl shadow-lg">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-800">Daily Scores</CardTitle>
+            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">Daily Scores</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
@@ -237,7 +237,7 @@ export function WeeklyView() {
 
         <Card className="rounded-2xl shadow-lg">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-800">Habit Completion</CardTitle>
+            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">Habit Completion</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>

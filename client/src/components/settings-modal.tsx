@@ -212,7 +212,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" aria-describedby="settings-description">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
+          <DialogTitle className="text-2xl font-bold text-gray-800 dark:text-white flex items-center">
             <span className="mr-2">⚙️</span>
             Settings
           </DialogTitle>
@@ -292,13 +292,13 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
           {/* Appearance Settings */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">🎨 Appearance</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">🎨 Appearance</h3>
             
             {/* Dark/Light Mode Toggle */}
             <div className="mb-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-xl transition-all duration-200 hover:dark:bg-gray-700">
                 <div className="flex items-center space-x-3">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">🌙 Dark Mode</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-white">🌙 Dark Mode</span>
                 </div>
                 <button
                   onClick={() => setIsDarkMode(!isDarkMode)}
@@ -317,7 +317,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
             {/* Theme Colors */}
             <div>
-              <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Accent Color</div>
+              <div className="text-sm font-medium text-gray-700 dark:text-white mb-3">Accent Color</div>
               <div className="grid grid-cols-5 gap-3">
                 {themes.map((theme) => (
                   <motion.button
@@ -325,10 +325,10 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setSelectedTheme(theme.key)}
-                    className={`relative p-3 rounded-xl border-2 transition-all ${
+                    className={`relative p-3 rounded-xl border-2 transition-all duration-200 ${
                       selectedTheme === theme.key
                         ? 'border-primary'
-                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-400 hover:dark:bg-gray-800'
                     }`}
                   >
                     <div className={`w-8 h-8 rounded-full ${theme.color} mx-auto`}></div>
@@ -337,7 +337,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         <div className="w-3 h-3 bg-white rounded-full"></div>
                       </div>
                     )}
-                    <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mt-2">{theme.name}</div>
+                    <div className="text-xs font-medium text-gray-700 dark:text-white mt-2">{theme.name}</div>
                   </motion.button>
                 ))}
               </div>

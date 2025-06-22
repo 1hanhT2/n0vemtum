@@ -26,7 +26,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-black">
       <Header onSettingsClick={() => setIsSettingsOpen(true)} />
       <Navigation currentView={currentView} onViewChange={setCurrentView} />
       
