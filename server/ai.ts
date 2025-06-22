@@ -1,5 +1,11 @@
 import type { Habit, DailyEntry, WeeklyReview } from "@shared/schema";
 
+function extractInsight(text: string, key: string): string | null {
+  const regex = new RegExp(`"${key}":\\s*"([^"]*)"`, 'i');
+  const match = text.match(regex);
+  return match ? match[1] : null;
+}
+
 interface OpenRouterResponse {
   choices: Array<{
     message: {
@@ -70,19 +76,18 @@ Output ONLY a valid JSON array with 3-5 habit suggestions. No explanations, no m
 
   try {
     const response = await callOpenRouter(prompt);
-    // Extract JSON array from any text response
-    const arrayMatch = response.match(/\[[\s\S]*?\]/);
+    // Extract JSON array from any text response - match from [ to ]
+    const arrayMatch = response.match(/\[[\s\S]*\]/);
     if (!arrayMatch) {
-      throw new Error('No JSON array found in response');
+      console.log('No JSON array found in response:', response);
+      return getDefaultHabitSuggestions(existingHabits);
     }
     
     const jsonString = arrayMatch[0];
-    
     const suggestions = JSON.parse(jsonString);
     return Array.isArray(suggestions) ? suggestions : getDefaultHabitSuggestions(existingHabits);
   } catch (error) {
     console.error('Error generating habit suggestions:', error);
-    console.error('Failed to parse response:', response);
     // Fallback to curated suggestions if API fails
     return getDefaultHabitSuggestions(existingHabits);
   }
@@ -122,47 +127,33 @@ export async function generateWeeklyInsights(
     notes: entry.notes
   }));
 
-  const prompt = `You are a habit and productivity coach. Analyze this week's data:
+  const prompt = `Analyze habit data: ${JSON.stringify(completionData)}
 
-${JSON.stringify(completionData, null, 2)}
+Output ONLY valid JSON with insights:
 
-Provide insights in exactly this format:
-{
-  "patterns": "Brief observation about patterns in the data",
-  "strengths": "What went well this week",
-  "improvements": "Specific actionable suggestions for next week",
-  "motivation": "Encouraging message based on progress"
-}
-
-Keep each field to 2-3 sentences maximum. Be specific and actionable.`;
+{"patterns": "brief pattern observation", "strengths": "what went well", "improvements": "actionable suggestions", "motivation": "encouraging message"}`;
 
   try {
     const response = await callOpenRouter(prompt);
-    console.log("Raw weekly insights response:", response); // Debug logging
-    
-    // Extract JSON from response that may contain explanatory text
-    let jsonString = response;
-    
-    // Remove common prefixes and markdown
-    jsonString = jsonString.replace(/```json\s*|\s*```|```/g, '');
-    jsonString = jsonString.replace(/^Here's the.*?:\s*/i, '');
-    jsonString = jsonString.replace(/^Here is the.*?:\s*/i, '');
-    
-    // Find JSON object boundaries
-    const startIndex = jsonString.indexOf('{');
-    const endIndex = jsonString.lastIndexOf('}') + 1;
-    
-    if (startIndex >= 0 && endIndex > startIndex) {
-      jsonString = jsonString.slice(startIndex, endIndex);
+    // Try to extract and parse JSON
+    const objectMatch = response.match(/\{[\s\S]*\}/);
+    if (objectMatch) {
+      try {
+        return JSON.parse(objectMatch[0]);
+      } catch (parseError) {
+        // If JSON parsing fails, create structured response from text
+        const insights = {
+          patterns: extractInsight(response, 'patterns') || 'Consistent habit completion observed',
+          strengths: extractInsight(response, 'strengths') || 'Good dedication to daily routines',
+          improvements: extractInsight(response, 'improvements') || 'Continue building momentum',
+          motivation: extractInsight(response, 'motivation') || 'Keep up the great work!'
+        };
+        return insights;
+      }
     }
-    
-    console.log("Cleaned JSON string:", jsonString); // Debug logging
-    
-    const parsed = JSON.parse(jsonString);
-    return parsed;
+    throw new Error('No insights found');
   } catch (error) {
     console.error('Error generating weekly insights:', error);
-    console.error('Failed to parse response:', response);
     // Fallback to static insights if API fails
     const completionRate = dailyEntries.length > 0 
       ? (dailyEntries.reduce((sum, entry) => 
