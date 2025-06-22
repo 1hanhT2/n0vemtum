@@ -52,9 +52,17 @@ export async function generateHabitSuggestions(existingHabits: Habit[]): Promise
   
   const prompt = `Given existing habits: ${habitNames}
 
-Output ONLY a valid JSON array with 3-5 habit suggestions. No explanations, no markdown, just the JSON:
+Generate 3-5 detailed habit suggestions that complement the existing habits. Include specific details like duration, timing, frequency, or context to make them actionable.
 
-[{"name": "habit name", "emoji": "emoji"}]`;
+Output ONLY a valid JSON array. No explanations, no markdown, just the JSON:
+
+[{"name": "detailed habit name with specifics", "emoji": "emoji"}]
+
+Examples of detailed suggestions:
+- "Meditate for 10 minutes at 7 AM"
+- "Read for 20 minutes before bed"
+- "Drink 500ml water upon waking"
+- "Take a 15-minute walk after lunch"`;
 
   try {
     const response = await callGemini(prompt);
@@ -85,16 +93,16 @@ Output ONLY a valid JSON array with 3-5 habit suggestions. No explanations, no m
 
 function getDefaultHabitSuggestions(existingHabits: Habit[]): any[] {
   const allSuggestions = [
-    {"name": "Morning hydration", "emoji": "💧"},
-    {"name": "5-minute meditation", "emoji": "🧘"},
-    {"name": "Gratitude journaling", "emoji": "📝"},
-    {"name": "Evening stretches", "emoji": "🤸"},
-    {"name": "Read for 15 minutes", "emoji": "📚"},
-    {"name": "Take nature walk", "emoji": "🚶"},
-    {"name": "Deep breathing exercise", "emoji": "🫁"},
-    {"name": "Listen to podcast", "emoji": "🎧"},
-    {"name": "Digital sunset routine", "emoji": "📱"},
-    {"name": "Plan tomorrow", "emoji": "📅"}
+    {"name": "Drink 500ml water within 30 minutes of waking", "emoji": "💧"},
+    {"name": "Meditate for 10 minutes at 7 AM daily", "emoji": "🧘"},
+    {"name": "Write 3 gratitude items before breakfast", "emoji": "📝"},
+    {"name": "Do 5-minute stretches before bed", "emoji": "🤸"},
+    {"name": "Read for 20 minutes before sleep", "emoji": "📚"},
+    {"name": "Take a 15-minute nature walk after lunch", "emoji": "🚶"},
+    {"name": "Practice 4-7-8 breathing for 5 minutes", "emoji": "🫁"},
+    {"name": "Listen to educational podcast during commute", "emoji": "🎧"},
+    {"name": "Turn off all screens 1 hour before bed", "emoji": "📱"},
+    {"name": "Plan next day tasks at 9 PM", "emoji": "📅"}
   ];
   
   const existingNames = existingHabits.map(h => h.name.toLowerCase());
