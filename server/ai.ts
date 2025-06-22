@@ -213,7 +213,10 @@ Respond with JSON format:
     const response = await callGemini(prompt);
     
     try {
-      const result = JSON.parse(response);
+      // Clean up the response by removing markdown code blocks
+      const cleanedResponse = response.replace(/```json\s*|\s*```/g, '').trim();
+      const result = JSON.parse(cleanedResponse);
+      
       // Validate the response structure
       if (typeof result.difficulty === 'number' && 
           result.difficulty >= 1 && 
