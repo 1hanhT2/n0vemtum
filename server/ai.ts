@@ -125,16 +125,34 @@ export async function generateWeeklyInsights(
     notes: entry.notes
   }));
 
-  const prompt = `Analyze habit data: ${JSON.stringify(completionData)}
+  // Extract and format notes for analysis
+  const notesData = dailyEntries
+    .filter(entry => entry.notes && entry.notes.trim().length > 0)
+    .map(entry => `${entry.date}: "${entry.notes}"`)
+    .join('\n');
+
+  const prompt = `Analyze habit tracking data and daily reflections:
+
+COMPLETION DATA: ${JSON.stringify(completionData)}
+
+DAILY NOTES & REFLECTIONS:
+${notesData || 'No daily notes recorded this period.'}
+
+HABITS BEING TRACKED: ${habits.map(h => `${h.emoji} ${h.name}`).join(', ')}
+
+Provide insights that incorporate both quantitative data and qualitative notes. Reference specific insights from the user's own reflections when available.
 
 Output ONLY valid JSON with insights:
 
-{"patterns": "brief pattern observation", "strengths": "what went well", "improvements": "actionable suggestions", "motivation": "encouraging message"}`;
+{"patterns": "pattern observation incorporating notes context", "strengths": "what went well based on data and notes", "improvements": "actionable suggestions informed by reflections", "motivation": "encouraging message that acknowledges their thoughts"}`;
 
   try {
     const response = await callGemini(prompt);
+    // Clean up the response by removing markdown code blocks
+    const cleanedResponse = response.replace(/```json\s*|\s*```/g, '').trim();
+    
     // Try to extract and parse JSON
-    const objectMatch = response.match(/\{[\s\S]*\}/);
+    const objectMatch = cleanedResponse.match(/\{[\s\S]*\}/);
     if (objectMatch) {
       try {
         return JSON.parse(objectMatch[0]);
