@@ -62,24 +62,27 @@ async function callOpenRouter(prompt: string): Promise<string> {
 export async function generateHabitSuggestions(existingHabits: Habit[]): Promise<string[]> {
   const habitNames = existingHabits.map(h => h.name).join(", ");
   
-  const prompt = `You are a productivity and wellness expert. Given these existing habits: ${habitNames}
+  const prompt = `Given existing habits: ${habitNames}
 
-Suggest 3-5 complementary habits that would enhance this routine. Focus on:
-- Habits that fill gaps in the current routine
-- Evidence-based practices for productivity and well-being
-- Realistic daily habits that take 5-30 minutes
+Output ONLY a valid JSON array with 3-5 habit suggestions. No explanations, no markdown, just the JSON:
 
-Return only a JSON array of habit objects with "name" and "emoji" fields, no other text.
-Example: [{"name": "Morning meditation", "emoji": "🧘"}]`;
+[{"name": "habit name", "emoji": "emoji"}]`;
 
   try {
     const response = await callOpenRouter(prompt);
-    // Clean the response to extract JSON, removing markdown formatting
-    const cleanResponse = response.replace(/```json\s*|\s*```|```/g, '').trim();
-    const suggestions = JSON.parse(cleanResponse);
+    // Extract JSON array from any text response
+    const arrayMatch = response.match(/\[[\s\S]*?\]/);
+    if (!arrayMatch) {
+      throw new Error('No JSON array found in response');
+    }
+    
+    const jsonString = arrayMatch[0];
+    
+    const suggestions = JSON.parse(jsonString);
     return Array.isArray(suggestions) ? suggestions : getDefaultHabitSuggestions(existingHabits);
   } catch (error) {
     console.error('Error generating habit suggestions:', error);
+    console.error('Failed to parse response:', response);
     // Fallback to curated suggestions if API fails
     return getDefaultHabitSuggestions(existingHabits);
   }
@@ -135,14 +138,31 @@ Keep each field to 2-3 sentences maximum. Be specific and actionable.`;
 
   try {
     const response = await callOpenRouter(prompt);
-    // Clean the response to extract JSON, removing markdown formatting and extra text
-    const cleanResponse = response.replace(/```json\s*|\s*```|```|Here's the|Here is the/g, '').trim();
-    const startIndex = cleanResponse.indexOf('{');
-    const endIndex = cleanResponse.lastIndexOf('}') + 1;
-    const jsonString = startIndex >= 0 && endIndex > startIndex ? cleanResponse.slice(startIndex, endIndex) : cleanResponse;
-    return JSON.parse(jsonString);
+    console.log("Raw weekly insights response:", response); // Debug logging
+    
+    // Extract JSON from response that may contain explanatory text
+    let jsonString = response;
+    
+    // Remove common prefixes and markdown
+    jsonString = jsonString.replace(/```json\s*|\s*```|```/g, '');
+    jsonString = jsonString.replace(/^Here's the.*?:\s*/i, '');
+    jsonString = jsonString.replace(/^Here is the.*?:\s*/i, '');
+    
+    // Find JSON object boundaries
+    const startIndex = jsonString.indexOf('{');
+    const endIndex = jsonString.lastIndexOf('}') + 1;
+    
+    if (startIndex >= 0 && endIndex > startIndex) {
+      jsonString = jsonString.slice(startIndex, endIndex);
+    }
+    
+    console.log("Cleaned JSON string:", jsonString); // Debug logging
+    
+    const parsed = JSON.parse(jsonString);
+    return parsed;
   } catch (error) {
     console.error('Error generating weekly insights:', error);
+    console.error('Failed to parse response:', response);
     // Fallback to static insights if API fails
     const completionRate = dailyEntries.length > 0 
       ? (dailyEntries.reduce((sum, entry) => 
