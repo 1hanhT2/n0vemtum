@@ -5,6 +5,7 @@ import { TodayView } from "@/components/today-view";
 import { WeeklyView } from "@/components/weekly-view";
 import { HistoryView } from "@/components/history-view";
 import { AchievementsPanel } from "@/components/achievements-panel";
+import { AnalyticsView } from "@/components/analytics-view";
 import { AchievementToast } from "@/components/achievement-toast";
 import { SettingsModal } from "@/components/settings-modal";
 

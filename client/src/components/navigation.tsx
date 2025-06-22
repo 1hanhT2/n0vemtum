@@ -14,6 +14,7 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
     { value: 'weekly' as const, icon: '📊', label: 'Weekly Review' },
     { value: 'history' as const, icon: '🗓️', label: 'History' },
     { value: 'achievements' as const, icon: '🏆', label: 'Achievements' },
+    { value: 'analytics' as const, icon: '📈', label: 'Analytics' },
   ];
 
   return (
