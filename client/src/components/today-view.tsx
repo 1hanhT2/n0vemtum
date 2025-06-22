@@ -487,6 +487,19 @@ export function TodayView() {
           </AlertDialog>
         )}
       </div>
+
+      {/* Level Up Notification */}
+      {levelUpHabitId && habits && (
+        <LevelUpNotification
+          habit={habits.find(h => h.id === levelUpHabitId)!}
+          onLevelUp={(habitId) => {
+            levelUpHabit.mutate(habitId);
+            setLevelUpHabitId(null);
+          }}
+          show={true}
+          onClose={() => setLevelUpHabitId(null)}
+        />
+      )}
     </motion.div>
   );
 }
