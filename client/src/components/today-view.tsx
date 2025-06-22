@@ -21,11 +21,13 @@ export function TodayView() {
   const { data: dailyEntry, isLoading: entryLoading } = useDailyEntry(today);
   const createDailyEntry = useCreateDailyEntry();
   const updateDailyEntry = useUpdateDailyEntry();
+  const motivationMutation = useMotivationalMessage();
 
   const [habitCompletions, setHabitCompletions] = useState<Record<number, boolean>>({});
   const [punctualityScore, setPunctualityScore] = useState<number[]>([3]);
   const [adherenceScore, setAdherenceScore] = useState<number[]>([3]);
   const [notes, setNotes] = useState('');
+  const [motivationalMessage, setMotivationalMessage] = useState('');
 
   // Load existing data when dailyEntry changes
   useEffect(() => {
@@ -36,6 +38,23 @@ export function TodayView() {
       setNotes(dailyEntry.notes || '');
     }
   }, [dailyEntry]);
+
+  // Generate motivational message when habits change
+  useEffect(() => {
+    if (habits && Object.keys(habitCompletions).length > 0) {
+      const completionRate = (Object.values(habitCompletions).filter(Boolean).length / habits.length) * 100;
+      const currentStreak = 1; // Simple implementation, could be enhanced with streak tracking
+      
+      motivationMutation.mutate(
+        { completionRate, currentStreak },
+        {
+          onSuccess: (data) => {
+            setMotivationalMessage(data.message);
+          },
+        }
+      );
+    }
+  }, [habitCompletions, habits]);
 
   // Calculate completion percentage score (1-5 scale)
   const calculateCompletionScore = (completions: Record<number, boolean>) => {
@@ -176,6 +195,21 @@ export function TodayView() {
           </div>
         )}
       </div>
+
+      {/* AI Motivational Message */}
+      {motivationalMessage && (
+        <Card className="rounded-2xl shadow-lg bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+          <CardContent className="pt-6">
+            <div className="flex items-start space-x-3">
+              <Sparkles className="w-6 h-6 text-purple-500 mt-1 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-gray-800 mb-2">AI Coach Says:</h3>
+                <p className="text-gray-700 italic">{motivationalMessage}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Core Routines Checklist */}
       <Card className="rounded-2xl shadow-lg">

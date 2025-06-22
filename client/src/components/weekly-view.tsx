@@ -6,9 +6,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useHabits } from "@/hooks/use-habits";
 import { useDailyEntries } from "@/hooks/use-daily-entries";
 import { useWeeklyReview, useCreateWeeklyReview, useUpdateWeeklyReview } from "@/hooks/use-weekly-reviews";
+import { useWeeklyInsights } from "@/hooks/use-ai";
 import { getWeekDates, getWeekStartDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { Sparkles } from "lucide-react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -35,10 +37,12 @@ export function WeeklyView() {
   const { data: weeklyReview } = useWeeklyReview(weekStartDate);
   const createWeeklyReview = useCreateWeeklyReview();
   const updateWeeklyReview = useUpdateWeeklyReview();
+  const weeklyInsightsMutation = useWeeklyInsights(weekDates[0], weekDates[6]);
 
   const [accomplishment, setAccomplishment] = useState('');
   const [breakdown, setBreakdown] = useState('');
   const [adjustment, setAdjustment] = useState('');
+  const [aiInsights, setAiInsights] = useState<any>(null);
 
   // Load existing weekly review data
   useEffect(() => {
@@ -48,6 +52,17 @@ export function WeeklyView() {
       setAdjustment(weeklyReview.adjustment || '');
     }
   }, [weeklyReview]);
+
+  // Generate AI insights when data is available
+  useEffect(() => {
+    if (dailyEntries && habits && dailyEntries.length > 0) {
+      weeklyInsightsMutation.mutate(undefined, {
+        onSuccess: (data) => {
+          setAiInsights(data);
+        },
+      });
+    }
+  }, [dailyEntries, habits]);
 
   // Calculate weekly statistics
   const weeklyStats = {
@@ -256,6 +271,36 @@ export function WeeklyView() {
           </CardContent>
         </Card>
       </div>
+
+      {/* AI Weekly Insights */}
+      {aiInsights && (
+        <Card className="rounded-2xl shadow-lg bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-gray-800 flex items-center">
+              <Sparkles className="w-6 h-6 text-purple-500 mr-2" />
+              AI Weekly Insights
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="font-medium text-gray-800 mb-2">Patterns Observed</h4>
+                <p className="text-sm text-gray-600 mb-4">{aiInsights.patterns}</p>
+                
+                <h4 className="font-medium text-gray-800 mb-2">This Week's Strengths</h4>
+                <p className="text-sm text-gray-600">{aiInsights.strengths}</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-800 mb-2">Improvement Suggestions</h4>
+                <p className="text-sm text-gray-600 mb-4">{aiInsights.improvements}</p>
+                
+                <h4 className="font-medium text-gray-800 mb-2">Motivation</h4>
+                <p className="text-sm text-gray-600 italic">{aiInsights.motivation}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Reflection Questions */}
       <Card className="rounded-2xl shadow-lg">
