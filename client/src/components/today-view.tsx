@@ -337,7 +337,7 @@ export function TodayView() {
                 disabled={isDayCompleted}
                 className="w-full"
               />
-              <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-2">
+              <div className="flex justify-between text-sm text-gray-500 dark:text-gray-300 mt-2">
                 <span>Poor (1)</span>
                 <span>Perfect (5)</span>
               </div>
