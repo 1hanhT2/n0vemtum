@@ -26,42 +26,69 @@ async function callOpenRouter(prompt: string): Promise<string> {
     "meta-llama/llama-3.3-8b-instruct:free"
   ];
 
-  for (const model of freeModels) {
-    try {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://momentum-habit-tracker.replit.app",
-          "X-Title": "Momentum Habit Tracker"
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            {
-              role: "user",
-              content: prompt
-            }
-          ],
-          max_tokens: 200,
-          temperature: 0.7
-        })
-      });
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  const maxRetries = 3;
 
-      if (response.ok) {
-        const data: OpenRouterResponse = await response.json();
-        const content = data.choices[0]?.message?.content;
-        if (content && content.trim()) {
-          console.log(`Successfully used model: ${model}`);
-          return content.trim();
+  for (const model of freeModels) {
+    let lastError: any = null;
+    
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://momentum-habit-tracker.replit.app",
+            "X-Title": "Momentum Habit Tracker"
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              {
+                role: "user",
+                content: prompt
+              }
+            ],
+            max_tokens: 200,
+            temperature: 0.7
+          })
+        });
+
+        if (response.ok) {
+          const data: OpenRouterResponse = await response.json();
+          const content = data.choices[0]?.message?.content;
+          if (content && content.trim()) {
+            console.log(`Successfully used model: ${model} on attempt ${attempt + 1}`);
+            return content.trim();
+          }
+        } else if (response.status === 429) {
+          // Rate limited - wait with exponential backoff before retrying
+          const waitTime = Math.min(1000 * Math.pow(2, attempt), 8000); // Cap at 8 seconds
+          console.log(`Model ${model} rate limited. Retrying in ${waitTime}ms... (attempt ${attempt + 1}/${maxRetries})`);
+          
+          if (attempt < maxRetries - 1) {
+            await delay(waitTime);
+            continue;
+          } else {
+            console.log(`Model ${model} failed with status: ${response.status} after ${maxRetries} attempts`);
+            lastError = new Error(`Rate limited after ${maxRetries} attempts`);
+            break;
+          }
+        } else {
+          console.log(`Model ${model} failed with status: ${response.status}`);
+          lastError = new Error(`HTTP ${response.status}`);
+          break;
         }
-      } else {
-        console.log(`Model ${model} failed with status: ${response.status}`);
+      } catch (error) {
+        console.log(`Model ${model} error on attempt ${attempt + 1}:`, error);
+        lastError = error;
+        
+        if (attempt < maxRetries - 1) {
+          const waitTime = Math.min(1000 * Math.pow(2, attempt), 8000);
+          await delay(waitTime);
+        }
       }
-    } catch (error) {
-      console.log(`Model ${model} error:`, error);
-      continue;
     }
   }
   
