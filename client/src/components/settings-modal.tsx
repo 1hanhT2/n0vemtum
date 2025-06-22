@@ -210,7 +210,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" aria-describedby="settings-description">
+      <DialogContent className="max-w-md max-h-[90vh]" aria-describedby="settings-description">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-800 dark:text-white flex items-center">
             <span className="mr-2">⚙️</span>
