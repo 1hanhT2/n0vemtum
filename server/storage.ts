@@ -167,6 +167,12 @@ export class DatabaseStorage implements IStorage {
       .insert(dailyEntries)
       .values(insertEntry)
       .returning();
+
+    // Calculate streaks when day is completed
+    if (insertEntry.isCompleted === true) {
+      await this.calculateStreaks(insertEntry.date);
+    }
+
     return entry;
   }
 
@@ -181,6 +187,12 @@ export class DatabaseStorage implements IStorage {
     if (!entry) {
       throw new Error(`Daily entry for date ${date} not found`);
     }
+
+    // Calculate streaks when day is completed
+    if (updateData.isCompleted === true) {
+      await this.calculateStreaks(date);
+    }
+
     return entry;
   }
 

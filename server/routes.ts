@@ -211,6 +211,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Achievements routes
+  app.get("/api/achievements", async (req, res) => {
+    try {
+      const achievements = await storage.getAchievements();
+      res.json(achievements);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch achievements" });
+    }
+  });
+
+  app.post("/api/achievements/:id/unlock", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const achievement = await storage.unlockAchievement(id);
+      res.json(achievement);
+    } catch (error) {
+      res.status(404).json({ error: "Achievement not found" });
+    }
+  });
+
+  // Streaks routes
+  app.get("/api/streaks", async (req, res) => {
+    try {
+      const streaks = await storage.getStreaks();
+      res.json(streaks);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch streaks" });
+    }
+  });
+
+  app.get("/api/streaks/:type", async (req, res) => {
+    try {
+      const { type } = req.params;
+      const streak = await storage.getStreak(type);
+      if (!streak) {
+        res.status(404).json({ error: "Streak not found" });
+        return;
+      }
+      res.json(streak);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch streak" });
+    }
+  });
+
   // AI-powered routes
   app.get("/api/ai/habit-suggestions", async (req, res) => {
     try {

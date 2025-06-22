@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
-type View = 'today' | 'weekly' | 'history';
+type View = 'today' | 'weekly' | 'history' | 'achievements';
 
 interface NavigationProps {
   currentView: View;
