@@ -11,6 +11,18 @@ export const habits = pgTable("habits", {
   difficultyRating: integer("difficulty_rating").default(3),
   aiAnalysis: text("ai_analysis"),
   lastAnalyzed: timestamp("last_analyzed"),
+  // Gamification fields
+  level: integer("level").notNull().default(1),
+  experience: integer("experience").notNull().default(0),
+  experienceToNext: integer("experience_to_next").notNull().default(100),
+  masteryPoints: integer("mastery_points").notNull().default(0),
+  streak: integer("streak").notNull().default(0),
+  longestStreak: integer("longest_streak").notNull().default(0),
+  completionRate: integer("completion_rate").notNull().default(0), // percentage
+  totalCompletions: integer("total_completions").notNull().default(0),
+  tier: text("tier").notNull().default("bronze"), // bronze, silver, gold, platinum, diamond
+  badges: text("badges").array().default([]), // earned badges for this habit
+  lastCompleted: text("last_completed"), // YYYY-MM-DD
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -29,6 +29,12 @@ export interface IStorage {
   updateHabit(id: number, habit: Partial<InsertHabit>): Promise<Habit>;
   updateHabitDifficulty(id: number, difficulty: number, analysis: string): Promise<Habit>;
   deleteHabit(id: number): Promise<void>;
+  
+  // Gamification
+  updateHabitProgress(habitId: number, completed: boolean, date: string): Promise<Habit>;
+  levelUpHabit(habitId: number): Promise<Habit>;
+  awardBadge(habitId: number, badge: string): Promise<Habit>;
+  calculateTierPromotion(habitId: number): Promise<Habit>;
 
   // Daily Entries
   getDailyEntry(date: string): Promise<DailyEntry | undefined>;
@@ -578,6 +584,193 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Failed to calculate streaks:', error);
     }
+  }
+
+  // Add gamification methods before checkAchievements
+  async updateHabitProgress(habitId: number, completed: boolean, date: string): Promise<Habit> {
+    await this.ensureInitialized();
+    
+    const habit = await this.getHabitById(habitId);
+    if (!habit) {
+      throw new Error(`Habit with id ${habitId} not found`);
+    }
+
+    let newExperience = habit.experience;
+    let newMasteryPoints = habit.masteryPoints;
+    let newStreak = habit.streak;
+    let newLongestStreak = habit.longestStreak;
+    let newTotalCompletions = habit.totalCompletions;
+    let newBadges = [...habit.badges];
+
+    if (completed) {
+      // Calculate XP based on difficulty and streak multiplier
+      const baseXP = 20;
+      const difficultyMultiplier = (habit.difficultyRating || 3) * 0.3 + 0.4; // 0.7x to 1.9x
+      const streakMultiplier = Math.min(1 + (habit.streak * 0.1), 2.0); // Up to 2x
+      const earnedXP = Math.floor(baseXP * difficultyMultiplier * streakMultiplier);
+      
+      newExperience += earnedXP;
+      newMasteryPoints += Math.floor(earnedXP * 0.5);
+      newTotalCompletions += 1;
+
+      // Update streak
+      if (habit.lastCompleted === this.getPreviousDate(date)) {
+        newStreak += 1;
+      } else if (habit.lastCompleted !== date) {
+        newStreak = 1;
+      }
+      
+      newLongestStreak = Math.max(newLongestStreak, newStreak);
+
+      // Award badges
+      if (newTotalCompletions === 1 && !newBadges.includes("first_completion")) {
+        newBadges.push("first_completion");
+      }
+      if (newStreak === 7 && !newBadges.includes("week_warrior")) {
+        newBadges.push("week_warrior");
+      }
+      if (newStreak === 30 && !newBadges.includes("month_master")) {
+        newBadges.push("month_master");
+      }
+      if (newStreak >= 5 && !newBadges.includes("streak_starter")) {
+        newBadges.push("streak_starter");
+      }
+    } else {
+      // Reset streak if not completed today and yesterday
+      if (habit.lastCompleted !== date && habit.lastCompleted !== this.getPreviousDate(date)) {
+        newStreak = 0;
+      }
+    }
+
+    // Calculate completion rate
+    const totalDays = this.getDaysBetween(habit.createdAt?.toISOString().split('T')[0] || date, date) + 1;
+    const completionRate = Math.floor((newTotalCompletions / totalDays) * 100);
+
+    const [updatedHabit] = await db
+      .update(habits)
+      .set({
+        experience: newExperience,
+        masteryPoints: newMasteryPoints,
+        streak: newStreak,
+        longestStreak: newLongestStreak,
+        totalCompletions: newTotalCompletions,
+        completionRate,
+        badges: newBadges,
+        lastCompleted: completed ? date : habit.lastCompleted
+      })
+      .where(eq(habits.id, habitId))
+      .returning();
+
+    return updatedHabit;
+  }
+
+  async levelUpHabit(habitId: number): Promise<Habit> {
+    await this.ensureInitialized();
+    
+    const habit = await this.getHabitById(habitId);
+    if (!habit) {
+      throw new Error(`Habit with id ${habitId} not found`);
+    }
+
+    if (habit.experience < habit.experienceToNext) {
+      throw new Error('Not enough experience to level up');
+    }
+
+    const newLevel = habit.level + 1;
+    const remainingXP = habit.experience - habit.experienceToNext;
+    const newXPToNext = this.calculateXPRequirement(newLevel, habit.difficultyRating);
+
+    const [updatedHabit] = await db
+      .update(habits)
+      .set({
+        level: newLevel,
+        experience: remainingXP,
+        experienceToNext: newXPToNext,
+        masteryPoints: habit.masteryPoints + (newLevel * 10)
+      })
+      .where(eq(habits.id, habitId))
+      .returning();
+
+    return updatedHabit;
+  }
+
+  async awardBadge(habitId: number, badge: string): Promise<Habit> {
+    await this.ensureInitialized();
+    
+    const habit = await this.getHabitById(habitId);
+    if (!habit) {
+      throw new Error(`Habit with id ${habitId} not found`);
+    }
+
+    if (habit.badges.includes(badge)) {
+      return habit; // Badge already awarded
+    }
+
+    const newBadges = [...habit.badges, badge];
+
+    const [updatedHabit] = await db
+      .update(habits)
+      .set({ badges: newBadges })
+      .where(eq(habits.id, habitId))
+      .returning();
+
+    return updatedHabit;
+  }
+
+  async calculateTierPromotion(habitId: number): Promise<Habit> {
+    await this.ensureInitialized();
+    
+    const habit = await this.getHabitById(habitId);
+    if (!habit) {
+      throw new Error(`Habit with id ${habitId} not found`);
+    }
+
+    let newTier = habit.tier;
+    const { level, completionRate, longestStreak, masteryPoints } = habit;
+
+    // Tier promotion logic
+    if (level >= 50 && completionRate >= 90 && longestStreak >= 100 && masteryPoints >= 5000) {
+      newTier = "diamond";
+    } else if (level >= 30 && completionRate >= 80 && longestStreak >= 60 && masteryPoints >= 2000) {
+      newTier = "platinum";
+    } else if (level >= 20 && completionRate >= 70 && longestStreak >= 30 && masteryPoints >= 800) {
+      newTier = "gold";
+    } else if (level >= 10 && completionRate >= 60 && longestStreak >= 14 && masteryPoints >= 300) {
+      newTier = "silver";
+    } else {
+      newTier = "bronze";
+    }
+
+    if (newTier !== habit.tier) {
+      const [updatedHabit] = await db
+        .update(habits)
+        .set({ tier: newTier })
+        .where(eq(habits.id, habitId))
+        .returning();
+      
+      return updatedHabit;
+    }
+
+    return habit;
+  }
+
+  private calculateXPRequirement(level: number, difficulty?: number): number {
+    const baseXP = 100;
+    const difficultyMultiplier = (difficulty || 3) * 0.2 + 0.6;
+    return Math.floor(baseXP * Math.pow(1.2, level - 1) * difficultyMultiplier);
+  }
+
+  private getPreviousDate(dateStr: string): string {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() - 1);
+    return date.toISOString().split('T')[0];
+  }
+
+  private getDaysBetween(startDate: string, endDate: string): number {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 
   private async checkAchievements(currentStreak: number, dailyEntry: DailyEntry): Promise<void> {
