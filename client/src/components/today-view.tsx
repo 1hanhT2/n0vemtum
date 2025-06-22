@@ -250,6 +250,7 @@ export function TodayView() {
                   id={`habit-${habit.id}`}
                   checked={habitCompletions[habit.id] || false}
                   onCheckedChange={(checked) => handleHabitToggle(habit.id, !!checked)}
+                  disabled={isDayCompleted}
                   className="w-6 h-6"
                 />
                 <label
@@ -325,6 +326,7 @@ export function TodayView() {
                 max={5}
                 min={1}
                 step={1}
+                disabled={isDayCompleted}
                 className="w-full"
               />
               <div className="flex justify-between text-sm text-gray-500 mt-2">
@@ -351,6 +353,7 @@ export function TodayView() {
           <Textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
+            disabled={isDayCompleted}
             className="w-full h-32 resize-none"
             placeholder="Add your thoughts, wins, or observations for today..."
           />
@@ -359,21 +362,50 @@ export function TodayView() {
 
       {/* Complete Day Button */}
       <div className="text-center">
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Button
-            onClick={handleCompleteDay}
-            disabled={createDailyEntry.isPending || updateDailyEntry.isPending}
-            className="gradient-bg text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl"
-          >
-            {createDailyEntry.isPending || updateDailyEntry.isPending
-              ? "Saving..."
-              : "Complete Day ✨"
-            }
-          </Button>
-        </motion.div>
+        {isDayCompleted ? (
+          <Card className="rounded-2xl shadow-lg bg-green-50 border-green-200">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <div className="text-4xl mb-2">🎉</div>
+                <h3 className="text-lg font-semibold text-green-800 mb-2">Day Completed!</h3>
+                <p className="text-green-700">Your progress has been locked and saved successfully.</p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  disabled={createDailyEntry.isPending || updateDailyEntry.isPending}
+                  className="gradient-bg text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl"
+                >
+                  {createDailyEntry.isPending || updateDailyEntry.isPending
+                    ? "Saving..."
+                    : "Complete Day ✨"
+                  }
+                </Button>
+              </motion.div>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Complete Your Day?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to complete today? Once confirmed, you won't be able to make any changes to your habit tracking, scores, or notes for today.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleCompleteDay}>
+                  Yes, Complete Day
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
     </motion.div>
   );

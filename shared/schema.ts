@@ -18,6 +18,7 @@ export const dailyEntries = pgTable("daily_entries", {
   punctualityScore: integer("punctuality_score").notNull().default(3),
   adherenceScore: integer("adherence_score").notNull().default(3),
   notes: text("notes").default(""),
+  isCompleted: boolean("is_completed").notNull().default(false),
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
