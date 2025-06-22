@@ -9,11 +9,12 @@ interface OpenRouterResponse {
 }
 
 async function callOpenRouter(prompt: string): Promise<string> {
+  // Try the most commonly available free models
   const freeModels = [
     "microsoft/phi-3-mini-128k-instruct:free",
     "meta-llama/llama-3.2-3b-instruct:free", 
     "google/gemma-2-9b-it:free",
-    "mistralai/mistral-7b-instruct:free"
+    "huggingface/microsoft/phi-3-mini-4k-instruct"
   ];
 
   for (const model of freeModels) {
@@ -23,6 +24,8 @@ async function callOpenRouter(prompt: string): Promise<string> {
         headers: {
           "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
+          "HTTP-Referer": "https://momentum-habit-tracker.replit.app",
+          "X-Title": "Momentum Habit Tracker"
         },
         body: JSON.stringify({
           model,
@@ -32,17 +35,24 @@ async function callOpenRouter(prompt: string): Promise<string> {
               content: prompt
             }
           ],
-          max_tokens: 300,
+          max_tokens: 200,
           temperature: 0.7
         })
       });
 
       if (response.ok) {
         const data: OpenRouterResponse = await response.json();
-        return data.choices[0]?.message?.content || "";
+        const content = data.choices[0]?.message?.content;
+        if (content && content.trim()) {
+          console.log(`Successfully used model: ${model}`);
+          return content.trim();
+        }
+      } else {
+        console.log(`Model ${model} failed with status: ${response.status}`);
       }
     } catch (error) {
-      continue; // Try next model
+      console.log(`Model ${model} error:`, error);
+      continue;
     }
   }
   
@@ -132,22 +142,34 @@ export async function generateMotivationalMessage(
   completionRate: number,
   currentStreak: number
 ): Promise<string> {
-  const prompt = `You are a motivational habit coach. Create an encouraging message for someone with:
-- Completion rate: ${completionRate}%
-- Current streak: ${currentStreak} days
-
-Write a brief, personalized motivational message (1-2 sentences) that:
-- Acknowledges their current progress
-- Provides specific encouragement
-- Maintains a positive, supportive tone
-
-Return only the message text, no quotes or formatting.`;
-
-  try {
-    const response = await callOpenRouter(prompt);
-    return response.trim();
-  } catch (error) {
-    console.error('Error generating motivational message:', error);
-    return "You're building great habits! Keep up the momentum.";
+  // Generate contextual motivational messages based on performance
+  if (completionRate >= 90) {
+    const messages = [
+      `Outstanding ${completionRate}% completion rate! Your ${currentStreak}-day streak shows incredible dedication.`,
+      `Exceptional consistency at ${completionRate}%! You're building rock-solid habits with this ${currentStreak}-day streak.`,
+      `Amazing ${completionRate}% performance! Your ${currentStreak} days of commitment are paying off beautifully.`
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
+  } else if (completionRate >= 70) {
+    const messages = [
+      `Strong ${completionRate}% completion rate! Your ${currentStreak}-day streak proves you're on the right track.`,
+      `Great progress at ${completionRate}%! Keep building on this ${currentStreak}-day momentum.`,
+      `Solid ${completionRate}% consistency! Your ${currentStreak} days show real commitment to growth.`
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
+  } else if (completionRate >= 50) {
+    const messages = [
+      `Making progress at ${completionRate}%! Every day in your ${currentStreak}-day streak counts toward building lasting habits.`,
+      `Building momentum with ${completionRate}% completion! Your ${currentStreak} days of effort are valuable stepping stones.`,
+      `Growing stronger at ${completionRate}%! These ${currentStreak} days are proof you can build positive routines.`
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
+  } else {
+    const messages = [
+      `Every step counts! Your ${currentStreak} days show you're committed to positive change.`,
+      `Starting strong with ${currentStreak} days! Consistency is more important than perfection.`,
+      `Building new habits takes time. Your ${currentStreak}-day effort shows you're on the right path.`
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
   }
 }
