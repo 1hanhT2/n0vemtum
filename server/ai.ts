@@ -76,10 +76,14 @@ Output ONLY a valid JSON array with 3-5 habit suggestions. No explanations, no m
 
   try {
     const response = await callOpenRouter(prompt);
-    // Extract JSON array from any text response - match from [ to ]
-    const arrayMatch = response.match(/\[[\s\S]*\]/);
+    // Extract JSON array from any text response - handle multiline arrays
+    const arrayMatch = response.match(/\[[\s\S]*?\]/);
     if (!arrayMatch) {
-      console.log('No JSON array found in response:', response);
+      // Try to find array without brackets if response is clean JSON
+      if (response.trim().startsWith('[') && response.trim().endsWith(']')) {
+        const suggestions = JSON.parse(response.trim());
+        return Array.isArray(suggestions) ? suggestions : getDefaultHabitSuggestions(existingHabits);
+      }
       return getDefaultHabitSuggestions(existingHabits);
     }
     
