@@ -29,6 +29,7 @@ import { useLevelUpHabit, useUpdateHabitProgress } from "@/hooks/use-gamificatio
 import { HabitDifficultyDisplay } from "@/components/habit-difficulty-display";
 import { HabitProgression } from "@/components/habit-progression";
 import { GamificationSummary } from "@/components/gamification-summary";
+import { LevelUpNotification } from "@/components/level-up-notification";
 
 export function TodayView() {
   const { toast } = useToast();
@@ -43,6 +44,7 @@ export function TodayView() {
   const motivationMutation = useMotivationalMessage();
   const levelUpHabit = useLevelUpHabit();
   const updateHabitProgress = useUpdateHabitProgress();
+  const [levelUpHabitId, setLevelUpHabitId] = useState<number | null>(null);
 
   const [habitCompletions, setHabitCompletions] = useState<Record<number, boolean>>({});
   const [punctualityScore, setPunctualityScore] = useState<number[]>([3]);
@@ -133,6 +135,13 @@ export function TodayView() {
       habitId,
       completed: checked,
       date: today
+    }, {
+      onSuccess: (updatedHabit) => {
+        // Check if habit can level up
+        if (updatedHabit.experience >= updatedHabit.experienceToNext) {
+          setLevelUpHabitId(habitId);
+        }
+      }
     });
     
     // Auto-calculate scores based on completion
