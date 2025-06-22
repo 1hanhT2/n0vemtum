@@ -6,10 +6,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHabits } from "@/hooks/use-habits";
 import { useDailyEntry, useCreateDailyEntry, useUpdateDailyEntry } from "@/hooks/use-daily-entries";
+import { useMotivationalMessage } from "@/hooks/use-ai";
 import { getCurrentDateKey, formatDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Sparkles } from "lucide-react";
 
 export function TodayView() {
   const { toast } = useToast();

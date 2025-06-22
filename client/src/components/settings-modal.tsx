@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useHabits, useUpdateHabit, useCreateHabit, useDeleteHabit } from "@/hooks/use-habits";
+import { useHabitSuggestions } from "@/hooks/use-ai";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { X, Plus, Trash2 } from "lucide-react";
+import { X, Plus, Trash2, Sparkles } from "lucide-react";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const updateHabit = useUpdateHabit();
   const createHabit = useCreateHabit();
   const deleteHabit = useDeleteHabit();
+  const { data: aiSuggestions, isLoading: suggestionsLoading } = useHabitSuggestions();
 
   const [habitSettings, setHabitSettings] = useState<Array<{ id: number; name: string; emoji: string; isNew?: boolean }>>([]);
   const [selectedTheme, setSelectedTheme] = useState('default');
@@ -99,6 +101,16 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       id: newId,
       name: 'New Habit',
       emoji: '✨',
+      isNew: true,
+    }]);
+  };
+
+  const addSuggestedHabit = (suggestion: { name: string; emoji: string }) => {
+    const newId = Math.max(...habitSettings.map(h => h.id), 0) + 1;
+    setHabitSettings(prev => [...prev, {
+      id: newId,
+      name: suggestion.name,
+      emoji: suggestion.emoji,
       isNew: true,
     }]);
   };
@@ -186,6 +198,33 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               ))}
             </div>
           </div>
+
+          {/* AI Habit Suggestions */}
+          {aiSuggestions && aiSuggestions.length > 0 && (
+            <div>
+              <div className="flex items-center mb-4">
+                <Sparkles className="w-5 h-5 text-purple-500 mr-2" />
+                <h3 className="text-lg font-semibold text-gray-800">AI Suggested Habits</h3>
+              </div>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {aiSuggestions.map((suggestion: { name: string; emoji: string }, index: number) => (
+                  <motion.button
+                    key={index}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => addSuggestedHabit(suggestion)}
+                    className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 rounded-xl border border-purple-200 transition-all"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <span className="text-lg">{suggestion.emoji}</span>
+                      <span className="text-sm font-medium text-gray-700">{suggestion.name}</span>
+                    </div>
+                    <Plus className="w-4 h-4 text-purple-600" />
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Theme Selection */}
           <div>

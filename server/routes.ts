@@ -8,6 +8,7 @@ import {
   insertSettingSchema 
 } from "@shared/schema";
 import { z } from "zod";
+import { generateHabitSuggestions, generateWeeklyInsights, generateMotivationalMessage } from "./ai";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -205,6 +206,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ error: "Failed to save setting" });
       }
+    }
+  });
+
+  // AI-powered routes
+  app.get("/api/ai/habit-suggestions", async (req, res) => {
+    try {
+      const habits = await storage.getHabits();
+      const suggestions = await generateHabitSuggestions(habits);
+      res.json(suggestions);
+    } catch (error) {
+      console.error('AI habit suggestions error:', error);
+      res.status(500).json({ error: "Failed to generate habit suggestions" });
+    }
+  });
+
+  app.post("/api/ai/weekly-insights", async (req, res) => {
+    try {
+      const { startDate, endDate } = req.body;
+      const [dailyEntries, habits] = await Promise.all([
+        storage.getDailyEntries(startDate, endDate),
+        storage.getHabits()
+      ]);
+      
+      const insights = await generateWeeklyInsights(dailyEntries, habits);
+      res.json(insights);
+    } catch (error) {
+      console.error('AI weekly insights error:', error);
+      res.status(500).json({ error: "Failed to generate weekly insights" });
+    }
+  });
+
+  app.post("/api/ai/motivation", async (req, res) => {
+    try {
+      const { completionRate, currentStreak } = req.body;
+      const message = await generateMotivationalMessage(completionRate, currentStreak);
+      res.json({ message });
+    } catch (error) {
+      console.error('AI motivation error:', error);
+      res.status(500).json({ error: "Failed to generate motivational message" });
     }
   });
 
