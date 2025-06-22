@@ -1,4 +1,8 @@
 import type { Habit, DailyEntry, WeeklyReview } from "@shared/schema";
+import { GoogleGenAI } from "@google/genai";
+
+// Gemini configuration
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 function extractInsight(text: string, key: string): string | null {
   const regex = new RegExp(`"${key}":\\s*"([^"]*)"`, 'i');
@@ -6,93 +10,18 @@ function extractInsight(text: string, key: string): string | null {
   return match ? match[1] : null;
 }
 
-interface OpenRouterResponse {
-  choices: Array<{
-    message: {
-      content: string;
-    };
-  }>;
-}
+async function callGemini(prompt: string): Promise<string> {
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
 
-async function callOpenRouter(prompt: string): Promise<string> {
-  // Use exclusively the models provided by the user
-  const freeModels = [
-    "deepseek/deepseek-r1-0528-qwen3-8b:free",
-    "google/gemma-3n-e4b-it:free",
-    "microsoft/phi-4-reasoning-plus-04-30:free",
-    "microsoft/phi-4-reasoning:free",
-    "mistralai/mistral-small-3.2-24b-instruct:free",
-    "deepseek/deepseek-r1-0528:free",
-    "meta-llama/llama-3.3-8b-instruct:free"
-  ];
-
-  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-  const maxRetries = 3;
-
-  for (const model of freeModels) {
-    let lastError: any = null;
-    
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-      try {
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://momentum-habit-tracker.replit.app",
-            "X-Title": "Momentum Habit Tracker"
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              {
-                role: "user",
-                content: prompt
-              }
-            ],
-            max_tokens: 200,
-            temperature: 0.7
-          })
-        });
-
-        if (response.ok) {
-          const data: OpenRouterResponse = await response.json();
-          const content = data.choices[0]?.message?.content;
-          if (content && content.trim()) {
-            console.log(`Successfully used model: ${model} on attempt ${attempt + 1}`);
-            return content.trim();
-          }
-        } else if (response.status === 429) {
-          // Rate limited - wait with exponential backoff before retrying
-          const waitTime = Math.min(1000 * Math.pow(2, attempt), 8000); // Cap at 8 seconds
-          console.log(`Model ${model} rate limited. Retrying in ${waitTime}ms... (attempt ${attempt + 1}/${maxRetries})`);
-          
-          if (attempt < maxRetries - 1) {
-            await delay(waitTime);
-            continue;
-          } else {
-            console.log(`Model ${model} failed with status: ${response.status} after ${maxRetries} attempts`);
-            lastError = new Error(`Rate limited after ${maxRetries} attempts`);
-            break;
-          }
-        } else {
-          console.log(`Model ${model} failed with status: ${response.status}`);
-          lastError = new Error(`HTTP ${response.status}`);
-          break;
-        }
-      } catch (error) {
-        console.log(`Model ${model} error on attempt ${attempt + 1}:`, error);
-        lastError = error;
-        
-        if (attempt < maxRetries - 1) {
-          const waitTime = Math.min(1000 * Math.pow(2, attempt), 8000);
-          await delay(waitTime);
-        }
-      }
-    }
+    return response.text || "No response generated";
+  } catch (error) {
+    console.error("Gemini API error:", error);
+    throw new Error("Failed to generate response from Gemini");
   }
-  
-  throw new Error("All free models unavailable");
 }
 
 export async function generateHabitSuggestions(existingHabits: Habit[]): Promise<string[]> {
@@ -105,7 +34,7 @@ Output ONLY a valid JSON array with 3-5 habit suggestions. No explanations, no m
 [{"name": "habit name", "emoji": "emoji"}]`;
 
   try {
-    const response = await callOpenRouter(prompt);
+    const response = await callGemini(prompt);
     // Extract JSON array from any text response - handle multiline arrays
     const arrayMatch = response.match(/\[[\s\S]*?\]/);
     if (!arrayMatch) {
@@ -168,7 +97,7 @@ Output ONLY valid JSON with insights:
 {"patterns": "brief pattern observation", "strengths": "what went well", "improvements": "actionable suggestions", "motivation": "encouraging message"}`;
 
   try {
-    const response = await callOpenRouter(prompt);
+    const response = await callGemini(prompt);
     // Try to extract and parse JSON
     const objectMatch = response.match(/\{[\s\S]*\}/);
     if (objectMatch) {
