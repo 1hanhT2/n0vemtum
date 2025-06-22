@@ -30,6 +30,7 @@ import { HabitDifficultyDisplay } from "@/components/habit-difficulty-display";
 import { HabitProgression } from "@/components/habit-progression";
 import { GamificationSummary } from "@/components/gamification-summary";
 import { LevelUpNotification } from "@/components/level-up-notification";
+import { HabitHealthRadar } from "@/components/habit-health-radar";
 
 export function TodayView() {
   const { toast } = useToast();
