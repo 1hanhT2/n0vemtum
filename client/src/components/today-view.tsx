@@ -198,14 +198,14 @@ export function TodayView() {
         <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">✨ Today's Focus</h2>
         <p className="text-gray-600 dark:text-gray-400">{formatDate(today)}</p>
         {habits && (
-          <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+          <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-xl">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Progress</span>
-              <span className="text-sm font-bold text-gray-800">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
+              <span className="text-sm font-bold text-gray-800 dark:text-gray-200">
                 {Object.values(habitCompletions).filter(Boolean).length} / {habits.length} completed
               </span>
             </div>
-            <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+            <div className="mt-2 w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
               <div 
                 className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
                 style={{ 
@@ -219,13 +219,13 @@ export function TodayView() {
 
       {/* AI Motivational Message */}
       {motivationalMessage && (
-        <Card className="rounded-2xl shadow-lg bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+        <Card className="rounded-2xl shadow-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 border-purple-200 dark:border-gray-600">
           <CardContent className="pt-6">
             <div className="flex items-start space-x-3">
-              <Sparkles className="w-6 h-6 text-purple-500 mt-1 flex-shrink-0" />
+              <Sparkles className="w-6 h-6 text-purple-500 dark:text-purple-400 mt-1 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-800 mb-2">AI Coach Says:</h3>
-                <p className="text-gray-700 italic">{motivationalMessage}</p>
+                <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">AI Coach Says:</h3>
+                <p className="text-gray-700 dark:text-gray-300 italic">{motivationalMessage}</p>
               </div>
             </div>
           </CardContent>
@@ -233,9 +233,9 @@ export function TodayView() {
       )}
 
       {/* Core Routines Checklist */}
-      <Card className="rounded-2xl shadow-lg">
+      <Card className="rounded-2xl shadow-lg bg-card dark:bg-gray-800 border-border dark:border-gray-700">
         <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-800 flex items-center">
+          <CardTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100 flex items-center">
             <span className="mr-2">✅</span>
             Core Routine Checklist
           </CardTitle>
@@ -247,7 +247,7 @@ export function TodayView() {
                 key={habit.id}
                 initial={{ scale: 1 }}
                 whileHover={{ scale: 1.02 }}
-                className="flex items-center space-x-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                className="flex items-center space-x-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
               >
                 <Checkbox
                   id={`habit-${habit.id}`}
@@ -259,11 +259,11 @@ export function TodayView() {
                 <label
                   htmlFor={`habit-${habit.id}`}
                   className={`flex-1 flex items-center space-x-3 cursor-pointer ${
-                    habitCompletions[habit.id] ? 'line-through text-gray-500' : ''
+                    habitCompletions[habit.id] ? 'line-through text-gray-500 dark:text-gray-400' : ''
                   }`}
                 >
                   <span className="text-2xl">{habit.emoji}</span>
-                  <span className="text-lg font-medium text-gray-800">{habit.name}</span>
+                  <span className="text-lg font-medium text-gray-800 dark:text-gray-200">{habit.name}</span>
                 </label>
               </motion.div>
             ))}
@@ -274,20 +274,20 @@ export function TodayView() {
       {/* Scoring Section */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Auto-Calculated Score */}
-        <Card className="rounded-2xl shadow-lg">
+        <Card className="rounded-2xl shadow-lg bg-card dark:bg-gray-800 border-border dark:border-gray-700">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-800 flex items-center">
+            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
               <span className="mr-2">🎯</span>
               Daily Performance Score
             </CardTitle>
-            <p className="text-sm text-gray-600 mt-1">Auto-calculated based on habit completion</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Auto-calculated based on habit completion</p>
           </CardHeader>
           <CardContent>
             <div className="text-center mb-4">
               <span className="text-4xl font-bold text-primary">{punctualityScore[0]}</span>
               <span className="text-lg text-gray-500 ml-2">/ 5</span>
             </div>
-            <div className="space-y-2 text-sm text-gray-600">
+            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
               <div className="flex justify-between">
                 <span>100% completion:</span>
                 <span className="font-medium">5 points</span>
@@ -313,13 +313,13 @@ export function TodayView() {
         </Card>
 
         {/* Manual Override (Optional) */}
-        <Card className="rounded-2xl shadow-lg">
+        <Card className="rounded-2xl shadow-lg bg-card dark:bg-gray-800 border-border dark:border-gray-700">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-800 flex items-center">
+            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
               <span className="mr-2">⚙️</span>
               Manual Adjustment
             </CardTitle>
-            <p className="text-sm text-gray-600 mt-1">Override if needed for special circumstances</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Override if needed for special circumstances</p>
           </CardHeader>
           <CardContent>
             <div className="mb-4">
@@ -332,7 +332,7 @@ export function TodayView() {
                 disabled={isDayCompleted}
                 className="w-full"
               />
-              <div className="flex justify-between text-sm text-gray-500 mt-2">
+              <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-2">
                 <span>Poor (1)</span>
                 <span>Perfect (5)</span>
               </div>
