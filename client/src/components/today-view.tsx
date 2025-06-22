@@ -343,7 +343,7 @@ export function TodayView() {
               </div>
             </div>
             <div className="text-center">
-              <span className="text-2xl font-bold text-secondary">{adherenceScore[0]}</span>
+              <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">{adherenceScore[0]}</span>
             </div>
           </CardContent>
         </Card>
