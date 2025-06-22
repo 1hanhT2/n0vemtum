@@ -1,5 +1,6 @@
 import type { Habit, DailyEntry, WeeklyReview } from "@shared/schema";
 import { GoogleGenAI } from "@google/genai";
+import { aiCache } from "./cache";
 
 // Gemini configuration
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
@@ -38,7 +39,16 @@ async function callGemini(prompt: string): Promise<string> {
 }
 
 export async function generateHabitSuggestions(existingHabits: Habit[]): Promise<string[]> {
-  const habitNames = existingHabits.map(h => h.name).join(", ");
+  // Create cache key based on habit names
+  const habitNames = existingHabits.map(h => h.name).sort().join(", ");
+  const cacheKey = `habit-suggestions:${habitNames}`;
+  
+  // Check cache first
+  const cached = aiCache.get<string[]>(cacheKey);
+  if (cached) {
+    console.log('Returning cached habit suggestions');
+    return cached;
+  }
   
   const prompt = `Given existing habits: ${habitNames}
 
@@ -61,7 +71,11 @@ Output ONLY a valid JSON array with 3-5 habit suggestions. No explanations, no m
     
     const jsonString = arrayMatch[0];
     const suggestions = JSON.parse(jsonString);
-    return Array.isArray(suggestions) ? suggestions : getDefaultHabitSuggestions(existingHabits);
+    const result = Array.isArray(suggestions) ? suggestions : getDefaultHabitSuggestions(existingHabits);
+    
+    // Cache the result for 30 minutes
+    aiCache.set(cacheKey, result, 30);
+    return result;
   } catch (error) {
     console.error('Error generating habit suggestions:', error);
     // Fallback to curated suggestions if API fails
@@ -156,14 +170,29 @@ export async function generateMotivationalMessage(
   completionRate: number,
   currentStreak: number
 ): Promise<string> {
+  // Round completion rate to reduce cache misses
+  const roundedRate = Math.round(completionRate * 100) / 100;
+  const cacheKey = `motivation:${roundedRate}:${currentStreak}`;
+  
+  // Check cache first
+  const cached = aiCache.get<string>(cacheKey);
+  if (cached) {
+    console.log('Returning cached motivational message');
+    return cached;
+  }
+  
   // Generate contextual motivational messages based on performance
   if (completionRate >= 90) {
     const messages = [
-      `Outstanding ${completionRate}% completion rate! Your ${currentStreak}-day streak shows incredible dedication.`,
-      `Exceptional consistency at ${completionRate}%! You're building rock-solid habits with this ${currentStreak}-day streak.`,
-      `Amazing ${completionRate}% performance! Your ${currentStreak} days of commitment are paying off beautifully.`
+      `Outstanding ${roundedRate}% completion rate! Your ${currentStreak}-day streak shows incredible dedication.`,
+      `Exceptional consistency at ${roundedRate}%! You're building rock-solid habits with this ${currentStreak}-day streak.`,
+      `Amazing ${roundedRate}% performance! Your ${currentStreak} days of commitment are paying off beautifully.`
     ];
-    return messages[Math.floor(Math.random() * messages.length)];
+    const result = messages[Math.floor(Math.random() * messages.length)];
+    
+    // Cache for 10 minutes
+    aiCache.set(cacheKey, result, 10);
+    return result;
   } else if (completionRate >= 70) {
     const messages = [
       `Strong ${completionRate}% completion rate! Your ${currentStreak}-day streak proves you're on the right track.`,

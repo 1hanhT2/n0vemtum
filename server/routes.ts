@@ -240,6 +240,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ai/motivation", async (req, res) => {
     try {
       const { completionRate, currentStreak } = req.body;
+      
+      // Validate inputs
+      if (typeof completionRate !== 'number' || typeof currentStreak !== 'number') {
+        return res.status(400).json({ error: "Invalid completion rate or streak" });
+      }
+      
       const message = await generateMotivationalMessage(completionRate, currentStreak);
       res.json({ message });
     } catch (error) {
