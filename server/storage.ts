@@ -613,10 +613,16 @@ export class DatabaseStorage implements IStorage {
       newMasteryPoints += Math.floor(earnedXP * 0.5);
       newTotalCompletions += 1;
 
-      // Update streak
-      if (habit.lastCompleted === this.getPreviousDate(date)) {
+      // Update streak - build consecutive day chains
+      const previousDate = this.getPreviousDate(date);
+      if (habit.lastCompleted === previousDate) {
+        // Continuing a streak
         newStreak += 1;
-      } else if (habit.lastCompleted !== date) {
+      } else if (habit.lastCompleted === date) {
+        // Same day completion, don't change streak
+        newStreak = habit.streak;
+      } else {
+        // Starting a new streak
         newStreak = 1;
       }
       
