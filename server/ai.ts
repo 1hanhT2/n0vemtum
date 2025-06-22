@@ -60,19 +60,7 @@ async function callOpenRouter(prompt: string): Promise<string> {
 }
 
 export async function generateHabitSuggestions(existingHabits: Habit[]): Promise<string[]> {
-  const habitNames = existingHabits.map(h => h.name).join(", ");
-  
-  const prompt = `You are a productivity and wellness expert. Given these existing habits: ${habitNames}
-
-Suggest 3-5 complementary habits that would enhance this routine. Focus on:
-- Habits that fill gaps in the current routine
-- Evidence-based practices for productivity and well-being
-- Realistic daily habits that take 5-30 minutes
-
-Return only a JSON array of habit objects with "name" and "emoji" fields, no other text.
-Example: [{"name": "Morning meditation", "emoji": "🧘"}]`;
-
-  // For now, use curated suggestions until free models are confirmed working
+  // Always use curated suggestions to avoid API costs
   return getDefaultHabitSuggestions(existingHabits);
 }
 
@@ -102,40 +90,25 @@ export async function generateWeeklyInsights(
   dailyEntries: DailyEntry[], 
   habits: Habit[]
 ): Promise<string> {
-  const completionData = dailyEntries.map(entry => ({
-    date: entry.date,
-    score: (entry.punctualityScore + entry.adherenceScore) / 2,
-    completedHabits: Object.values(entry.habitCompletions as Record<string, boolean>).filter(Boolean).length,
-    totalHabits: habits.length,
-    notes: entry.notes
-  }));
+  // Use static insights to avoid API costs while account is in the red
+  const completionRate = dailyEntries.length > 0 
+    ? (dailyEntries.reduce((sum, entry) => 
+        sum + Object.values(entry.habitCompletions as Record<string, boolean>).filter(Boolean).length, 0
+      ) / (dailyEntries.length * habits.length)) * 100 
+    : 0;
 
-  const prompt = `You are a habit and productivity coach. Analyze this week's data:
-
-${JSON.stringify(completionData, null, 2)}
-
-Provide insights in exactly this format:
-{
-  "patterns": "Brief observation about patterns in the data",
-  "strengths": "What went well this week",
-  "improvements": "Specific actionable suggestions for next week",
-  "motivation": "Encouraging message based on progress"
-}
-
-Keep each field to 2-3 sentences maximum. Be specific and actionable.`;
-
-  try {
-    const response = await callOpenRouter(prompt);
-    return JSON.parse(response);
-  } catch (error) {
-    console.error('Error generating weekly insights:', error);
-    return JSON.stringify({
-      patterns: "Unable to analyze patterns at this time.",
-      strengths: "Keep building your habits consistently.",
-      improvements: "Focus on maintaining your current routine.",
-      motivation: "Every small step counts towards your goals."
-    });
-  }
+  return JSON.stringify({
+    patterns: completionRate > 80 
+      ? "Strong consistency pattern observed in your habit tracking."
+      : "Room for improvement in maintaining daily consistency.",
+    strengths: completionRate > 60 
+      ? "You're building positive momentum with regular habit completion."
+      : "You're taking important steps toward building better habits.",
+    improvements: "Focus on completing your habits at the same time each day to build stronger routines.",
+    motivation: completionRate > 70 
+      ? "Your dedication is paying off - keep up the excellent work!"
+      : "Every day is a new opportunity to strengthen your habits."
+  });
 }
 
 export async function generateMotivationalMessage(
