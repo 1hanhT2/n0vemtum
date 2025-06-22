@@ -35,56 +35,56 @@ const tierInfo = [
     icon: Award,
     color: "bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200",
     requirements: {
-      level: 7,
-      completionRate: 50,
-      consistency: 35,
-      longestStreak: 10,
-      masteryPoints: 200,
+      level: 3,
+      completionRate: 35,
+      consistency: 20,
+      longestStreak: 3,
+      masteryPoints: 50,
       difficulty: 1
     },
-    description: "Developing consistency"
+    description: "Building momentum"
   },
   {
     name: "Gold",
     icon: Trophy,
     color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200", 
     requirements: {
-      level: 12,
-      completionRate: 65,
-      consistency: 50,
-      longestStreak: 21,
-      masteryPoints: 600,
+      level: 6,
+      completionRate: 50,
+      consistency: 30,
+      longestStreak: 7,
+      masteryPoints: 150,
       difficulty: 2
     },
-    description: "Solid habit mastery"
+    description: "Establishing consistency"
   },
   {
     name: "Platinum",
     icon: Star,
     color: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200",
     requirements: {
-      level: 18,
-      completionRate: 75,
-      consistency: 60,
-      longestStreak: 30,
-      masteryPoints: 1200,
+      level: 10,
+      completionRate: 60,
+      consistency: 40,
+      longestStreak: 14,
+      masteryPoints: 400,
       difficulty: 3
     },
-    description: "Expert-level consistency"
+    description: "Strong habit mastery"
   },
   {
     name: "Diamond",
     icon: Crown,
     color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
     requirements: {
-      level: 25,
-      completionRate: 85,
-      consistency: 70,
-      longestStreak: 50,
-      masteryPoints: 2500,
+      level: 15,
+      completionRate: 70,
+      consistency: 50,
+      longestStreak: 21,
+      masteryPoints: 800,
       difficulty: 4
     },
-    description: "Master of challenging habits"
+    description: "Elite habit champion"
   }
 ];
 

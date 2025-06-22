@@ -740,39 +740,39 @@ export class DatabaseStorage implements IStorage {
     // Difficulty-adjusted requirements
     const difficultyMultiplier = (difficultyRating || 3) / 3; // 1.0 for difficulty 3, scales with actual difficulty
     
-    // Enhanced tier promotion logic incorporating consistency and difficulty
-    // Diamond Tier - Master level with high difficulty habits
-    if (level >= 25 && 
-        completionRate >= 85 && 
-        consistencyScore >= 70 && 
-        longestStreak >= 50 && 
-        masteryPoints >= 2500 &&
+    // Balanced tier promotion logic - more achievable but still meaningful
+    // Diamond Tier - Master level with challenging habits
+    if (level >= 15 && 
+        completionRate >= 70 && 
+        consistencyScore >= 50 && 
+        longestStreak >= 21 && 
+        masteryPoints >= 800 &&
         difficultyRating >= 4) {
       newTier = "diamond";
     }
-    // Platinum Tier - Expert level with good consistency on moderate+ difficulty
-    else if (level >= 18 && 
-             completionRate >= 75 && 
-             consistencyScore >= 60 && 
-             longestStreak >= 30 && 
-             masteryPoints >= 1200 &&
+    // Platinum Tier - Expert level with good performance
+    else if (level >= 10 && 
+             completionRate >= 60 && 
+             consistencyScore >= 40 && 
+             longestStreak >= 14 && 
+             masteryPoints >= 400 &&
              difficultyRating >= 3) {
       newTier = "platinum";
     }
-    // Gold Tier - Advanced level with solid consistency
-    else if (level >= 12 && 
-             completionRate >= 65 && 
-             consistencyScore >= 50 && 
-             longestStreak >= 21 && 
-             masteryPoints >= 600) {
+    // Gold Tier - Advanced level with solid progress
+    else if (level >= 6 && 
+             completionRate >= 50 && 
+             consistencyScore >= 30 && 
+             longestStreak >= 7 && 
+             masteryPoints >= 150) {
       newTier = "gold";
     }
-    // Silver Tier - Intermediate level with developing consistency
-    else if (level >= 7 && 
-             completionRate >= 50 && 
-             consistencyScore >= 35 && 
-             longestStreak >= 10 && 
-             masteryPoints >= 200) {
+    // Silver Tier - Developing consistency
+    else if (level >= 3 && 
+             completionRate >= 35 && 
+             consistencyScore >= 20 && 
+             longestStreak >= 3 && 
+             masteryPoints >= 50) {
       newTier = "silver";
     }
     // Bronze Tier - Starting level

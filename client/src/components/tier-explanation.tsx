@@ -43,7 +43,7 @@ export function TierExplanation() {
         </div>
         
         <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Current Tier Requirements (5 Tiers Total)</h4>
+          <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Balanced Tier Requirements (5 Tiers Total)</h4>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
             <div className="text-center">
               <div className="font-semibold text-orange-600">Bronze</div>
@@ -52,27 +52,27 @@ export function TierExplanation() {
             </div>
             <div className="text-center">
               <div className="font-semibold text-slate-600">Silver</div>
-              <div>Level 7+</div>
-              <div>50% completion</div>
-              <div>35% consistency</div>
+              <div>Level 3+</div>
+              <div>35% completion</div>
+              <div>3+ day streak</div>
             </div>
             <div className="text-center">
               <div className="font-semibold text-yellow-600">Gold</div>
-              <div>Level 12+</div>
-              <div>65% completion</div>
-              <div>50% consistency</div>
+              <div>Level 6+</div>
+              <div>50% completion</div>
+              <div>7+ day streak</div>
             </div>
             <div className="text-center">
               <div className="font-semibold text-gray-600">Platinum</div>
-              <div>Level 18+</div>
-              <div>75% completion</div>
-              <div>Difficulty 3+</div>
+              <div>Level 10+</div>
+              <div>60% completion</div>
+              <div>14+ day streak</div>
             </div>
             <div className="text-center">
               <div className="font-semibold text-purple-600">Diamond</div>
-              <div>Level 25+</div>
-              <div>85% completion</div>
-              <div>Difficulty 4+</div>
+              <div>Level 15+</div>
+              <div>70% completion</div>
+              <div>21+ day streak</div>
             </div>
           </div>
           <p className="text-xs text-blue-700 dark:text-blue-300 mt-3">
