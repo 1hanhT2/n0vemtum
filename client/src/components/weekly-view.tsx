@@ -182,7 +182,7 @@ export function WeeklyView() {
         <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
           <CardContent className="pt-6">
             <div className="text-3xl mb-2">📅</div>
-            <div className="text-2xl font-bold text-primary">
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
               {weeklyStats.completedDays}/7
             </div>
             <div className="text-gray-600 dark:text-gray-300">Days Completed</div>
@@ -192,7 +192,7 @@ export function WeeklyView() {
         <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
           <CardContent className="pt-6">
             <div className="text-3xl mb-2">✅</div>
-            <div className="text-2xl font-bold text-accent">
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
               {weeklyStats.completionRate.toFixed(0)}%
             </div>
             <div className="text-gray-600 dark:text-gray-300">Habit Completion</div>
@@ -202,7 +202,7 @@ export function WeeklyView() {
         <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
           <CardContent className="pt-6">
             <div className="text-3xl mb-2">⭐</div>
-            <div className="text-2xl font-bold text-secondary">
+            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
               {weeklyStats.avgScore.toFixed(1)}
             </div>
             <div className="text-gray-600 dark:text-gray-300">Average Score</div>
@@ -274,9 +274,9 @@ export function WeeklyView() {
 
       {/* AI Weekly Insights */}
       {aiInsights && (
-        <Card className="rounded-2xl shadow-lg bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+        <Card className="rounded-2xl shadow-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-purple-200 dark:border-purple-800">
           <CardHeader>
-            <CardTitle className="text-xl font-semibold text-gray-800 flex items-center">
+            <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
               <Sparkles className="w-6 h-6 text-purple-500 mr-2" />
               AI Weekly Insights
             </CardTitle>
@@ -284,18 +284,18 @@ export function WeeklyView() {
           <CardContent>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <h4 className="font-medium text-gray-800 mb-2">Patterns Observed</h4>
-                <p className="text-sm text-gray-600 mb-4">{aiInsights.patterns}</p>
+                <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-2">Patterns Observed</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">{aiInsights.patterns}</p>
                 
-                <h4 className="font-medium text-gray-800 mb-2">This Week's Strengths</h4>
-                <p className="text-sm text-gray-600">{aiInsights.strengths}</p>
+                <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-2">This Week's Strengths</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">{aiInsights.strengths}</p>
               </div>
               <div>
-                <h4 className="font-medium text-gray-800 mb-2">Improvement Suggestions</h4>
-                <p className="text-sm text-gray-600 mb-4">{aiInsights.improvements}</p>
+                <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-2">Improvement Suggestions</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">{aiInsights.improvements}</p>
                 
-                <h4 className="font-medium text-gray-800 mb-2">Motivation</h4>
-                <p className="text-sm text-gray-600 italic">{aiInsights.motivation}</p>
+                <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-2">Motivation</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300 italic">{aiInsights.motivation}</p>
               </div>
             </div>
           </CardContent>
@@ -305,7 +305,7 @@ export function WeeklyView() {
       {/* Reflection Questions */}
       <Card className="rounded-2xl shadow-lg">
         <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-800 flex items-center">
+          <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
             <span className="mr-2">🤔</span>
             Guided Reflection
           </CardTitle>

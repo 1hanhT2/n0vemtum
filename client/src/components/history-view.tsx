@@ -179,23 +179,23 @@ export function HistoryView() {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div>
-                <div className="text-2xl font-bold text-primary">{dailyEntries.length}</div>
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{dailyEntries.length}</div>
                 <div className="text-sm text-gray-600 dark:text-gray-300">Days Tracked</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-accent">
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                   {dailyEntries.filter(entry => entry.completedAt).length}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-300">Days Completed</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-secondary">
+                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                   {(dailyEntries.reduce((sum, entry) => sum + entry.punctualityScore, 0) / dailyEntries.length).toFixed(1)}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-300">Avg Punctuality</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-orange-500">
+                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                   {(dailyEntries.reduce((sum, entry) => sum + entry.adherenceScore, 0) / dailyEntries.length).toFixed(1)}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-300">Avg Adherence</div>
