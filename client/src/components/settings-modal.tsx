@@ -24,7 +24,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { data: aiSuggestions, isLoading: suggestionsLoading } = useHabitSuggestions();
 
   const [habitSettings, setHabitSettings] = useState<Array<{ id: number; name: string; emoji: string; isNew?: boolean }>>([]);
-  const [selectedTheme, setSelectedTheme] = useState('default');
+  const [selectedTheme, setSelectedTheme] = useState('blue');
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [notifications, setNotifications] = useState({
     dailyReminder: false,
     weeklyReview: false,
@@ -39,51 +40,51 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       })));
     }
     
-    // Load saved theme
-    const savedTheme = localStorage.getItem('theme') || 'default';
+    // Load saved preferences
+    const savedTheme = localStorage.getItem('theme') || 'blue';
+    const savedMode = localStorage.getItem('darkMode') === 'true';
     setSelectedTheme(savedTheme);
-    applyTheme(savedTheme);
+    setIsDarkMode(savedMode);
+    applyTheme(savedTheme, savedMode);
   }, [habits]);
 
-  const applyTheme = (theme: string) => {
+  const applyTheme = (theme: string, darkMode: boolean) => {
+    const root = document.documentElement;
+    
+    // Apply dark/light mode
+    if (darkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    
     // Remove existing theme classes
-    document.documentElement.classList.remove('theme-default', 'theme-nature', 'theme-sunset', 'theme-black', 'theme-white');
+    root.classList.remove('theme-blue', 'theme-green', 'theme-purple', 'theme-orange', 'theme-red');
     
     // Add new theme class
-    document.documentElement.classList.add(`theme-${theme}`);
+    root.classList.add(`theme-${theme}`);
     
-    // Update CSS custom properties based on theme
-    const root = document.documentElement;
+    // Define theme colors that work in both light and dark modes
     switch (theme) {
-      case 'nature':
-        root.style.setProperty('--primary', 'hsl(142, 76%, 36%)');
-        root.style.setProperty('--secondary', 'hsl(164, 86%, 40%)');
+      case 'green':
+        root.style.setProperty('--primary', darkMode ? 'hsl(142, 70%, 45%)' : 'hsl(142, 76%, 36%)');
+        root.style.setProperty('--primary-foreground', 'hsl(0, 0%, 100%)');
         break;
-      case 'sunset':
-        root.style.setProperty('--primary', 'hsl(24, 95%, 53%)');
-        root.style.setProperty('--secondary', 'hsl(340, 82%, 52%)');
+      case 'purple':
+        root.style.setProperty('--primary', darkMode ? 'hsl(263, 70%, 50%)' : 'hsl(263, 70%, 50%)');
+        root.style.setProperty('--primary-foreground', 'hsl(0, 0%, 100%)');
         break;
-      case 'black':
-        root.style.setProperty('--background', 'hsl(0, 0%, 8%)');
-        root.style.setProperty('--foreground', 'hsl(0, 0%, 95%)');
-        root.style.setProperty('--card', 'hsl(0, 0%, 12%)');
-        root.style.setProperty('--primary', 'hsl(0, 0%, 85%)');
-        root.style.setProperty('--secondary', 'hsl(0, 0%, 70%)');
+      case 'orange':
+        root.style.setProperty('--primary', darkMode ? 'hsl(24, 95%, 53%)' : 'hsl(24, 95%, 53%)');
+        root.style.setProperty('--primary-foreground', 'hsl(0, 0%, 100%)');
         break;
-      case 'white':
-        root.style.setProperty('--background', 'hsl(0, 0%, 98%)');
-        root.style.setProperty('--foreground', 'hsl(0, 0%, 10%)');
-        root.style.setProperty('--card', 'hsl(0, 0%, 100%)');
-        root.style.setProperty('--primary', 'hsl(0, 0%, 20%)');
-        root.style.setProperty('--secondary', 'hsl(0, 0%, 35%)');
+      case 'red':
+        root.style.setProperty('--primary', darkMode ? 'hsl(0, 72%, 51%)' : 'hsl(0, 84%, 60%)');
+        root.style.setProperty('--primary-foreground', 'hsl(0, 0%, 100%)');
         break;
-      default:
-        // Reset to default theme
-        root.style.setProperty('--background', 'hsl(0, 0%, 100%)');
-        root.style.setProperty('--foreground', 'hsl(20, 14.3%, 4.1%)');
-        root.style.setProperty('--card', 'hsl(0, 0%, 100%)');
-        root.style.setProperty('--primary', 'hsl(244, 73%, 65%)');
-        root.style.setProperty('--secondary', 'hsl(251, 91%, 75%)');
+      default: // blue
+        root.style.setProperty('--primary', darkMode ? 'hsl(217, 91%, 60%)' : 'hsl(221, 83%, 53%)');
+        root.style.setProperty('--primary-foreground', 'hsl(0, 0%, 100%)');
         break;
     }
   };
@@ -109,12 +110,12 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         }
       }
 
-      // Save theme
-      document.documentElement.setAttribute('data-theme', selectedTheme);
+      // Save theme and mode
       localStorage.setItem('theme', selectedTheme);
+      localStorage.setItem('darkMode', isDarkMode.toString());
       
-      // Apply theme classes
-      applyTheme(selectedTheme);
+      // Apply theme
+      applyTheme(selectedTheme, isDarkMode);
       
       toast({
         title: "Settings saved successfully!",
@@ -195,11 +196,11 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   };
 
   const themes = [
-    { key: 'default', name: 'Default', gradient: 'from-blue-500 to-purple-500' },
-    { key: 'nature', name: 'Nature', gradient: 'from-green-500 to-teal-500' },
-    { key: 'sunset', name: 'Sunset', gradient: 'from-orange-500 to-pink-500' },
-    { key: 'black', name: 'Black', gradient: 'from-gray-900 to-black' },
-    { key: 'white', name: 'White', gradient: 'from-gray-100 to-gray-200' },
+    { key: 'blue', name: 'Blue', color: 'bg-blue-500' },
+    { key: 'green', name: 'Green', color: 'bg-green-500' },
+    { key: 'purple', name: 'Purple', color: 'bg-purple-500' },
+    { key: 'orange', name: 'Orange', color: 'bg-orange-500' },
+    { key: 'red', name: 'Red', color: 'bg-red-500' },
   ];
 
   return (
@@ -284,46 +285,57 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </div>
           )}
 
-          {/* Theme Selection */}
+          {/* Appearance Settings */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">🎨 Theme</h3>
-            <div className="grid grid-cols-3 gap-3 mb-2">
-              {themes.slice(0, 3).map((theme) => (
-                <motion.button
-                  key={theme.key}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedTheme(theme.key)}
-                  className={`p-3 rounded-xl border-2 transition-all ${
-                    selectedTheme === theme.key
-                      ? 'border-primary bg-primary bg-opacity-10'
-                      : 'border-gray-200 hover:border-gray-300'
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">🎨 Appearance</h3>
+            
+            {/* Dark/Light Mode Toggle */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm font-medium">🌙 Dark Mode</span>
+                </div>
+                <button
+                  onClick={() => setIsDarkMode(!isDarkMode)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    isDarkMode ? 'bg-primary' : 'bg-gray-300'
                   }`}
                 >
-                  <div className={`w-full h-8 rounded bg-gradient-to-r ${theme.gradient} mb-2`}></div>
-                  <div className="text-xs font-medium">{theme.name}</div>
-                </motion.button>
-              ))}
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      isDarkMode ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              {themes.slice(3).map((theme) => (
-                <motion.button
-                  key={theme.key}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedTheme(theme.key)}
-                  className={`p-3 rounded-xl border-2 transition-all ${
-                    selectedTheme === theme.key
-                      ? 'border-primary bg-primary bg-opacity-10'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className={`w-full h-8 rounded bg-gradient-to-r ${theme.gradient} mb-2 ${
-                    theme.key === 'white' ? 'border border-gray-300' : ''
-                  }`}></div>
-                  <div className="text-xs font-medium">{theme.name}</div>
-                </motion.button>
-              ))}
+
+            {/* Theme Colors */}
+            <div>
+              <div className="text-sm font-medium mb-3">Accent Color</div>
+              <div className="grid grid-cols-5 gap-3">
+                {themes.map((theme) => (
+                  <motion.button
+                    key={theme.key}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setSelectedTheme(theme.key)}
+                    className={`relative p-3 rounded-xl border-2 transition-all ${
+                      selectedTheme === theme.key
+                        ? 'border-primary'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-full ${theme.color} mx-auto`}></div>
+                    {selectedTheme === theme.key && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-3 h-3 bg-white rounded-full"></div>
+                      </div>
+                    )}
+                    <div className="text-xs font-medium mt-2">{theme.name}</div>
+                  </motion.button>
+                ))}
+              </div>
             </div>
           </div>
 
