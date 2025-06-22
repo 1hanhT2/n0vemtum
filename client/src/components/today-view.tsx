@@ -145,10 +145,6 @@ export function TodayView() {
           setIsDayCompleted(true);
           queryClient.invalidateQueries({ queryKey: ['/api/daily-entries'] });
           queryClient.invalidateQueries({ queryKey: ['/api/daily-entries', today] });
-          // Force immediate UI update
-          setTimeout(() => {
-            window.location.reload();
-          }, 500);
           toast({
             title: "Day completed successfully!",
             description: "Your progress has been locked and saved.",
