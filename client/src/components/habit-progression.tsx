@@ -22,16 +22,16 @@ interface HabitProgressionProps {
     id: number;
     name: string;
     emoji: string;
-    level: number;
-    experience: number;
-    experienceToNext: number;
-    masteryPoints: number;
-    streak: number;
-    longestStreak: number;
-    completionRate: number;
-    totalCompletions: number;
-    tier: string;
-    badges: string[];
+    level?: number;
+    experience?: number;
+    experienceToNext?: number;
+    masteryPoints?: number;
+    streak?: number;
+    longestStreak?: number;
+    completionRate?: number;
+    totalCompletions?: number;
+    tier?: string;
+    badges?: string[];
     difficultyRating?: number;
   };
   onLevelUp?: (habitId: number) => void;
@@ -41,8 +41,8 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
   const [showDetails, setShowDetails] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
 
-  const getTierIcon = (tier: string) => {
-    switch (tier) {
+  const getTierIcon = (tierValue: string) => {
+    switch (tierValue) {
       case "bronze": return <Shield className="w-4 h-4 text-amber-600" />;
       case "silver": return <Shield className="w-4 h-4 text-gray-400" />;
       case "gold": return <Crown className="w-4 h-4 text-yellow-500" />;
@@ -52,8 +52,8 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
     }
   };
 
-  const getTierColor = (tier: string) => {
-    switch (tier) {
+  const getTierColor = (tierValue: string) => {
+    switch (tierValue) {
       case "bronze": return "from-amber-500 to-amber-700";
       case "silver": return "from-gray-400 to-gray-600";
       case "gold": return "from-yellow-400 to-yellow-600";
@@ -74,7 +74,19 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
     return Math.floor(baseXP * Math.pow(1.2, level - 1) * multiplier);
   };
 
-  const experiencePercentage = (habit.experience / habit.experienceToNext) * 100;
+  // Use defaults for missing gamification data
+  const level = habit.level || 1;
+  const experience = habit.experience || 0;
+  const experienceToNext = habit.experienceToNext || 100;
+  const masteryPoints = habit.masteryPoints || 0;
+  const streak = habit.streak || 0;
+  const longestStreak = habit.longestStreak || 0;
+  const completionRate = habit.completionRate || 0;
+  const totalCompletions = habit.totalCompletions || 0;
+  const tier = habit.tier || "bronze";
+  const badges = habit.badges || [];
+
+  const experiencePercentage = experienceToNext > 0 ? (experience / experienceToNext) * 100 : 0;
 
   const badgeEmojis: { [key: string]: string } = {
     "first_completion": "🎯",
@@ -100,12 +112,12 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="relative">
-              <div className={`p-2 rounded-full bg-gradient-to-r ${getTierColor(habit.tier)} text-white`}>
-                {getTierIcon(habit.tier)}
+              <div className={`p-2 rounded-full bg-gradient-to-r ${getTierColor(tier)} text-white`}>
+                {getTierIcon(tier)}
               </div>
-              {habit.streak > 0 && (
+              {streak > 0 && (
                 <div className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {habit.streak}
+                  {streak}
                 </div>
               )}
             </div>
@@ -113,13 +125,13 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
               <CardTitle className="text-lg flex items-center space-x-2">
                 <span>{habit.emoji} {habit.name}</span>
                 <Badge variant="outline" className="text-xs">
-                  Level {habit.level}
+                  Level {level}
                 </Badge>
               </CardTitle>
               <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                <span className="capitalize">{habit.tier} Tier</span>
+                <span className="capitalize">{tier} Tier</span>
                 <span>•</span>
-                <span>{habit.completionRate}% Success Rate</span>
+                <span>{completionRate}% Success Rate</span>
               </div>
             </div>
           </div>
@@ -139,7 +151,7 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-gray-600 dark:text-gray-400">Experience</span>
-            <span className="font-medium">{habit.experience} / {habit.experienceToNext} XP</span>
+            <span className="font-medium">{experience} / {experienceToNext} XP</span>
           </div>
           <Progress value={experiencePercentage} className="h-2" />
           {experiencePercentage >= 100 && (
@@ -168,40 +180,40 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
             <div className="flex items-center justify-center">
               <Flame className="w-4 h-4 text-orange-500" />
             </div>
-            <div className="text-sm font-medium">{habit.streak}</div>
+            <div className="text-sm font-medium">{streak}</div>
             <div className="text-xs text-gray-500">Current</div>
           </div>
           <div className="space-y-1">
             <div className="flex items-center justify-center">
               <Target className="w-4 h-4 text-blue-500" />
             </div>
-            <div className="text-sm font-medium">{habit.longestStreak}</div>
+            <div className="text-sm font-medium">{longestStreak}</div>
             <div className="text-xs text-gray-500">Best</div>
           </div>
           <div className="space-y-1">
             <div className="flex items-center justify-center">
               <Zap className="w-4 h-4 text-purple-500" />
             </div>
-            <div className="text-sm font-medium">{habit.masteryPoints}</div>
+            <div className="text-sm font-medium">{masteryPoints}</div>
             <div className="text-xs text-gray-500">Mastery</div>
           </div>
           <div className="space-y-1">
             <div className="flex items-center justify-center">
               <Award className="w-4 h-4 text-green-500" />
             </div>
-            <div className="text-sm font-medium">{habit.totalCompletions}</div>
+            <div className="text-sm font-medium">{totalCompletions}</div>
             <div className="text-xs text-gray-500">Total</div>
           </div>
         </div>
 
         {/* Badges */}
-        {habit.badges.length > 0 && (
+        {badges.length > 0 && (
           <div className="space-y-2">
             <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Earned Badges
             </div>
             <div className="flex flex-wrap gap-1">
-              {habit.badges.map((badge, index) => (
+              {badges.map((badge, index) => (
                 <motion.div
                   key={badge}
                   initial={{ scale: 0 }}
@@ -232,15 +244,15 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
                   <div className="space-y-1">
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Completion Rate</span>
-                      <span>{habit.completionRate}%</span>
+                      <span>{completionRate}%</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Total Completions</span>
-                      <span>{habit.totalCompletions}</span>
+                      <span>{totalCompletions}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Mastery Points</span>
-                      <span>{habit.masteryPoints}</span>
+                      <span>{masteryPoints}</span>
                     </div>
                   </div>
                 </div>
@@ -250,15 +262,15 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
                   <div className="space-y-1">
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Current Streak</span>
-                      <span>{habit.streak} days</span>
+                      <span>{streak} days</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Longest Streak</span>
-                      <span>{habit.longestStreak} days</span>
+                      <span>{longestStreak} days</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Current Tier</span>
-                      <span className="capitalize">{habit.tier}</span>
+                      <span className="capitalize">{tier}</span>
                     </div>
                   </div>
                 </div>

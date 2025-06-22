@@ -28,6 +28,7 @@ import { useStreak } from "@/hooks/use-streaks";
 import { useLevelUpHabit, useUpdateHabitProgress } from "@/hooks/use-gamification";
 import { HabitDifficultyDisplay } from "@/components/habit-difficulty-display";
 import { HabitProgression } from "@/components/habit-progression";
+import { GamificationSummary } from "@/components/gamification-summary";
 
 export function TodayView() {
   const { toast } = useToast();
@@ -239,9 +240,13 @@ export function TodayView() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">✨ Today's Focus</h2>
-        <p className="text-gray-600 dark:text-gray-300">{formatDate(today)}</p>
+      <div className="mb-8 space-y-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">✨ Today's Focus</h2>
+          <p className="text-gray-600 dark:text-gray-300">{formatDate(today)}</p>
+        </div>
+        
+        <GamificationSummary habits={habits || []} />
         {habits && (
           <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-xl transition-colors duration-200 hover:dark:from-gray-700 hover:dark:to-gray-600">
             <div className="flex items-center justify-between">
@@ -320,10 +325,13 @@ export function TodayView() {
                     isAnalyzing={analyzingHabit === habit.id}
                   />
                   
-                  <HabitProgression
-                    habit={habit}
-                    onLevelUp={(habitId) => levelUpHabit.mutate(habitId)}
-                  />
+                  {/* Only show progression if gamification data exists */}
+                  {habit.level !== undefined && (
+                    <HabitProgression
+                      habit={habit}
+                      onLevelUp={(habitId) => levelUpHabit.mutate(habitId)}
+                    />
+                  )}
                 </div>
               </motion.div>
             ))}
