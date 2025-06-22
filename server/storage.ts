@@ -691,7 +691,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(habits.id, habitId))
       .returning();
 
-    return updatedHabit;
+    // Check for tier promotion after leveling up
+    const tierPromotedHabit = await this.calculateTierPromotion(habitId);
+    
+    return tierPromotedHabit;
   }
 
   async awardBadge(habitId: number, badge: string): Promise<Habit> {
@@ -726,18 +729,51 @@ export class DatabaseStorage implements IStorage {
     }
 
     let newTier = habit.tier;
-    const { level, completionRate, longestStreak, masteryPoints } = habit;
-
-    // Tier promotion logic
-    if (level >= 50 && completionRate >= 90 && longestStreak >= 100 && masteryPoints >= 5000) {
+    const { level, completionRate, longestStreak, masteryPoints, difficultyRating, totalCompletions } = habit;
+    
+    // Calculate consistency score (streak vs total completions ratio)
+    const consistencyScore = totalCompletions > 0 ? Math.min((longestStreak / totalCompletions) * 100, 100) : 0;
+    
+    // Difficulty-adjusted requirements
+    const difficultyMultiplier = (difficultyRating || 3) / 3; // 1.0 for difficulty 3, scales with actual difficulty
+    
+    // Enhanced tier promotion logic incorporating consistency and difficulty
+    // Diamond Tier - Master level with high difficulty habits
+    if (level >= 25 && 
+        completionRate >= 85 && 
+        consistencyScore >= 70 && 
+        longestStreak >= 50 && 
+        masteryPoints >= 2500 &&
+        difficultyRating >= 4) {
       newTier = "diamond";
-    } else if (level >= 30 && completionRate >= 80 && longestStreak >= 60 && masteryPoints >= 2000) {
+    }
+    // Platinum Tier - Expert level with good consistency on moderate+ difficulty
+    else if (level >= 18 && 
+             completionRate >= 75 && 
+             consistencyScore >= 60 && 
+             longestStreak >= 30 && 
+             masteryPoints >= 1200 &&
+             difficultyRating >= 3) {
       newTier = "platinum";
-    } else if (level >= 20 && completionRate >= 70 && longestStreak >= 30 && masteryPoints >= 800) {
+    }
+    // Gold Tier - Advanced level with solid consistency
+    else if (level >= 12 && 
+             completionRate >= 65 && 
+             consistencyScore >= 50 && 
+             longestStreak >= 21 && 
+             masteryPoints >= 600) {
       newTier = "gold";
-    } else if (level >= 10 && completionRate >= 60 && longestStreak >= 14 && masteryPoints >= 300) {
+    }
+    // Silver Tier - Intermediate level with developing consistency
+    else if (level >= 7 && 
+             completionRate >= 50 && 
+             consistencyScore >= 35 && 
+             longestStreak >= 10 && 
+             masteryPoints >= 200) {
       newTier = "silver";
-    } else {
+    }
+    // Bronze Tier - Starting level
+    else {
       newTier = "bronze";
     }
 

@@ -31,6 +31,7 @@ import { HabitProgression } from "@/components/habit-progression";
 import { GamificationSummary } from "@/components/gamification-summary";
 import { LevelUpNotification } from "@/components/level-up-notification";
 import { HabitHealthRadar } from "@/components/habit-health-radar";
+import { TierPromotionNotification } from "@/components/tier-promotion-notification";
 
 export function TodayView() {
   const { toast } = useToast();
@@ -46,6 +47,11 @@ export function TodayView() {
   const levelUpHabit = useLevelUpHabit();
   const updateHabitProgress = useUpdateHabitProgress();
   const [levelUpHabitId, setLevelUpHabitId] = useState<number | null>(null);
+  const [tierPromotion, setTierPromotion] = useState<{
+    habitId: number;
+    oldTier: string;
+    newTier: string;
+  } | null>(null);
 
   const [habitCompletions, setHabitCompletions] = useState<Record<number, boolean>>({});
   const [punctualityScore, setPunctualityScore] = useState<number[]>([3]);
@@ -138,9 +144,20 @@ export function TodayView() {
       date: today
     }, {
       onSuccess: (updatedHabit) => {
+        const oldHabit = habits?.find(h => h.id === habitId);
+        
         // Check if habit can level up
         if (updatedHabit.experience >= updatedHabit.experienceToNext) {
           setLevelUpHabitId(habitId);
+        }
+        
+        // Check for tier promotion
+        if (oldHabit && oldHabit.tier !== updatedHabit.tier) {
+          setTierPromotion({
+            habitId,
+            oldTier: oldHabit.tier,
+            newTier: updatedHabit.tier
+          });
         }
       }
     });
@@ -494,11 +511,34 @@ export function TodayView() {
         <LevelUpNotification
           habit={habits.find(h => h.id === levelUpHabitId)!}
           onLevelUp={(habitId) => {
-            levelUpHabit.mutate(habitId);
+            levelUpHabit.mutate(habitId, {
+              onSuccess: (updatedHabit) => {
+                const oldHabit = habits.find(h => h.id === habitId);
+                // Check for tier promotion after level up
+                if (oldHabit && oldHabit.tier !== updatedHabit.tier) {
+                  setTierPromotion({
+                    habitId,
+                    oldTier: oldHabit.tier,
+                    newTier: updatedHabit.tier
+                  });
+                }
+              }
+            });
             setLevelUpHabitId(null);
           }}
           show={true}
           onClose={() => setLevelUpHabitId(null)}
+        />
+      )}
+
+      {/* Tier Promotion Notification */}
+      {tierPromotion && habits && (
+        <TierPromotionNotification
+          oldTier={tierPromotion.oldTier}
+          newTier={tierPromotion.newTier}
+          habit={habits.find(h => h.id === tierPromotion.habitId)!}
+          show={true}
+          onClose={() => setTierPromotion(null)}
         />
       )}
     </motion.div>
