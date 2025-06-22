@@ -64,27 +64,32 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     // Add new theme class
     root.classList.add(`theme-${theme}`);
     
-    // Define theme colors that work in both light and dark modes
+    // Smart contrast theme colors optimized for accessibility
     switch (theme) {
       case 'green':
-        root.style.setProperty('--primary', darkMode ? 'hsl(142, 70%, 45%)' : 'hsl(142, 76%, 36%)');
-        root.style.setProperty('--primary-foreground', 'hsl(0, 0%, 100%)');
+        root.style.setProperty('--primary', darkMode ? 'hsl(134, 61%, 41%)' : 'hsl(134, 61%, 41%)');
+        root.style.setProperty('--primary-foreground', darkMode ? 'hsl(0, 0%, 100%)' : 'hsl(0, 0%, 100%)');
+        root.style.setProperty('--ring', darkMode ? 'hsl(134, 61%, 41%)' : 'hsl(134, 61%, 41%)');
         break;
       case 'purple':
         root.style.setProperty('--primary', darkMode ? 'hsl(263, 70%, 50%)' : 'hsl(263, 70%, 50%)');
         root.style.setProperty('--primary-foreground', 'hsl(0, 0%, 100%)');
+        root.style.setProperty('--ring', darkMode ? 'hsl(263, 70%, 50%)' : 'hsl(263, 70%, 50%)');
         break;
       case 'orange':
-        root.style.setProperty('--primary', darkMode ? 'hsl(24, 95%, 53%)' : 'hsl(24, 95%, 53%)');
+        root.style.setProperty('--primary', darkMode ? 'hsl(25, 95%, 53%)' : 'hsl(25, 95%, 53%)');
         root.style.setProperty('--primary-foreground', 'hsl(0, 0%, 100%)');
+        root.style.setProperty('--ring', darkMode ? 'hsl(25, 95%, 53%)' : 'hsl(25, 95%, 53%)');
         break;
       case 'red':
         root.style.setProperty('--primary', darkMode ? 'hsl(0, 72%, 51%)' : 'hsl(0, 84%, 60%)');
         root.style.setProperty('--primary-foreground', 'hsl(0, 0%, 100%)');
+        root.style.setProperty('--ring', darkMode ? 'hsl(0, 72%, 51%)' : 'hsl(0, 84%, 60%)');
         break;
       default: // blue
         root.style.setProperty('--primary', darkMode ? 'hsl(217, 91%, 60%)' : 'hsl(221, 83%, 53%)');
         root.style.setProperty('--primary-foreground', 'hsl(0, 0%, 100%)');
+        root.style.setProperty('--ring', darkMode ? 'hsl(217, 91%, 60%)' : 'hsl(221, 83%, 53%)');
         break;
     }
   };
@@ -262,8 +267,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           {aiSuggestions && aiSuggestions.length > 0 && (
             <div>
               <div className="flex items-center mb-4">
-                <Sparkles className="w-5 h-5 text-purple-500 mr-2" />
-                <h3 className="text-lg font-semibold text-gray-800">AI Suggested Habits</h3>
+                <Sparkles className="w-5 h-5 text-purple-500 dark:text-purple-400 mr-2" />
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">AI Suggested Habits</h3>
               </div>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {aiSuggestions.map((suggestion: { name: string; emoji: string }, index: number) => (
@@ -272,13 +277,13 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => addSuggestedHabit(suggestion)}
-                    className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 rounded-xl border border-purple-200 transition-all"
+                    className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 hover:from-purple-100 hover:to-blue-100 dark:hover:from-gray-700 dark:hover:to-gray-600 rounded-xl border border-purple-200 dark:border-gray-600 transition-all"
                   >
                     <div className="flex items-center space-x-3">
                       <span className="text-lg">{suggestion.emoji}</span>
-                      <span className="text-sm font-medium text-gray-700">{suggestion.name}</span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{suggestion.name}</span>
                     </div>
-                    <Plus className="w-4 h-4 text-purple-600" />
+                    <Plus className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                   </motion.button>
                 ))}
               </div>
