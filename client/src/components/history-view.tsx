@@ -65,12 +65,12 @@ export function HistoryView() {
               });
             }
           }}
-          className={`h-12 rounded-lg border text-sm font-medium transition-all ${
+          className={`h-12 rounded-lg border text-sm font-medium transition-all duration-200 ${
             isToday 
               ? 'bg-primary text-white border-primary' 
               : hasData 
-                ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200' 
-                : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-800' 
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
           }`}
         >
           {day}
@@ -106,15 +106,15 @@ export function HistoryView() {
       className="space-y-6"
     >
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">🗓️ History</h2>
-        <p className="text-gray-600">Browse your past entries and progress</p>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">🗓️ History</h2>
+        <p className="text-gray-600 dark:text-gray-300">Browse your past entries and progress</p>
       </div>
 
       {/* Calendar */}
-      <Card className="rounded-2xl shadow-lg">
+      <Card className="rounded-2xl shadow-lg bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-xl font-semibold text-gray-800">
+            <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white">
               {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
             </CardTitle>
             <div className="flex space-x-2">
@@ -141,7 +141,7 @@ export function HistoryView() {
           {/* Calendar Headers */}
           <div className="grid grid-cols-7 gap-2 mb-4">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
+              <div key={day} className="text-center text-sm font-medium text-gray-500 dark:text-gray-400 py-2">
                 {day}
               </div>
             ))}
@@ -153,17 +153,17 @@ export function HistoryView() {
           </div>
           
           {/* Legend */}
-          <div className="flex items-center justify-center space-x-6 mt-6 text-sm">
+          <div className="flex items-center justify-center space-x-6 mt-6 text-sm text-gray-600 dark:text-gray-300">
             <div className="flex items-center">
               <div className="w-4 h-4 bg-primary rounded mr-2"></div>
               <span>Today</span>
             </div>
             <div className="flex items-center">
-              <div className="w-4 h-4 bg-green-100 border border-green-200 rounded mr-2"></div>
+              <div className="w-4 h-4 bg-green-100 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded mr-2"></div>
               <span>Has Data</span>
             </div>
             <div className="flex items-center">
-              <div className="w-4 h-4 bg-white border border-gray-200 rounded mr-2"></div>
+              <div className="w-4 h-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded mr-2"></div>
               <span>No Data</span>
             </div>
           </div>
@@ -172,33 +172,33 @@ export function HistoryView() {
 
       {/* Summary Stats for Current Month */}
       {dailyEntries && dailyEntries.length > 0 && (
-        <Card className="rounded-2xl shadow-lg">
+        <Card className="rounded-2xl shadow-lg bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-800">Month Summary</CardTitle>
+            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">Month Summary</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-primary">{dailyEntries.length}</div>
-                <div className="text-sm text-gray-600">Days Tracked</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">Days Tracked</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-accent">
                   {dailyEntries.filter(entry => entry.completedAt).length}
                 </div>
-                <div className="text-sm text-gray-600">Days Completed</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">Days Completed</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-secondary">
                   {(dailyEntries.reduce((sum, entry) => sum + entry.punctualityScore, 0) / dailyEntries.length).toFixed(1)}
                 </div>
-                <div className="text-sm text-gray-600">Avg Punctuality</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">Avg Punctuality</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-orange-500">
                   {(dailyEntries.reduce((sum, entry) => sum + entry.adherenceScore, 0) / dailyEntries.length).toFixed(1)}
                 </div>
-                <div className="text-sm text-gray-600">Avg Adherence</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">Avg Adherence</div>
               </div>
             </div>
           </CardContent>

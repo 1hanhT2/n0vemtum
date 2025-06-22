@@ -179,7 +179,7 @@ export function WeeklyView() {
 
       {/* Statistics Cards */}
       <div className="grid md:grid-cols-3 gap-6">
-        <Card className="rounded-2xl shadow-lg text-center">
+        <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
           <CardContent className="pt-6">
             <div className="text-3xl mb-2">📅</div>
             <div className="text-2xl font-bold text-primary">
@@ -189,7 +189,7 @@ export function WeeklyView() {
           </CardContent>
         </Card>
         
-        <Card className="rounded-2xl shadow-lg text-center">
+        <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
           <CardContent className="pt-6">
             <div className="text-3xl mb-2">✅</div>
             <div className="text-2xl font-bold text-accent">
@@ -199,7 +199,7 @@ export function WeeklyView() {
           </CardContent>
         </Card>
         
-        <Card className="rounded-2xl shadow-lg text-center">
+        <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
           <CardContent className="pt-6">
             <div className="text-3xl mb-2">⭐</div>
             <div className="text-2xl font-bold text-secondary">
