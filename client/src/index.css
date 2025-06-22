@@ -67,7 +67,7 @@
 
 @layer components {
   .gradient-bg {
-    background: linear-gradient(135deg, hsl(244, 73%, 65%) 0%, hsl(251, 91%, 75%) 100%);
+    background: var(--gradient-bg, linear-gradient(135deg, hsl(244, 73%, 65%) 0%, hsl(251, 91%, 75%) 100%));
   }
   
   .glass {
@@ -88,6 +88,27 @@
   .font-inter {
     font-family: 'Inter', sans-serif;
   }
+}
+
+/* Theme-specific styles */
+.theme-nature {
+  --gradient-bg: linear-gradient(135deg, hsl(142, 76%, 36%) 0%, hsl(164, 86%, 40%) 100%);
+}
+
+.theme-sunset {
+  --gradient-bg: linear-gradient(135deg, hsl(24, 95%, 53%) 0%, hsl(340, 82%, 52%) 100%);
+}
+
+.theme-black {
+  --gradient-bg: linear-gradient(135deg, hsl(0, 0%, 25%) 0%, hsl(0, 0%, 15%) 100%);
+}
+
+.theme-white {
+  --gradient-bg: linear-gradient(135deg, hsl(0, 0%, 85%) 0%, hsl(0, 0%, 75%) 100%);
+}
+
+.theme-default {
+  --gradient-bg: linear-gradient(135deg, hsl(244, 73%, 65%) 0%, hsl(251, 91%, 75%) 100%);
 }
 
 /* Custom animations */

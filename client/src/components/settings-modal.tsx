@@ -38,7 +38,55 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         emoji: habit.emoji,
       })));
     }
+    
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme') || 'default';
+    setSelectedTheme(savedTheme);
+    applyTheme(savedTheme);
   }, [habits]);
+
+  const applyTheme = (theme: string) => {
+    // Remove existing theme classes
+    document.documentElement.classList.remove('theme-default', 'theme-nature', 'theme-sunset', 'theme-black', 'theme-white');
+    
+    // Add new theme class
+    document.documentElement.classList.add(`theme-${theme}`);
+    
+    // Update CSS custom properties based on theme
+    const root = document.documentElement;
+    switch (theme) {
+      case 'nature':
+        root.style.setProperty('--primary', 'hsl(142, 76%, 36%)');
+        root.style.setProperty('--secondary', 'hsl(164, 86%, 40%)');
+        break;
+      case 'sunset':
+        root.style.setProperty('--primary', 'hsl(24, 95%, 53%)');
+        root.style.setProperty('--secondary', 'hsl(340, 82%, 52%)');
+        break;
+      case 'black':
+        root.style.setProperty('--background', 'hsl(0, 0%, 8%)');
+        root.style.setProperty('--foreground', 'hsl(0, 0%, 95%)');
+        root.style.setProperty('--card', 'hsl(0, 0%, 12%)');
+        root.style.setProperty('--primary', 'hsl(0, 0%, 85%)');
+        root.style.setProperty('--secondary', 'hsl(0, 0%, 70%)');
+        break;
+      case 'white':
+        root.style.setProperty('--background', 'hsl(0, 0%, 98%)');
+        root.style.setProperty('--foreground', 'hsl(0, 0%, 10%)');
+        root.style.setProperty('--card', 'hsl(0, 0%, 100%)');
+        root.style.setProperty('--primary', 'hsl(0, 0%, 20%)');
+        root.style.setProperty('--secondary', 'hsl(0, 0%, 35%)');
+        break;
+      default:
+        // Reset to default theme
+        root.style.setProperty('--background', 'hsl(0, 0%, 100%)');
+        root.style.setProperty('--foreground', 'hsl(20, 14.3%, 4.1%)');
+        root.style.setProperty('--card', 'hsl(0, 0%, 100%)');
+        root.style.setProperty('--primary', 'hsl(244, 73%, 65%)');
+        root.style.setProperty('--secondary', 'hsl(251, 91%, 75%)');
+        break;
+    }
+  };
 
   const handleSaveSettings = async () => {
     try {
@@ -61,7 +109,12 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         }
       }
 
-      // TODO: Save theme and notification preferences
+      // Save theme
+      document.documentElement.setAttribute('data-theme', selectedTheme);
+      localStorage.setItem('theme', selectedTheme);
+      
+      // Apply theme classes
+      applyTheme(selectedTheme);
       
       toast({
         title: "Settings saved successfully!",
@@ -145,17 +198,22 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     { key: 'default', name: 'Default', gradient: 'from-blue-500 to-purple-500' },
     { key: 'nature', name: 'Nature', gradient: 'from-green-500 to-teal-500' },
     { key: 'sunset', name: 'Sunset', gradient: 'from-orange-500 to-pink-500' },
+    { key: 'black', name: 'Black', gradient: 'from-gray-900 to-black' },
+    { key: 'white', name: 'White', gradient: 'from-gray-100 to-gray-200' },
   ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" aria-describedby="settings-description">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-800 flex items-center">
             <span className="mr-2">⚙️</span>
             Settings
           </DialogTitle>
         </DialogHeader>
+        <div id="settings-description" className="sr-only">
+          Customize your habits, select themes, and configure notification preferences.
+        </div>
 
         <div className="space-y-6">
           {/* Habit Names */}
@@ -229,8 +287,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           {/* Theme Selection */}
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-4">🎨 Theme</h3>
-            <div className="grid grid-cols-3 gap-3">
-              {themes.map((theme) => (
+            <div className="grid grid-cols-3 gap-3 mb-2">
+              {themes.slice(0, 3).map((theme) => (
                 <motion.button
                   key={theme.key}
                   whileHover={{ scale: 1.05 }}
@@ -243,6 +301,26 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   }`}
                 >
                   <div className={`w-full h-8 rounded bg-gradient-to-r ${theme.gradient} mb-2`}></div>
+                  <div className="text-xs font-medium">{theme.name}</div>
+                </motion.button>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {themes.slice(3).map((theme) => (
+                <motion.button
+                  key={theme.key}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setSelectedTheme(theme.key)}
+                  className={`p-3 rounded-xl border-2 transition-all ${
+                    selectedTheme === theme.key
+                      ? 'border-primary bg-primary bg-opacity-10'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className={`w-full h-8 rounded bg-gradient-to-r ${theme.gradient} mb-2 ${
+                    theme.key === 'white' ? 'border border-gray-300' : ''
+                  }`}></div>
                   <div className="text-xs font-medium">{theme.name}</div>
                 </motion.button>
               ))}
