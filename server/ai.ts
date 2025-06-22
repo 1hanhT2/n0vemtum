@@ -74,7 +74,10 @@ Example: [{"name": "Morning meditation", "emoji": "🧘"}]`;
 
   try {
     const response = await callOpenRouter(prompt);
-    return JSON.parse(response);
+    // Clean the response to extract JSON, removing markdown formatting
+    const cleanResponse = response.replace(/```json\s*|\s*```|```/g, '').trim();
+    const suggestions = JSON.parse(cleanResponse);
+    return Array.isArray(suggestions) ? suggestions : getDefaultHabitSuggestions(existingHabits);
   } catch (error) {
     console.error('Error generating habit suggestions:', error);
     // Fallback to curated suggestions if API fails
@@ -132,7 +135,12 @@ Keep each field to 2-3 sentences maximum. Be specific and actionable.`;
 
   try {
     const response = await callOpenRouter(prompt);
-    return JSON.parse(response);
+    // Clean the response to extract JSON, removing markdown formatting and extra text
+    const cleanResponse = response.replace(/```json\s*|\s*```|```|Here's the|Here is the/g, '').trim();
+    const startIndex = cleanResponse.indexOf('{');
+    const endIndex = cleanResponse.lastIndexOf('}') + 1;
+    const jsonString = startIndex >= 0 && endIndex > startIndex ? cleanResponse.slice(startIndex, endIndex) : cleanResponse;
+    return JSON.parse(jsonString);
   } catch (error) {
     console.error('Error generating weekly insights:', error);
     // Fallback to static insights if API fails
