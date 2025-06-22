@@ -661,7 +661,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(habits.id, habitId))
       .returning();
 
-    return updatedHabit;
+    // Check for tier promotion after updating progress
+    const tierPromotedHabit = await this.calculateTierPromotion(habitId);
+    
+    return tierPromotedHabit;
   }
 
   async levelUpHabit(habitId: number): Promise<Habit> {

@@ -32,6 +32,7 @@ import { GamificationSummary } from "@/components/gamification-summary";
 import { LevelUpNotification } from "@/components/level-up-notification";
 import { HabitHealthRadar } from "@/components/habit-health-radar";
 import { TierPromotionNotification } from "@/components/tier-promotion-notification";
+import { TierExplanation } from "@/components/tier-explanation";
 
 export function TodayView() {
   const { toast } = useToast();
