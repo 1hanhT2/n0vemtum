@@ -35,16 +35,36 @@ export function TodayView() {
     }
   }, [dailyEntry]);
 
+  // Calculate completion percentage score (1-5 scale)
+  const calculateCompletionScore = (completions: Record<number, boolean>) => {
+    if (!habits || habits.length === 0) return 3;
+    const completedCount = Object.values(completions).filter(Boolean).length;
+    const totalHabits = habits.length;
+    const percentage = completedCount / totalHabits;
+    
+    // Convert percentage to 1-5 scale
+    if (percentage === 1) return 5;
+    if (percentage >= 0.8) return 4;
+    if (percentage >= 0.6) return 3;
+    if (percentage >= 0.4) return 2;
+    return 1;
+  };
+
   const handleHabitToggle = (habitId: number, checked: boolean) => {
     const newCompletions = { ...habitCompletions, [habitId]: checked };
     setHabitCompletions(newCompletions);
     
-    // Auto-save habit completion
+    // Auto-calculate scores based on completion
+    const newScore = calculateCompletionScore(newCompletions);
+    setPunctualityScore([newScore]);
+    setAdherenceScore([newScore]);
+    
+    // Auto-save habit completion with calculated scores
     const entryData = {
       date: today,
       habitCompletions: newCompletions,
-      punctualityScore: punctualityScore[0],
-      adherenceScore: adherenceScore[0],
+      punctualityScore: newScore,
+      adherenceScore: newScore,
       notes,
     };
 
@@ -135,6 +155,24 @@ export function TodayView() {
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-2">✨ Today's Focus</h2>
         <p className="text-gray-600">{formatDate(today)}</p>
+        {habits && (
+          <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">Progress</span>
+              <span className="text-sm font-bold text-gray-800">
+                {Object.values(habitCompletions).filter(Boolean).length} / {habits.length} completed
+              </span>
+            </div>
+            <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+                style={{ 
+                  width: `${habits.length > 0 ? (Object.values(habitCompletions).filter(Boolean).length / habits.length) * 100 : 0}%` 
+                }}
+              ></div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Core Routines Checklist */}
@@ -177,42 +215,53 @@ export function TodayView() {
 
       {/* Scoring Section */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Punctuality Score */}
-        <Card className="rounded-2xl shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-800 flex items-center">
-              <span className="mr-2">⏰</span>
-              Punctuality Score
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-4">
-              <Slider
-                value={punctualityScore}
-                onValueChange={(value) => handleScoreChange('punctuality', value)}
-                max={5}
-                min={1}
-                step={1}
-                className="w-full"
-              />
-              <div className="flex justify-between text-sm text-gray-500 mt-2">
-                <span>Poor (1)</span>
-                <span>Perfect (5)</span>
-              </div>
-            </div>
-            <div className="text-center">
-              <span className="text-2xl font-bold text-primary">{punctualityScore[0]}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Task Adherence Score */}
+        {/* Auto-Calculated Score */}
         <Card className="rounded-2xl shadow-lg">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-800 flex items-center">
               <span className="mr-2">🎯</span>
-              Task Adherence Score
+              Daily Performance Score
             </CardTitle>
+            <p className="text-sm text-gray-600 mt-1">Auto-calculated based on habit completion</p>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center mb-4">
+              <span className="text-4xl font-bold text-primary">{punctualityScore[0]}</span>
+              <span className="text-lg text-gray-500 ml-2">/ 5</span>
+            </div>
+            <div className="space-y-2 text-sm text-gray-600">
+              <div className="flex justify-between">
+                <span>100% completion:</span>
+                <span className="font-medium">5 points</span>
+              </div>
+              <div className="flex justify-between">
+                <span>80-99% completion:</span>
+                <span className="font-medium">4 points</span>
+              </div>
+              <div className="flex justify-between">
+                <span>60-79% completion:</span>
+                <span className="font-medium">3 points</span>
+              </div>
+              <div className="flex justify-between">
+                <span>40-59% completion:</span>
+                <span className="font-medium">2 points</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Below 40%:</span>
+                <span className="font-medium">1 point</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Manual Override (Optional) */}
+        <Card className="rounded-2xl shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-800 flex items-center">
+              <span className="mr-2">⚙️</span>
+              Manual Adjustment
+            </CardTitle>
+            <p className="text-sm text-gray-600 mt-1">Override if needed for special circumstances</p>
           </CardHeader>
           <CardContent>
             <div className="mb-4">

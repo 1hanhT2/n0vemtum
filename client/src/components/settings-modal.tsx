@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useHabits, useUpdateHabit } from "@/hooks/use-habits";
+import { useHabits, useUpdateHabit, useCreateHabit, useDeleteHabit } from "@/hooks/use-habits";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { X } from "lucide-react";
+import { X, Plus, Trash2 } from "lucide-react";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -18,8 +18,10 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { toast } = useToast();
   const { data: habits } = useHabits();
   const updateHabit = useUpdateHabit();
+  const createHabit = useCreateHabit();
+  const deleteHabit = useDeleteHabit();
 
-  const [habitSettings, setHabitSettings] = useState<Array<{ id: number; name: string; emoji: string }>>([]);
+  const [habitSettings, setHabitSettings] = useState<Array<{ id: number; name: string; emoji: string; isNew?: boolean }>>([]);
   const [selectedTheme, setSelectedTheme] = useState('default');
   const [notifications, setNotifications] = useState({
     dailyReminder: false,
@@ -38,13 +40,21 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   const handleSaveSettings = async () => {
     try {
-      // Update habits
+      // Handle new habits
       for (const habit of habitSettings) {
-        if (habits?.find(h => h.id === habit.id)) {
+        if (habit.isNew) {
+          await createHabit.mutateAsync({
+            name: habit.name,
+            emoji: habit.emoji,
+            order: habitSettings.indexOf(habit) + 1,
+            isActive: true,
+          });
+        } else if (habits?.find(h => h.id === habit.id)) {
           await updateHabit.mutateAsync({
             id: habit.id,
             name: habit.name,
             emoji: habit.emoji,
+            order: habitSettings.indexOf(habit) + 1,
           });
         }
       }
@@ -52,7 +62,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       // TODO: Save theme and notification preferences
       
       toast({
-        title: "Settings saved successfully! ⚙️",
+        title: "Settings saved successfully!",
         description: "Your preferences have been updated.",
       });
       
@@ -83,6 +93,42 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     ));
   };
 
+  const addNewHabit = () => {
+    const newId = Math.max(...habitSettings.map(h => h.id), 0) + 1;
+    setHabitSettings(prev => [...prev, {
+      id: newId,
+      name: 'New Habit',
+      emoji: '✨',
+      isNew: true,
+    }]);
+  };
+
+  const removeHabit = async (id: number) => {
+    const habit = habitSettings.find(h => h.id === id);
+    if (!habit) return;
+
+    if (habit.isNew) {
+      // Just remove from local state if it's a new habit
+      setHabitSettings(prev => prev.filter(h => h.id !== id));
+    } else {
+      // Delete from database if it's an existing habit
+      try {
+        await deleteHabit.mutateAsync(id);
+        setHabitSettings(prev => prev.filter(h => h.id !== id));
+        toast({
+          title: "Habit removed",
+          description: "The habit has been deleted.",
+        });
+      } catch (error) {
+        toast({
+          title: "Error removing habit",
+          description: "Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   const themes = [
     { key: 'default', name: 'Default', gradient: 'from-blue-500 to-purple-500' },
     { key: 'nature', name: 'Nature', gradient: 'from-green-500 to-teal-500' },
@@ -102,8 +148,19 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         <div className="space-y-6">
           {/* Habit Names */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">📝 Customize Habits</h3>
-            <div className="space-y-3">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">📝 Customize Habits</h3>
+              <Button
+                onClick={addNewHabit}
+                variant="outline"
+                size="sm"
+                className="flex items-center space-x-1"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add</span>
+              </Button>
+            </div>
+            <div className="space-y-3 max-h-48 overflow-y-auto">
               {habitSettings.map((habit) => (
                 <div key={habit.id} className="flex items-center space-x-3">
                   <Input
@@ -117,6 +174,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     onChange={(e) => updateHabitSetting(habit.id, 'name', e.target.value)}
                     className="flex-1"
                   />
+                  <Button
+                    onClick={() => removeHabit(habit.id)}
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-500 hover:text-red-700 px-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
               ))}
             </div>
