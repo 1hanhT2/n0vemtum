@@ -25,6 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 import { useStreak } from "@/hooks/use-streaks";
+import { HabitDifficultyDisplay } from "@/components/habit-difficulty-display";
 
 export function TodayView() {
   const { toast } = useToast();
@@ -35,7 +36,6 @@ export function TodayView() {
   const createDailyEntry = useCreateDailyEntry();
   const updateDailyEntry = useUpdateDailyEntry();
   const { data: currentStreak } = useStreak('daily_completion');
-  
   const [analyzingHabit, setAnalyzingHabit] = useState<number | null>(null);
   const motivationMutation = useMotivationalMessage();
 
@@ -76,6 +76,32 @@ export function TodayView() {
       );
     }
   }, [habitCompletions, habits]);
+
+  const handleAnalyzeHabit = async (habitId: number) => {
+    setAnalyzingHabit(habitId);
+    try {
+      const response = await fetch(`/api/ai/analyze-habit-difficulty/${habitId}`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['/api/habits'] });
+        toast({
+          title: "Analysis Complete",
+          description: "Habit difficulty has been analyzed by AI",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Analysis Failed",
+        description: "Failed to analyze habit difficulty",
+        variant: "destructive",
+      });
+    } finally {
+      setAnalyzingHabit(null);
+    }
+  };
 
   // Calculate completion percentage score (1-5 scale)
   const calculateCompletionScore = (completions: Record<number, boolean>) => {

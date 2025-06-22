@@ -311,6 +311,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/ai/analyze-habit-difficulty/:id", async (req, res) => {
+    try {
+      const habitId = parseInt(req.params.id);
+      const habit = await storage.getHabitById(habitId);
+      
+      if (!habit) {
+        res.status(404).json({ error: "Habit not found" });
+        return;
+      }
+
+      // Get user's completion data for this habit (last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const startDate = thirtyDaysAgo.toISOString().split('T')[0];
+      
+      const dailyEntries = await storage.getDailyEntries(startDate);
+      const completionData = dailyEntries.map(entry => ({
+        date: entry.date,
+        completed: entry.habitCompletions?.[habitId] || false
+      }));
+
+      const analysis = await analyzeHabitDifficulty(habit, completionData);
+      
+      // Update the habit with the analysis
+      await storage.updateHabitDifficulty(habitId, analysis.difficulty, analysis.analysis);
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error("Failed to analyze habit difficulty:", error);
+      res.status(500).json({ error: "Failed to analyze habit difficulty" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
