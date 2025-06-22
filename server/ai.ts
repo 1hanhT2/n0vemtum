@@ -16,14 +16,14 @@ async function callOpenRouter(prompt: string): Promise<string> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "anthropic/claude-3.5-sonnet",
+      model: "microsoft/phi-3-mini-128k-instruct:free",
       messages: [
         {
           role: "user",
           content: prompt
         }
       ],
-      max_tokens: 500,
+      max_tokens: 300,
       temperature: 0.7
     })
   });
