@@ -40,7 +40,7 @@ export function TodayView() {
   const [adherenceScore, setAdherenceScore] = useState<number[]>([3]);
   const [notes, setNotes] = useState('');
   const [motivationalMessage, setMotivationalMessage] = useState('');
-  const [isDayCompleted, setIsDayCompleted] = useState(dailyEntry?.isCompleted || false);
+  const [isDayCompleted, setIsDayCompleted] = useState(false);
 
   // Load existing data when dailyEntry changes
   useEffect(() => {
@@ -50,6 +50,9 @@ export function TodayView() {
       setAdherenceScore([dailyEntry.adherenceScore]);
       setNotes(dailyEntry.notes || '');
       setIsDayCompleted(dailyEntry.isCompleted || false);
+    } else {
+      // Reset state if no daily entry exists
+      setIsDayCompleted(false);
     }
   }, [dailyEntry]);
 
@@ -128,6 +131,7 @@ export function TodayView() {
         {
           onSuccess: (data) => {
             setIsDayCompleted(true);
+            queryClient.invalidateQueries({ queryKey: ['/api/daily-entries'] });
             queryClient.invalidateQueries({ queryKey: ['/api/daily-entries', today] });
             toast({
               title: "Day completed successfully!",
@@ -140,6 +144,7 @@ export function TodayView() {
       createDailyEntry.mutate(entryData, {
         onSuccess: (data) => {
           setIsDayCompleted(true);
+          queryClient.invalidateQueries({ queryKey: ['/api/daily-entries'] });
           queryClient.invalidateQueries({ queryKey: ['/api/daily-entries', today] });
           toast({
             title: "Day completed successfully!",
