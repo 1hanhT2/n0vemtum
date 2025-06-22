@@ -64,6 +64,7 @@ export const streaks = pgTable("streaks", {
 export const insertHabitSchema = createInsertSchema(habits).omit({
   id: true,
   createdAt: true,
+  lastAnalyzed: true,
 });
 
 export const insertDailyEntrySchema = createInsertSchema(dailyEntries).omit({

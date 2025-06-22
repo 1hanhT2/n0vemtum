@@ -24,8 +24,10 @@ import { eq, and, gte, lte, not } from "drizzle-orm";
 export interface IStorage {
   // Habits
   getHabits(): Promise<Habit[]>;
+  getHabitById(id: number): Promise<Habit | undefined>;
   createHabit(habit: InsertHabit): Promise<Habit>;
   updateHabit(id: number, habit: Partial<InsertHabit>): Promise<Habit>;
+  updateHabitDifficulty(id: number, difficulty: number, analysis: string): Promise<Habit>;
   deleteHabit(id: number): Promise<void>;
 
   // Daily Entries
@@ -116,6 +118,24 @@ export class DatabaseStorage implements IStorage {
     const [habit] = await db
       .update(habits)
       .set(updateData)
+      .where(eq(habits.id, id))
+      .returning();
+    
+    if (!habit) {
+      throw new Error(`Habit with id ${id} not found`);
+    }
+    return habit;
+  }
+
+  async updateHabitDifficulty(id: number, difficulty: number, analysis: string): Promise<Habit> {
+    await this.ensureInitialized();
+    const [habit] = await db
+      .update(habits)
+      .set({ 
+        difficultyRating: difficulty, 
+        aiAnalysis: analysis,
+        lastAnalyzed: new Date()
+      })
       .where(eq(habits.id, id))
       .returning();
     

@@ -166,6 +166,127 @@ Output ONLY valid JSON with insights:
   }
 }
 
+export async function analyzeHabitDifficulty(habit: any, userCompletionData?: any[]): Promise<{
+  difficulty: number;
+  analysis: string;
+}> {
+  const cacheKey = `difficulty_${habit.id}_${habit.name}`;
+  const cached = aiCache.get<{ difficulty: number; analysis: string }>(cacheKey);
+  
+  if (cached) {
+    console.log('Returning cached difficulty analysis');
+    return cached;
+  }
+
+  try {
+    const completionContext = userCompletionData && userCompletionData.length > 0 
+      ? `User completion data shows ${userCompletionData.filter(d => d.completed).length}/${userCompletionData.length} successful completions.`
+      : 'No completion history available yet.';
+
+    const prompt = `Analyze the difficulty of this habit and provide a rating:
+
+Habit: "${habit.emoji} ${habit.name}"
+${completionContext}
+
+Consider factors like:
+- Time commitment required
+- Physical or mental effort needed
+- Frequency and consistency demands
+- Environmental dependencies
+- Skill requirements
+- Motivation sustainability
+
+Respond with JSON format:
+{
+  "difficulty": [1-5 integer where 1=very easy, 5=very difficult],
+  "analysis": "[Brief 2-3 sentence explanation of the difficulty rating and key factors]"
+}`;
+
+    const response = await callGemini(prompt);
+    
+    try {
+      const result = JSON.parse(response);
+      // Validate the response structure
+      if (typeof result.difficulty === 'number' && 
+          result.difficulty >= 1 && 
+          result.difficulty <= 5 &&
+          typeof result.analysis === 'string') {
+        
+        aiCache.set(cacheKey, result, 60 * 24); // Cache for 24 hours
+        return result;
+      }
+    } catch (parseError) {
+      console.error('Failed to parse AI difficulty response:', parseError);
+    }
+    
+    // Fallback analysis based on habit patterns
+    return getHeuristicDifficulty(habit);
+    
+  } catch (error) {
+    console.error('Failed to analyze habit difficulty:', error);
+    return getHeuristicDifficulty(habit);
+  }
+}
+
+function getHeuristicDifficulty(habit: any): { difficulty: number; analysis: string } {
+  const name = habit.name.toLowerCase();
+  
+  // Physical activities - generally higher difficulty
+  if (name.includes('exercise') || name.includes('workout') || name.includes('run') || 
+      name.includes('gym') || name.includes('sport')) {
+    return {
+      difficulty: 4,
+      analysis: "Physical activities require consistent energy and motivation. Weather, fatigue, and schedule conflicts can create barriers."
+    };
+  }
+  
+  // Time-intensive habits
+  if (name.includes('read') || name.includes('study') || name.includes('learn')) {
+    return {
+      difficulty: 3,
+      analysis: "Learning-based habits need sustained attention and time commitment. Progress may feel slow initially but compounds over time."
+    };
+  }
+  
+  // Social or external dependencies
+  if (name.includes('call') || name.includes('meet') || name.includes('social')) {
+    return {
+      difficulty: 4,
+      analysis: "Social habits depend on others' availability and external coordination, making consistency more challenging."
+    };
+  }
+  
+  // Simple daily maintenance
+  if (name.includes('water') || name.includes('vitamin') || name.includes('brush')) {
+    return {
+      difficulty: 2,
+      analysis: "Basic maintenance habits are low-effort but require consistent memory and routine integration."
+    };
+  }
+  
+  // Sleep-related
+  if (name.includes('sleep') || name.includes('wake') || name.includes('bed')) {
+    return {
+      difficulty: 3,
+      analysis: "Sleep habits affect and are affected by your entire daily rhythm. Changes require patience and consistency."
+    };
+  }
+  
+  // Mindfulness and mental habits
+  if (name.includes('meditat') || name.includes('mindful') || name.includes('gratitude')) {
+    return {
+      difficulty: 3,
+      analysis: "Mental habits require discipline and inner focus. Benefits are often internal and may take time to notice."
+    };
+  }
+  
+  // Default for unknown habits
+  return {
+    difficulty: 3,
+    analysis: "Difficulty varies based on personal circumstances, motivation, and how well this habit fits into your current routine."
+  };
+}
+
 export async function generateMotivationalMessage(
   completionRate: number,
   currentStreak: number
