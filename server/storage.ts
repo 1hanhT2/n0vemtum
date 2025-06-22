@@ -19,7 +19,7 @@ import {
   type InsertStreak
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gte, lte } from "drizzle-orm";
+import { eq, and, gte, lte, not } from "drizzle-orm";
 
 export interface IStorage {
   // Habits
@@ -491,8 +491,8 @@ export class DatabaseStorage implements IStorage {
         }
       }
       
-      // Delete custom settings (keep system ones)
-      await db.delete(settings).where(ne(settings.key, 'theme'));
+      // Delete custom settings (keep system ones)  
+      await db.delete(settings).where(not(eq(settings.key, 'theme')));
       
       console.log('All data reset successfully');
     } catch (error) {
