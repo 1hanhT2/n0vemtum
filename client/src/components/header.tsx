@@ -11,7 +11,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <img src="/favicon.png" alt="m0mentum logo" className="w-10 h-10" />
+            <img src="/logo-white.png" alt="m0mentum logo" className="w-10 h-10" />
             <h1 className="text-3xl logo-text cursor-pointer hover:scale-105 transform" style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 200 }}>m0mentum</h1>
           </div>
           <Button
