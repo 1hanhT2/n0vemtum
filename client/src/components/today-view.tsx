@@ -4,6 +4,17 @@ import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useHabits } from "@/hooks/use-habits";
 import { useDailyEntry, useCreateDailyEntry, useUpdateDailyEntry } from "@/hooks/use-daily-entries";
 import { useMotivationalMessage } from "@/hooks/use-ai";
@@ -28,6 +39,7 @@ export function TodayView() {
   const [adherenceScore, setAdherenceScore] = useState<number[]>([3]);
   const [notes, setNotes] = useState('');
   const [motivationalMessage, setMotivationalMessage] = useState('');
+  const [isDayCompleted, setIsDayCompleted] = useState(false);
 
   // Load existing data when dailyEntry changes
   useEffect(() => {
@@ -36,6 +48,7 @@ export function TodayView() {
       setPunctualityScore([dailyEntry.punctualityScore]);
       setAdherenceScore([dailyEntry.adherenceScore]);
       setNotes(dailyEntry.notes || '');
+      setIsDayCompleted(dailyEntry.isCompleted || false);
     }
   }, [dailyEntry]);
 
@@ -72,6 +85,7 @@ export function TodayView() {
   };
 
   const handleHabitToggle = (habitId: number, checked: boolean) => {
+    if (isDayCompleted) return; // Prevent changes if day is completed
     const newCompletions = { ...habitCompletions, [habitId]: checked };
     setHabitCompletions(newCompletions);
     
@@ -103,6 +117,7 @@ export function TodayView() {
       punctualityScore: punctualityScore[0],
       adherenceScore: adherenceScore[0],
       notes,
+      isCompleted: true,
       completedAt: new Date(),
     };
 
@@ -111,9 +126,10 @@ export function TodayView() {
         { date: today, ...entryData },
         {
           onSuccess: () => {
+            setIsDayCompleted(true);
             toast({
-              title: "Day completed successfully! 🎉",
-              description: "Your progress has been saved.",
+              title: "Day completed successfully!",
+              description: "Your progress has been locked and saved.",
             });
           },
         }
@@ -121,9 +137,10 @@ export function TodayView() {
     } else {
       createDailyEntry.mutate(entryData, {
         onSuccess: () => {
+          setIsDayCompleted(true);
           toast({
-            title: "Day completed successfully! 🎉",
-            description: "Your progress has been saved.",
+            title: "Day completed successfully!",
+            description: "Your progress has been locked and saved.",
           });
         },
       });
@@ -131,6 +148,7 @@ export function TodayView() {
   };
 
   const handleScoreChange = (type: 'punctuality' | 'adherence', value: number[]) => {
+    if (isDayCompleted) return; // Prevent changes if day is completed
     if (type === 'punctuality') {
       setPunctualityScore(value);
     } else {
