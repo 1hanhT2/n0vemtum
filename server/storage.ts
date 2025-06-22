@@ -293,6 +293,7 @@ export class DatabaseStorage implements IStorage {
       const existingAchievements = await db.select().from(achievements);
       if (existingAchievements.length === 0) {
         const defaultAchievements = [
+          // Streak Achievements
           {
             type: 'streak',
             name: 'First Steps',
@@ -329,6 +330,22 @@ export class DatabaseStorage implements IStorage {
             requirement: 30,
           },
           {
+            type: 'streak',
+            name: 'Unstoppable Force',
+            description: 'Maintain a 60-day streak',
+            badge: '💪',
+            requirement: 60,
+          },
+          {
+            type: 'streak',
+            name: 'Legend',
+            description: 'Maintain a 100-day streak',
+            badge: '🌟',
+            requirement: 100,
+          },
+          
+          // Completion Achievements
+          {
             type: 'completion',
             name: 'Perfect Day',
             description: 'Complete all habits in a day',
@@ -336,11 +353,64 @@ export class DatabaseStorage implements IStorage {
             requirement: 100,
           },
           {
+            type: 'completion',
+            name: 'Near Perfect',
+            description: 'Complete 90% of habits in a day',
+            badge: '🎯',
+            requirement: 90,
+          },
+          {
+            type: 'completion',
+            name: 'Good Progress',
+            description: 'Complete 75% of habits in a day',
+            badge: '✅',
+            requirement: 75,
+          },
+          
+          // Consistency Achievements
+          {
             type: 'consistency',
-            name: 'Weekly Champion',
+            name: 'Reflection Master',
             description: 'Complete 5 weekly reviews',
-            badge: '👑',
+            badge: '📝',
             requirement: 5,
+          },
+          {
+            type: 'consistency',
+            name: 'Self-Aware',
+            description: 'Complete 10 weekly reviews',
+            badge: '🔍',
+            requirement: 10,
+          },
+          {
+            type: 'consistency',
+            name: 'Wisdom Keeper',
+            description: 'Complete 25 weekly reviews',
+            badge: '🧠',
+            requirement: 25,
+          },
+          
+          // Milestone Achievements
+          {
+            type: 'milestone',
+            name: 'Getting Into It',
+            description: 'Complete 10 total days',
+            badge: '🎪',
+            requirement: 10,
+          },
+          {
+            type: 'milestone',
+            name: 'Dedicated',
+            description: 'Complete 25 total days',
+            badge: '💝',
+            requirement: 25,
+          },
+          {
+            type: 'milestone',
+            name: 'Half Century',
+            description: 'Complete 50 total days',
+            badge: '🏅',
+            requirement: 50,
           },
           {
             type: 'milestone',
@@ -348,6 +418,57 @@ export class DatabaseStorage implements IStorage {
             description: 'Complete 100 total days',
             badge: '💯',
             requirement: 100,
+          },
+          {
+            type: 'milestone',
+            name: 'Habit Master',
+            description: 'Complete 250 total days',
+            badge: '🎖️',
+            requirement: 250,
+          },
+          {
+            type: 'milestone',
+            name: 'Life Changer',
+            description: 'Complete 365 total days',
+            badge: '🌈',
+            requirement: 365,
+          },
+          
+          // Special Achievements
+          {
+            type: 'special',
+            name: 'Early Bird',
+            description: 'Score 5/5 on punctuality',
+            badge: '🐦',
+            requirement: 5,
+          },
+          {
+            type: 'special',
+            name: 'Disciplined',
+            description: 'Score 5/5 on adherence',
+            badge: '⚖️',
+            requirement: 5,
+          },
+          {
+            type: 'special',
+            name: 'Perfectionist',
+            description: 'Score 5/5 on both metrics same day',
+            badge: '💎',
+            requirement: 1,
+          },
+          {
+            type: 'special',
+            name: 'Note Taker',
+            description: 'Add notes for 7 consecutive days',
+            badge: '📓',
+            requirement: 7,
+          },
+          {
+            type: 'special',
+            name: 'Habit Creator',
+            description: 'Create 5 custom habits',
+            badge: '🛠️',
+            requirement: 5,
           },
         ];
 
