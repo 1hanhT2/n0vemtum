@@ -63,6 +63,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Gamification routes
+  app.post("/api/habits/:id/level-up", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const habit = await storage.levelUpHabit(id);
+      res.json(habit);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Failed to level up habit" });
+    }
+  });
+
+  app.post("/api/habits/:id/progress", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { completed, date } = req.body;
+      const habit = await storage.updateHabitProgress(id, completed, date);
+      
+      // Check for tier promotion after progress update
+      const promotedHabit = await storage.calculateTierPromotion(id);
+      
+      res.json(promotedHabit);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Failed to update habit progress" });
+    }
+  });
+
+  app.post("/api/habits/:id/badge", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { badge } = req.body;
+      const habit = await storage.awardBadge(id, badge);
+      res.json(habit);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Failed to award badge" });
+    }
+  });
+
   // Daily entries routes
   app.get("/api/daily-entries", async (req, res) => {
     try {

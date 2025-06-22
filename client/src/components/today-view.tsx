@@ -25,7 +25,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 import { useStreak } from "@/hooks/use-streaks";
+import { useLevelUpHabit, useUpdateHabitProgress } from "@/hooks/use-gamification";
 import { HabitDifficultyDisplay } from "@/components/habit-difficulty-display";
+import { HabitProgression } from "@/components/habit-progression";
 
 export function TodayView() {
   const { toast } = useToast();
@@ -38,6 +40,8 @@ export function TodayView() {
   const { data: currentStreak } = useStreak('daily_completion');
   const [analyzingHabit, setAnalyzingHabit] = useState<number | null>(null);
   const motivationMutation = useMotivationalMessage();
+  const levelUpHabit = useLevelUpHabit();
+  const updateHabitProgress = useUpdateHabitProgress();
 
   const [habitCompletions, setHabitCompletions] = useState<Record<number, boolean>>({});
   const [punctualityScore, setPunctualityScore] = useState<number[]>([3]);
@@ -122,6 +126,13 @@ export function TodayView() {
     if (isDayCompleted) return; // Prevent changes if day is completed
     const newCompletions = { ...habitCompletions, [habitId]: checked };
     setHabitCompletions(newCompletions);
+    
+    // Update habit progress for gamification
+    updateHabitProgress.mutate({
+      habitId,
+      completed: checked,
+      date: today
+    });
     
     // Auto-calculate scores based on completion
     const newScore = calculateCompletionScore(newCompletions);
@@ -302,11 +313,18 @@ export function TodayView() {
                   </label>
                 </div>
                 
-                <HabitDifficultyDisplay
-                  habit={habit}
-                  onAnalyze={handleAnalyzeHabit}
-                  isAnalyzing={analyzingHabit === habit.id}
-                />
+                <div className="space-y-4">
+                  <HabitDifficultyDisplay
+                    habit={habit}
+                    onAnalyze={handleAnalyzeHabit}
+                    isAnalyzing={analyzingHabit === habit.id}
+                  />
+                  
+                  <HabitProgression
+                    habit={habit}
+                    onLevelUp={(habitId) => levelUpHabit.mutate(habitId)}
+                  />
+                </div>
               </motion.div>
             ))}
           </div>
