@@ -255,6 +255,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Data reset route
+  app.post("/api/reset-data", async (req, res) => {
+    try {
+      await storage.resetAllData();
+      res.json({ message: "Data reset successfully" });
+    } catch (error) {
+      console.error("Failed to reset data:", error);
+      res.status(500).json({ error: "Failed to reset data" });
+    }
+  });
+
   // AI-powered routes
   app.get("/api/ai/habit-suggestions", async (req, res) => {
     try {

@@ -55,6 +55,9 @@ export interface IStorage {
   getStreak(type: string): Promise<Streak | undefined>;
   updateStreak(type: string, streak: Partial<InsertStreak>): Promise<Streak>;
   calculateStreaks(date: string): Promise<void>;
+
+  // Data management
+  resetAllData(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -458,6 +461,43 @@ export class DatabaseStorage implements IStorage {
       if (shouldUnlock) {
         await this.unlockAchievement(achievement.id);
       }
+    }
+  }
+
+  async resetAllData(): Promise<void> {
+    await this.ensureInitialized();
+    try {
+      // Delete all data from tables (in correct order due to foreign key constraints)
+      await db.delete(dailyEntries);
+      await db.delete(weeklyReviews);
+      await db.delete(streaks);
+      
+      // Reset achievements to unlocked state
+      await db.update(achievements).set({ 
+        isUnlocked: false, 
+        unlockedAt: null 
+      });
+      
+      // Delete custom habits (keep default ones by checking if they exist in defaults)
+      const defaultHabits = [
+        "Wake up on time", "Exercise", "Healthy breakfast", "Drink water",
+        "Read", "Meditate", "Work focus", "Limit screen time", "Sleep early", "Gratitude"
+      ];
+      
+      const allHabits = await db.select().from(habits);
+      for (const habit of allHabits) {
+        if (!defaultHabits.includes(habit.name)) {
+          await db.delete(habits).where(eq(habits.id, habit.id));
+        }
+      }
+      
+      // Delete custom settings (keep system ones)
+      await db.delete(settings).where(ne(settings.key, 'theme'));
+      
+      console.log('All data reset successfully');
+    } catch (error) {
+      console.error('Failed to reset data:', error);
+      throw new Error('Failed to reset data');
     }
   }
 }

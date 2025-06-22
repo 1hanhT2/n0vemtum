@@ -137,14 +137,34 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     }
   };
 
-  const handleResetData = () => {
-    if (window.confirm('Are you sure you want to reset all data? This cannot be undone.')) {
-      // TODO: Implement data reset
-      toast({
-        title: "Data reset successfully! 🔄",
-        description: "All data has been cleared.",
+  const handleResetData = async () => {
+    if (!window.confirm('Are you sure you want to reset all data? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/reset-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
       });
-      onClose();
+      
+      if (!response.ok) {
+        throw new Error('Failed to reset data');
+      }
+      
+      // Force page reload to refresh all data
+      window.location.reload();
+      
+    } catch (error) {
+      console.error('Reset data error:', error);
+      toast({
+        title: "Reset Failed",
+        description: "Failed to reset data. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
