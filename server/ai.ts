@@ -15,18 +15,15 @@ interface OpenRouterResponse {
 }
 
 async function callOpenRouter(prompt: string): Promise<string> {
-  // Try the most commonly available free models
+  // Use exclusively the models provided by the user
   const freeModels = [
     "deepseek/deepseek-r1-0528-qwen3-8b:free",
+    "google/gemma-3n-e4b-it:free",
     "microsoft/phi-4-reasoning-plus-04-30:free",
     "microsoft/phi-4-reasoning:free",
-    "meta-llama/llama-3.3-8b-instruct:free",
     "mistralai/mistral-small-3.2-24b-instruct:free",
     "deepseek/deepseek-r1-0528:free",
-    "google/gemma-3n-e4b-it:free",
-    "meta-llama/llama-3.2-3b-instruct:free",
-    "microsoft/phi-3-mini-128k-instruct:free",
-    "google/gemma-2-9b-it:free"
+    "meta-llama/llama-3.3-8b-instruct:free"
   ];
 
   for (const model of freeModels) {
