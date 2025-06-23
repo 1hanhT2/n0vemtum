@@ -17,10 +17,10 @@ export function Header({ onSettingsClick }: HeaderProps) {
           <div className="flex items-center space-x-8 sm:space-x-3">
             {/* Logo and text group with hover effect */}
             <div className="flex items-center space-x-2 sm:space-x-3 cursor-pointer group relative">
-              <img src={logoWHITE__1_} alt="m0mentum logo" className="w-8 h-8 sm:w-10 sm:h-10 pl-[2px] pr-[2px] pt-[2px] pb-[2px] sm:pl-[3px] sm:pr-[3px] sm:pt-[3px] sm:pb-[3px] group-hover:blur-sm transition-all duration-500 ease-in-out" />
+              <img src={logoWHITE__1_} alt="n0ventum logo" className="w-8 h-8 sm:w-10 sm:h-10 pl-[2px] pr-[2px] pt-[2px] pb-[2px] sm:pl-[3px] sm:pr-[3px] sm:pt-[3px] sm:pb-[3px] group-hover:blur-sm transition-all duration-500 ease-in-out" />
               <h1 className="logo-text text-xl sm:text-[30px] font-extralight ml-[4px] mr-[4px] sm:ml-[6px] sm:mr-[6px] mt-[0px] mb-[0px] group-hover:blur-sm transition-all duration-500 ease-in-out" style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300 }}>
-                <span className="sm:hidden">m0</span>
-                <span className="hidden sm:inline">m0mentum</span>
+                <span className="sm:hidden">n0</span>
+                <span className="hidden sm:inline">n0ventum</span>
               </h1>
               
               {/* Motivational text centered over the entire logo+text container */}
