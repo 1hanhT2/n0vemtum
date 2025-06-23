@@ -5,6 +5,7 @@ import {
   settings,
   achievements,
   streaks,
+  users,
   type Habit, 
   type InsertHabit,
   type DailyEntry,
@@ -16,19 +17,25 @@ import {
   type Achievement,
   type InsertAchievement,
   type Streak,
-  type InsertStreak
+  type InsertStreak,
+  type User,
+  type UpsertUser,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lte, not } from "drizzle-orm";
 
 export interface IStorage {
+  // User operations (required for Replit Auth)
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  
   // Habits
-  getHabits(): Promise<Habit[]>;
-  getHabitById(id: number): Promise<Habit | undefined>;
+  getHabits(userId: string): Promise<Habit[]>;
+  getHabitById(id: number, userId: string): Promise<Habit | undefined>;
   createHabit(habit: InsertHabit): Promise<Habit>;
-  updateHabit(id: number, habit: Partial<InsertHabit>): Promise<Habit>;
-  updateHabitDifficulty(id: number, difficulty: number, analysis: string): Promise<Habit>;
-  deleteHabit(id: number): Promise<void>;
+  updateHabit(id: number, habit: Partial<InsertHabit>, userId: string): Promise<Habit>;
+  updateHabitDifficulty(id: number, difficulty: number, analysis: string, userId: string): Promise<Habit>;
+  deleteHabit(id: number, userId: string): Promise<void>;
   
   // Gamification
   updateHabitProgress(habitId: number, completed: boolean, date: string): Promise<Habit>;
