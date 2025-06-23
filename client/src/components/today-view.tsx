@@ -105,6 +105,15 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   }, [habitCompletions, habits]);
 
   const handleAnalyzeHabit = async (habitId: number) => {
+    if (isGuestMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Sign in to analyze habits with AI",
+        variant: "default",
+      });
+      return;
+    }
+    
     setAnalyzingHabit(habitId);
     try {
       const response = await fetch(`/api/ai/analyze-habit-difficulty/${habitId}`, {

@@ -2,9 +2,16 @@ import { useHabits } from "@/hooks/use-habits";
 import { HabitHealthDashboard } from "@/components/habit-health-dashboard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Activity } from "lucide-react";
+import { getMockHabits } from "@/lib/mockData";
 
-export function AnalyticsView() {
-  const { data: habits, isLoading, error } = useHabits();
+interface AnalyticsViewProps {
+  isGuestMode?: boolean;
+}
+
+export function AnalyticsView({ isGuestMode = false }: AnalyticsViewProps) {
+  const { data: habits, isLoading, error } = isGuestMode 
+    ? { data: getMockHabits(), isLoading: false, error: null }
+    : useHabits();
 
   if (isLoading) {
     return (

@@ -13,7 +13,11 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Eye, CheckCircle, 
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
-export function HistoryView() {
+interface HistoryViewProps {
+  isGuestMode?: boolean;
+}
+
+export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
   const { toast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);

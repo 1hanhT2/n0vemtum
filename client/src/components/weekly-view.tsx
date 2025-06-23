@@ -24,7 +24,11 @@ import {
   Cell,
 } from 'recharts';
 
-export function WeeklyView() {
+interface WeeklyViewProps {
+  isGuestMode?: boolean;
+}
+
+export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
   const { toast } = useToast();
   const weekDates = getWeekDates();
   const weekStartDate = getWeekStartDate();

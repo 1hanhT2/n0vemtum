@@ -4,10 +4,19 @@ import { useAchievements } from "@/hooks/use-achievements";
 import { useStreaks } from "@/hooks/use-streaks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
+import { getMockAchievements, getMockStreaks } from "@/lib/mockData";
 
-export function AchievementsPanel() {
-  const { data: achievements, isLoading: achievementsLoading } = useAchievements();
-  const { data: streaks, isLoading: streaksLoading } = useStreaks();
+interface AchievementsPanelProps {
+  isGuestMode?: boolean;
+}
+
+export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProps) {
+  const { data: achievements, isLoading: achievementsLoading } = isGuestMode 
+    ? { data: getMockAchievements(), isLoading: false }
+    : useAchievements();
+  const { data: streaks, isLoading: streaksLoading } = isGuestMode
+    ? { data: getMockStreaks(), isLoading: false }
+    : useStreaks();
 
   if (achievementsLoading || streaksLoading) {
     return (
