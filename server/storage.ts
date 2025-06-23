@@ -133,9 +133,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Habits
-  async getHabits(): Promise<Habit[]> {
+  async getHabits(userId?: string): Promise<Habit[]> {
     await this.ensureInitialized();
-    return await db.select().from(habits).orderBy(habits.order);
+    if (!userId) return []; // Return empty for unauthenticated users
+    return await db.select().from(habits).where(eq(habits.userId, userId)).orderBy(habits.order);
   }
 
   async getHabitById(id: number): Promise<Habit | undefined> {
