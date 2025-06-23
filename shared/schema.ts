@@ -155,6 +155,7 @@ export type InsertStreak = z.infer<typeof insertStreakSchema>;
 export type Streak = typeof streaks.$inferSelect;
 
 export type User = typeof users.$inferSelect;
+export type UpsertUser = typeof users.$inferInsert;
 export type InsertUser = typeof users.$inferInsert;
 
 // User schema for validation

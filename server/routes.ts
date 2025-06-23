@@ -12,28 +12,40 @@ import {
 import { z } from "zod";
 import { generateHabitSuggestions, generateWeeklyInsights, generateMotivationalMessage, analyzeHabitDifficulty } from "./ai";
 
-import { setupAuth, requireAuth } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication
   await setupAuth(app);
   
-  // Habits routes
-  app.get("/api/habits", requireAuth, async (req, res) => {
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const user = req.user as any;
-      const habits = await storage.getHabits(user.id);
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Habits routes
+  app.get("/api/habits", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const habits = await storage.getHabits(userId);
       res.json(habits);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch habits" });
     }
   });
 
-  app.post("/api/habits", requireAuth, async (req, res) => {
+  app.post("/api/habits", isAuthenticated, async (req: any, res) => {
     try {
-      const user = req.user as any;
+      const userId = req.user.claims.sub;
       const habitData = insertHabitSchema.parse(req.body);
-      const habit = await storage.createHabit(habitData, user.id);
+      const habit = await storage.createHabit(habitData, userId);
       res.json(habit);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -44,7 +56,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/habits/:id", async (req, res) => {
+  app.put("/api/habits/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const habitData = insertHabitSchema.partial().parse(req.body);
@@ -120,7 +132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/daily-entries/:date", async (req, res) => {
+  app.get("/api/daily-entries/:date", isAuthenticated, async (req, res) => {
     try {
       const { date } = req.params;
       const entry = await storage.getDailyEntry(date);
@@ -173,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/weekly-reviews/:weekStartDate", async (req, res) => {
+  app.get("/api/weekly-reviews/:weekStartDate", isAuthenticated, async (req, res) => {
     try {
       const { weekStartDate } = req.params;
       const review = await storage.getWeeklyReview(weekStartDate);
@@ -201,7 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/weekly-reviews/:weekStartDate", async (req, res) => {
+  app.put("/api/weekly-reviews/:weekStartDate", isAuthenticated, async (req, res) => {
     try {
       const { weekStartDate } = req.params;
       const reviewData = insertWeeklyReviewSchema.partial().parse(req.body);
@@ -284,7 +296,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/streaks/:type", async (req, res) => {
+  app.get("/api/streaks/:type", isAuthenticated, async (req, res) => {
     try {
       const { type } = req.params;
       const streak = await storage.getStreak(type);
@@ -299,7 +311,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Data reset route
-  app.post("/api/reset-data", async (req, res) => {
+  app.post("/api/reset-data", isAuthenticated, async (req, res) => {
     try {
       await storage.resetAllData();
       res.json({ message: "Data reset successfully" });
@@ -310,9 +322,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI-powered routes
-  app.get("/api/ai/habit-suggestions", async (req, res) => {
+  app.get("/api/ai/habit-suggestions", isAuthenticated, async (req: any, res) => {
     try {
-      const habits = await storage.getHabits();
+      const userId = req.user.claims.sub;
+      const habits = await storage.getHabits(userId);
       const suggestions = await generateHabitSuggestions(habits);
       res.json(suggestions);
     } catch (error) {
@@ -321,12 +334,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/ai/weekly-insights", isAuthenticated, async (req, res) => {
+  app.post("/api/ai/weekly-insights", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { startDate, endDate } = req.body;
       const [dailyEntries, habits] = await Promise.all([
         storage.getDailyEntries(startDate, endDate),
-        storage.getHabits()
+        storage.getHabits(userId)
       ]);
       
       const insights = await generateWeeklyInsights(dailyEntries, habits);
@@ -337,7 +351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/ai/motivation", async (req, res) => {
+  app.post("/api/ai/motivation", isAuthenticated, async (req, res) => {
     try {
       const { completionRate, currentStreak } = req.body;
       
