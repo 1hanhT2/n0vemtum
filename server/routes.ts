@@ -101,6 +101,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const userId = req.user.claims.sub;
       const { completed, date } = req.body;
+      
+      // Validate input
+      if (typeof completed !== 'boolean' || typeof date !== 'string') {
+        return res.status(400).json({ error: "Invalid input: completed must be boolean and date must be string" });
+      }
+      
       const habit = await storage.updateHabitProgress(id, completed, date, userId);
       
       // Check for tier promotion after progress update
@@ -108,6 +114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(promotedHabit);
     } catch (error) {
+      console.error(`Habit progress update error for habit ${req.params.id}:`, error);
       res.status(400).json({ error: error instanceof Error ? error.message : "Failed to update habit progress" });
     }
   });
@@ -161,6 +168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const entry = await storage.createDailyEntry(entryData);
       res.json(entry);
     } catch (error) {
+      console.error("Daily entry creation error:", error);
       if (error instanceof z.ZodError) {
         res.status(400).json({ error: "Invalid daily entry data", details: error.errors });
       } else {

@@ -38,7 +38,7 @@ export interface IStorage {
   deleteHabit(id: number, userId: string): Promise<void>;
   
   // Gamification
-  updateHabitProgress(habitId: number, completed: boolean, date: string): Promise<Habit>;
+  updateHabitProgress(habitId: number, completed: boolean, date: string, userId?: string): Promise<Habit>;
   levelUpHabit(habitId: number): Promise<Habit>;
   awardBadge(habitId: number, badge: string): Promise<Habit>;
   calculateTierPromotion(habitId: number): Promise<Habit>;
@@ -629,12 +629,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Add gamification methods before checkAchievements
-  async updateHabitProgress(habitId: number, completed: boolean, date: string, userId: string): Promise<Habit> {
+  async updateHabitProgress(habitId: number, completed: boolean, date: string, userId?: string): Promise<Habit> {
     await this.ensureInitialized();
+    
+    // If userId is not provided, find the habit by id and get userId from it
+    if (!userId) {
+      const [foundHabit] = await db.select().from(habits).where(eq(habits.id, habitId));
+      if (!foundHabit) {
+        throw new Error(`Habit with id ${habitId} not found`);
+      }
+      userId = foundHabit.userId;
+    }
     
     const habit = await this.getHabitById(habitId, userId);
     if (!habit) {
-      throw new Error(`Habit with id ${habitId} not found`);
+      throw new Error(`Habit with id ${habitId} not found for user ${userId}`);
     }
 
     let newExperience = habit.experience;
