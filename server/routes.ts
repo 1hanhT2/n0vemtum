@@ -59,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/habits/:id", async (req, res) => {
+  app.delete("/api/habits/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteHabit(id);
@@ -70,7 +70,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Gamification routes
-  app.post("/api/habits/:id/level-up", async (req, res) => {
+  app.post("/api/habits/:id/level-up", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const habit = await storage.levelUpHabit(id);
@@ -95,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/habits/:id/badge", async (req, res) => {
+  app.post("/api/habits/:id/badge", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const { badge } = req.body;
@@ -107,7 +107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Daily entries routes
-  app.get("/api/daily-entries", async (req, res) => {
+  app.get("/api/daily-entries", requireAuth, async (req, res) => {
     try {
       const { start_date, end_date } = req.query;
       const entries = await storage.getDailyEntries(
@@ -134,7 +134,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/daily-entries", async (req, res) => {
+  app.post("/api/daily-entries", requireAuth, async (req, res) => {
     try {
       const entryData = insertDailyEntrySchema.parse(req.body);
       const entry = await storage.createDailyEntry(entryData);
@@ -164,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Weekly reviews routes
-  app.get("/api/weekly-reviews", async (req, res) => {
+  app.get("/api/weekly-reviews", requireAuth, async (req, res) => {
     try {
       const reviews = await storage.getWeeklyReviews();
       res.json(reviews);
@@ -187,7 +187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/weekly-reviews", async (req, res) => {
+  app.post("/api/weekly-reviews", requireAuth, async (req, res) => {
     try {
       const reviewData = insertWeeklyReviewSchema.parse(req.body);
       const review = await storage.createWeeklyReview(reviewData);
@@ -217,7 +217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Settings routes
-  app.get("/api/settings", async (req, res) => {
+  app.get("/api/settings", requireAuth, async (req, res) => {
     try {
       const settings = await storage.getSettings();
       res.json(settings);
@@ -226,7 +226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/settings/:key", async (req, res) => {
+  app.get("/api/settings/:key", requireAuth, async (req, res) => {
     try {
       const { key } = req.params;
       const setting = await storage.getSetting(key);
@@ -240,7 +240,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/settings", async (req, res) => {
+  app.post("/api/settings", requireAuth, async (req, res) => {
     try {
       const settingData = insertSettingSchema.parse(req.body);
       const setting = await storage.setSetting(settingData);
@@ -255,7 +255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Achievements routes
-  app.get("/api/achievements", async (req, res) => {
+  app.get("/api/achievements", requireAuth, async (req, res) => {
     try {
       const achievements = await storage.getAchievements();
       res.json(achievements);
@@ -264,7 +264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/achievements/:id/unlock", async (req, res) => {
+  app.post("/api/achievements/:id/unlock", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const achievement = await storage.unlockAchievement(id);
@@ -275,7 +275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Streaks routes
-  app.get("/api/streaks", async (req, res) => {
+  app.get("/api/streaks", requireAuth, async (req, res) => {
     try {
       const streaks = await storage.getStreaks();
       res.json(streaks);
@@ -321,7 +321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/ai/weekly-insights", async (req, res) => {
+  app.post("/api/ai/weekly-insights", requireAuth, async (req, res) => {
     try {
       const { startDate, endDate } = req.body;
       const [dailyEntries, habits] = await Promise.all([
