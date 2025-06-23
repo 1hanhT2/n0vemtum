@@ -22,6 +22,10 @@ import { db } from "./db";
 import { eq, and, gte, lte, not } from "drizzle-orm";
 
 export interface IStorage {
+  // Users
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: InsertUser): Promise<User>;
+  
   // Habits
   getHabits(): Promise<Habit[]>;
   getHabitById(id: number): Promise<Habit | undefined>;
