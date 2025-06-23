@@ -14,7 +14,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3 cursor-pointer transition-all duration-300 hover:scale-105">
             <img src={logoWHITE__1_} alt="m0mentum logo" className="w-10 h-10 pl-[3px] pr-[3px] pt-[3px] pb-[3px]" />
-            <h1 className="logo-text font-semibold text-[33px]" style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300 }}>n0ventum</h1>
+            <h1 className="logo-text text-[30px] font-extralight ml-[3px] mr-[3px] mt-[-1px] mb-[-1px]" style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300 }}>n0ventum</h1>
           </div>
           <Button
             onClick={onSettingsClick}
