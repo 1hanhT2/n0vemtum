@@ -82,7 +82,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Gamification routes
-  app.post("/api/habits/:id/level-up", async (req, res) => {
+  app.post("/api/habits/:id/level-up", isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const habit = await storage.levelUpHabit(id);
@@ -92,7 +92,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/habits/:id/progress", async (req, res) => {
+  app.post("/api/habits/:id/progress", isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const { completed, date } = req.body;
@@ -107,7 +107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/habits/:id/badge", async (req, res) => {
+  app.post("/api/habits/:id/badge", isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const { badge } = req.body;
