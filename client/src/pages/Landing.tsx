@@ -1,8 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Target, Trophy, TrendingUp, Users } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
+import { useEffect } from "react";
 
 export function Landing() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setLocation("/app");
+    }
+  }, [isAuthenticated, setLocation]);
+
   const handleLogin = () => {
     window.location.href = "/api/login";
   };

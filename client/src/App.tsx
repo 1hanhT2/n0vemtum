@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -7,9 +7,17 @@ import { useAuth } from "@/hooks/useAuth";
 import { Landing } from "@/pages/Landing";
 import { Home } from "@/pages/Home";
 import { ErrorBoundary } from '@/components/error-boundary';
+import { useEffect } from "react";
 
-function Router() {
+function AuthenticatedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      setLocation("/");
+    }
+  }, [isAuthenticated, isLoading, setLocation]);
 
   if (isLoading) {
     return (
@@ -23,17 +31,33 @@ function Router() {
   }
 
   if (!isAuthenticated) {
-    return (
-      <ErrorBoundary>
-        <Landing />
-      </ErrorBoundary>
-    );
+    return null;
   }
 
+  return <>{children}</>;
+}
+
+function Router() {
   return (
-    <ErrorBoundary>
-      <Home />
-    </ErrorBoundary>
+    <Switch>
+      <Route path="/">
+        <ErrorBoundary>
+          <Landing />
+        </ErrorBoundary>
+      </Route>
+      <Route path="/app">
+        <ErrorBoundary>
+          <AuthenticatedRoute>
+            <Home />
+          </AuthenticatedRoute>
+        </ErrorBoundary>
+      </Route>
+      <Route>
+        <ErrorBoundary>
+          <Landing />
+        </ErrorBoundary>
+      </Route>
+    </Switch>
   );
 }
 

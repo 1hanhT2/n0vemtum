@@ -90,7 +90,7 @@ export async function setupAuth(app: Express) {
     
     // Mock auth routes
     app.get("/api/login", (req, res) => {
-      res.redirect("/");
+      res.redirect("/app");
     });
     
     app.get("/api/logout", (req, res) => {
@@ -143,7 +143,7 @@ export async function setupAuth(app: Express) {
 
   app.get("/api/callback", (req, res, next) => {
     passport.authenticate(`replitauth:${req.hostname}`, {
-      successReturnToOrRedirect: "/",
+      successReturnToOrRedirect: "/app",
       failureRedirect: "/api/login",
     })(req, res, next);
   });
