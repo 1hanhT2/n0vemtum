@@ -8,8 +8,11 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
+// Check if we have the required environment variables for Replit Auth
+const isReplitAuthConfigured = process.env.REPLIT_DOMAINS && process.env.REPL_ID;
+
+if (!isReplitAuthConfigured) {
+  console.warn("Replit Auth not configured. REPLIT_DOMAINS or REPL_ID missing. Authentication will be disabled.");
 }
 
 const getOidcConfig = memoize(
@@ -67,6 +70,36 @@ async function upsertUser(
 }
 
 export async function setupAuth(app: Express) {
+  // If Replit Auth is not configured, set up a mock authentication system
+  if (!isReplitAuthConfigured) {
+    console.log("Setting up mock authentication for development");
+    
+    // Mock session middleware
+    app.use((req: any, res, next) => {
+      req.user = {
+        claims: {
+          sub: "demo-user-id",
+          email: "demo@example.com",
+          first_name: "Demo",
+          last_name: "User"
+        }
+      };
+      req.isAuthenticated = () => true;
+      next();
+    });
+    
+    // Mock auth routes
+    app.get("/api/login", (req, res) => {
+      res.redirect("/");
+    });
+    
+    app.get("/api/logout", (req, res) => {
+      res.redirect("/");
+    });
+    
+    return;
+  }
+
   app.set("trust proxy", 1);
   app.use(getSession());
   app.use(passport.initialize());
@@ -128,6 +161,11 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  // If Replit Auth is not configured, allow all requests
+  if (!isReplitAuthConfigured) {
+    return next();
+  }
+
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.expires_at) {

@@ -25,6 +25,9 @@ export function Landing() {
           >
             Get Started
           </Button>
+          <p className="text-sm text-gray-500 mt-4">
+            Note: This demo uses mock authentication for development purposes.
+          </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">

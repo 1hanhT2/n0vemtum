@@ -616,7 +616,7 @@ export class DatabaseStorage implements IStorage {
         currentStreak: newCurrentStreak,
         longestStreak: newLongestStreak,
         lastActiveDate: date,
-      });
+      }, userId);
 
       // Check for achievement unlocks
       await this.checkAchievements(newCurrentStreak, todayEntry);
