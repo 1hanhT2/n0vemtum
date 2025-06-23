@@ -56,8 +56,8 @@ export interface IStorage {
   updateWeeklyReview(weekStartDate: string, review: Partial<InsertWeeklyReview>, userId: string): Promise<WeeklyReview>;
 
   // Settings
-  getSetting(key: string): Promise<Setting | undefined>;
-  getSettings(): Promise<Setting[]>;
+  getSetting(key: string, userId: string): Promise<Setting | undefined>;
+  getSettings(userId: string): Promise<Setting[]>;
   setSetting(setting: InsertSetting): Promise<Setting>;
 
   // Achievements
@@ -156,12 +156,12 @@ export class DatabaseStorage implements IStorage {
     return habit;
   }
 
-  async updateHabit(id: number, updateData: Partial<InsertHabit>): Promise<Habit> {
+  async updateHabit(id: number, updateData: Partial<InsertHabit>, userId: string): Promise<Habit> {
     await this.ensureInitialized();
     const [habit] = await db
       .update(habits)
       .set(updateData)
-      .where(eq(habits.id, id))
+      .where(and(eq(habits.id, id), eq(habits.userId, userId)))
       .returning();
     
     if (!habit) {
@@ -170,7 +170,7 @@ export class DatabaseStorage implements IStorage {
     return habit;
   }
 
-  async updateHabitDifficulty(id: number, difficulty: number, analysis: string): Promise<Habit> {
+  async updateHabitDifficulty(id: number, difficulty: number, analysis: string, userId: string): Promise<Habit> {
     await this.ensureInitialized();
     const [habit] = await db
       .update(habits)
@@ -179,7 +179,7 @@ export class DatabaseStorage implements IStorage {
         aiAnalysis: analysis,
         lastAnalyzed: new Date()
       })
-      .where(eq(habits.id, id))
+      .where(and(eq(habits.id, id), eq(habits.userId, userId)))
       .returning();
     
     if (!habit) {
@@ -265,18 +265,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Weekly Reviews
-  async getWeeklyReview(weekStartDate: string): Promise<WeeklyReview | undefined> {
+  async getWeeklyReview(weekStartDate: string, userId: string): Promise<WeeklyReview | undefined> {
     const [review] = await db
       .select()
       .from(weeklyReviews)
-      .where(eq(weeklyReviews.weekStartDate, weekStartDate));
+      .where(and(eq(weeklyReviews.weekStartDate, weekStartDate), eq(weeklyReviews.userId, userId)));
     return review || undefined;
   }
 
-  async getWeeklyReviews(): Promise<WeeklyReview[]> {
+  async getWeeklyReviews(userId: string): Promise<WeeklyReview[]> {
     return await db
       .select()
       .from(weeklyReviews)
+      .where(eq(weeklyReviews.userId, userId))
       .orderBy(weeklyReviews.weekStartDate);
   }
 
@@ -302,26 +303,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Settings
-  async getSetting(key: string): Promise<Setting | undefined> {
+  async getSetting(key: string, userId: string): Promise<Setting | undefined> {
     const [setting] = await db
       .select()
       .from(settings)
-      .where(eq(settings.key, key));
+      .where(and(eq(settings.key, key), eq(settings.userId, userId)));
     return setting || undefined;
   }
 
-  async getSettings(): Promise<Setting[]> {
-    return await db.select().from(settings);
+  async getSettings(userId: string): Promise<Setting[]> {
+    return await db.select().from(settings).where(eq(settings.userId, userId));
   }
 
   async setSetting(insertSetting: InsertSetting): Promise<Setting> {
-    const existing = await this.getSetting(insertSetting.key);
+    const existing = await this.getSetting(insertSetting.key, insertSetting.userId);
     
     if (existing) {
       const [setting] = await db
         .update(settings)
         .set({ value: insertSetting.value, updatedAt: new Date() })
-        .where(eq(settings.key, insertSetting.key))
+        .where(and(eq(settings.key, insertSetting.key), eq(settings.userId, insertSetting.userId)))
         .returning();
       return setting;
     } else {
@@ -550,9 +551,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Streaks
-  async getStreaks(): Promise<Streak[]> {
+  async getStreaks(userId: string): Promise<Streak[]> {
     await this.ensureInitialized();
-    return await db.select().from(streaks).orderBy(streaks.type);
+    return await db.select().from(streaks).where(eq(streaks.userId, userId)).orderBy(streaks.type);
   }
 
   async getStreak(type: string, userId: string): Promise<Streak | undefined> {

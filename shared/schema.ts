@@ -74,10 +74,14 @@ export const weeklyReviews = pgTable("weekly_reviews", {
 
 export const settings = pgTable("settings", {
   id: serial("id").primaryKey(),
-  key: text("key").notNull().unique(),
+  userId: varchar("user_id").notNull(),
+  key: text("key").notNull(),
   value: text("value").notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  // Composite unique constraint for user + key
+  index("unique_user_setting").on(table.userId, table.key)
+]);
 
 export const achievements = pgTable("achievements", {
   id: serial("id").primaryKey(),
