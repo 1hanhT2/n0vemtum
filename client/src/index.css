@@ -35,6 +35,172 @@
   }
 }
 
+/* Landscape orientation optimizations */
+@media (max-height: 500px) and (orientation: landscape) {
+  .landscape-optimize {
+    @apply py-1 space-y-2;
+  }
+  
+  .landscape-header {
+    @apply py-2;
+  }
+  
+  .landscape-nav {
+    @apply py-1;
+  }
+  
+  .landscape-card {
+    @apply p-2 text-sm;
+  }
+  
+  .landscape-grid {
+    @apply grid-cols-2 gap-2;
+  }
+  
+  .landscape-compact {
+    @apply text-xs leading-tight;
+  }
+}
+
+/* Portrait phone optimizations */
+@media (max-width: 640px) and (orientation: portrait) {
+  .portrait-stack {
+    @apply flex-col space-y-3;
+  }
+  
+  .portrait-full {
+    @apply w-full;
+  }
+  
+  .portrait-large-touch {
+    @apply min-h-[44px] text-base;
+  }
+}
+
+/* Small landscape phones */
+@media (max-width: 800px) and (max-height: 450px) and (orientation: landscape) {
+  .small-landscape {
+    @apply text-xs p-1;
+  }
+  
+  .small-landscape-nav {
+    @apply overflow-x-auto scrollbar-hide;
+  }
+  
+  .small-landscape-content {
+    @apply max-h-[300px] overflow-y-auto;
+  }
+}
+
+/* Utility for hiding scrollbars */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Touch-friendly targets */
+.touch-target {
+  @apply min-h-[44px] min-w-[44px];
+}
+
+/* Responsive text scaling */
+.responsive-text {
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
+}
+
+.responsive-heading {
+  font-size: clamp(1.125rem, 4vw, 1.5rem);
+}
+
+/* Portrait orientation (typical mobile) */
+@media (max-width: 640px) and (orientation: portrait) {
+  .portrait-stack {
+    @apply flex-col space-y-3;
+  }
+  
+  .portrait-full-width {
+    @apply w-full;
+  }
+  
+  .portrait-compact {
+    @apply p-3 text-sm;
+  }
+  
+  .portrait-nav {
+    @apply flex-row flex-wrap justify-center gap-1;
+  }
+  
+  .portrait-card {
+    @apply min-h-[4rem];
+  }
+}
+
+/* Landscape orientation (mobile horizontal) */
+@media (max-width: 1024px) and (orientation: landscape) and (max-height: 640px) {
+  .landscape-horizontal {
+    @apply flex-row space-x-2;
+  }
+  
+  .landscape-compact {
+    @apply p-2 text-xs;
+  }
+  
+  .landscape-nav {
+    @apply flex-row justify-center gap-1 py-1;
+  }
+  
+  .landscape-header {
+    @apply py-2;
+  }
+  
+  .landscape-grid {
+    @apply grid-cols-2 md:grid-cols-3 gap-2;
+  }
+  
+  .landscape-tight {
+    @apply space-y-1;
+  }
+  
+  .landscape-card {
+    @apply min-h-[3rem] p-2;
+  }
+  
+  /* Reduce vertical spacing in landscape */
+  .landscape-spacing {
+    @apply space-y-2;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 375px) {
+  .tiny-screen {
+    @apply text-xs px-1;
+  }
+  
+  .tiny-nav {
+    @apply gap-0.5 text-xs;
+  }
+  
+  .tiny-card {
+    @apply p-2 min-h-[3rem];
+  }
+}
+
+/* Touch-friendly interactive elements */
+@media (pointer: coarse) {
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  .touch-button {
+    @apply px-4 py-3;
+  }
+}
+
 :root {
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(20, 14.3%, 4.1%);
