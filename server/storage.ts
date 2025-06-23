@@ -288,7 +288,7 @@ export class DatabaseStorage implements IStorage {
     return review;
   }
 
-  async updateWeeklyReview(weekStartDate: string, updateData: Partial<InsertWeeklyReview>): Promise<WeeklyReview> {
+  async updateWeeklyReview(weekStartDate: string, updateData: Partial<InsertWeeklyReview>, userId: string): Promise<WeeklyReview> {
     const [review] = await db
       .update(weeklyReviews)
       .set(updateData)
@@ -334,17 +334,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Achievements
-  async getAchievements(): Promise<Achievement[]> {
+  async getAchievements(userId: string): Promise<Achievement[]> {
     await this.ensureInitialized();
-    return await db.select().from(achievements).orderBy(achievements.createdAt);
+    return await db.select().from(achievements).where(eq(achievements.userId, userId)).orderBy(achievements.createdAt);
   }
 
-  async unlockAchievement(id: number): Promise<Achievement> {
+  async unlockAchievement(id: number, userId: string): Promise<Achievement> {
     await this.ensureInitialized();
     const [achievement] = await db
       .update(achievements)
       .set({ isUnlocked: true, unlockedAt: new Date() })
-      .where(eq(achievements.id, id))
+      .where(and(eq(achievements.id, id), eq(achievements.userId, userId)))
       .returning();
     
     if (!achievement) {
@@ -353,7 +353,7 @@ export class DatabaseStorage implements IStorage {
     return achievement;
   }
 
-  async initializeAchievements(): Promise<void> {
+  async initializeAchievements(userId: string): Promise<void> {
     try {
       const existingAchievements = await db.select().from(achievements);
       if (existingAchievements.length === 0) {
