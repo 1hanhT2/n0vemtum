@@ -85,6 +85,27 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // User operations (required for Replit Auth)
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
   private async initializeDefaults() {
     // Skip initialization for auth-enabled version
     // Initialization will happen per user
@@ -115,14 +136,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Habits
-  async getHabits(): Promise<Habit[]> {
+  async getHabits(userId: string): Promise<Habit[]> {
     await this.ensureInitialized();
-    return await db.select().from(habits).orderBy(habits.order);
+    return await db.select().from(habits).where(eq(habits.userId, userId)).orderBy(habits.order);
   }
 
-  async getHabitById(id: number): Promise<Habit | undefined> {
+  async getHabitById(id: number, userId: string): Promise<Habit | undefined> {
     await this.ensureInitialized();
-    const [habit] = await db.select().from(habits).where(eq(habits.id, id));
+    const [habit] = await db.select().from(habits).where(and(eq(habits.id, id), eq(habits.userId, userId)));
     return habit || undefined;
   }
 
@@ -167,11 +188,11 @@ export class DatabaseStorage implements IStorage {
     return habit;
   }
 
-  async deleteHabit(id: number): Promise<void> {
+  async deleteHabit(id: number, userId: string): Promise<void> {
     await this.ensureInitialized();
     const result = await db
       .delete(habits)
-      .where(eq(habits.id, id));
+      .where(and(eq(habits.id, id), eq(habits.userId, userId)));
     
     if (result.rowCount === 0) {
       throw new Error(`Habit with id ${id} not found`);
@@ -179,31 +200,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Daily Entries
-  async getDailyEntry(date: string): Promise<DailyEntry | undefined> {
+  async getDailyEntry(date: string, userId: string): Promise<DailyEntry | undefined> {
     await this.ensureInitialized();
     const [entry] = await db
       .select()
       .from(dailyEntries)
-      .where(eq(dailyEntries.date, date));
+      .where(and(eq(dailyEntries.date, date), eq(dailyEntries.userId, userId)));
     return entry || undefined;
   }
 
-  async getDailyEntries(startDate?: string, endDate?: string): Promise<DailyEntry[]> {
+  async getDailyEntries(userId: string, startDate?: string, endDate?: string): Promise<DailyEntry[]> {
     await this.ensureInitialized();
-    let query = db.select().from(dailyEntries);
     
-    if (startDate && endDate) {
-      query = query.where(and(
-        gte(dailyEntries.date, startDate),
-        lte(dailyEntries.date, endDate)
-      )) as any;
-    } else if (startDate) {
-      query = query.where(gte(dailyEntries.date, startDate)) as any;
-    } else if (endDate) {
-      query = query.where(lte(dailyEntries.date, endDate)) as any;
+    let whereConditions = [eq(dailyEntries.userId, userId)];
+    
+    if (startDate) {
+      whereConditions.push(gte(dailyEntries.date, startDate));
     }
     
-    return await query.orderBy(dailyEntries.date);
+    if (endDate) {
+      whereConditions.push(lte(dailyEntries.date, endDate));
+    }
+    
+    return await db
+      .select()
+      .from(dailyEntries)
+      .where(and(...whereConditions))
+      .orderBy(dailyEntries.date);
   }
 
   async createDailyEntry(insertEntry: InsertDailyEntry): Promise<DailyEntry> {
@@ -215,18 +238,18 @@ export class DatabaseStorage implements IStorage {
 
     // Calculate streaks when day is completed
     if (insertEntry.isCompleted === true) {
-      await this.calculateStreaks(insertEntry.date);
+      await this.calculateStreaks(insertEntry.date, insertEntry.userId);
     }
 
     return entry;
   }
 
-  async updateDailyEntry(date: string, updateData: Partial<InsertDailyEntry>): Promise<DailyEntry> {
+  async updateDailyEntry(date: string, updateData: Partial<InsertDailyEntry>, userId: string): Promise<DailyEntry> {
     await this.ensureInitialized();
     const [entry] = await db
       .update(dailyEntries)
       .set(updateData)
-      .where(eq(dailyEntries.date, date))
+      .where(and(eq(dailyEntries.date, date), eq(dailyEntries.userId, userId)))
       .returning();
     
     if (!entry) {
