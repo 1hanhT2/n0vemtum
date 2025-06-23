@@ -799,7 +799,7 @@ export class DatabaseStorage implements IStorage {
     return habit;
   }
 
-  private calculateXPRequirement(level: number, difficulty?: number): number {
+  private calculateXPRequirement(level: number, difficulty?: number | null): number {
     const baseXP = 100;
     const difficultyMultiplier = (difficulty || 3) * 0.2 + 0.6;
     return Math.floor(baseXP * Math.pow(1.2, level - 1) * difficultyMultiplier);
