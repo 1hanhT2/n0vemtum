@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -46,7 +47,6 @@ app.use((req, res, next) => {
   next();
 });
 
-import cors from 'cors';
 app.use(cors({
   origin: true,
   credentials: true,
