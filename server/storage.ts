@@ -943,10 +943,12 @@ export class DatabaseStorage implements IStorage {
       // Delete all user-specific data in the correct order to avoid foreign key conflicts
       await db.delete(achievements).where(eq(achievements.userId, userId));
       await db.delete(streaks).where(eq(streaks.userId, userId));
-      await db.delete(settings).where(eq(settings.userId, userId));
       await db.delete(weeklyReviews).where(eq(weeklyReviews.userId, userId));
       await db.delete(dailyEntries).where(eq(dailyEntries.userId, userId));
       await db.delete(habits).where(eq(habits.userId, userId));
+      
+      // Settings table doesn't have user_id column in current schema - skip for now
+      // TODO: Add user_id column to settings table in future migration
       
       // Also delete the user record itself
       await db.delete(users).where(eq(users.id, userId));
