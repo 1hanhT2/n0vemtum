@@ -108,7 +108,7 @@ export async function setupAuth(app: Express) {
   });
 }
 
-export const requireAuth: RequestHandler = (req, res, next) => {
+export const isAuthenticated: RequestHandler = (req, res, next) => {
   if (req.isAuthenticated() && req.user) {
     return next();
   }
