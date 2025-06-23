@@ -5,7 +5,6 @@ import {
   settings,
   achievements,
   streaks,
-  users,
   type Habit, 
   type InsertHabit,
   type DailyEntry,
@@ -17,9 +16,7 @@ import {
   type Achievement,
   type InsertAchievement,
   type Streak,
-  type InsertStreak,
-  type User,
-  type InsertUser
+  type InsertStreak
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lte, not } from "drizzle-orm";
@@ -27,12 +24,12 @@ import { eq, and, gte, lte, not } from "drizzle-orm";
 export interface IStorage {
   // Users
   getUser(id: string): Promise<User | undefined>;
-  upsertUser(user: UpsertUser): Promise<User>;
+  upsertUser(user: InsertUser): Promise<User>;
   
   // Habits
-  getHabits(userId?: string): Promise<Habit[]>;
+  getHabits(): Promise<Habit[]>;
   getHabitById(id: number): Promise<Habit | undefined>;
-  createHabit(habit: InsertHabit, userId: string): Promise<Habit>;
+  createHabit(habit: InsertHabit): Promise<Habit>;
   updateHabit(id: number, habit: Partial<InsertHabit>): Promise<Habit>;
   updateHabitDifficulty(id: number, difficulty: number, analysis: string): Promise<Habit>;
   deleteHabit(id: number): Promise<void>;
@@ -77,27 +74,6 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   private initialized = false;
-  
-  // User operations for authentication
-  async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
-  }
-
-  async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return user;
-  }
 
   private async ensureInitialized() {
     if (!this.initialized) {
@@ -107,8 +83,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   private async initializeDefaults() {
-    // Skip initialization for user-based auth system
-    // Data will be created per user when they authenticate
+    await this.initializeDefaultHabits();
+    await this.initializeAchievements();
   }
 
   private async initializeDefaultHabits() {
@@ -133,10 +109,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Habits
-  async getHabits(userId?: string): Promise<Habit[]> {
+  async getHabits(): Promise<Habit[]> {
     await this.ensureInitialized();
-    if (!userId) return []; // Return empty for unauthenticated users
-    return await db.select().from(habits).where(eq(habits.userId, userId)).orderBy(habits.order);
+    return await db.select().from(habits).orderBy(habits.order);
   }
 
   async getHabitById(id: number): Promise<Habit | undefined> {
@@ -145,11 +120,11 @@ export class DatabaseStorage implements IStorage {
     return habit || undefined;
   }
 
-  async createHabit(insertHabit: InsertHabit, userId: string): Promise<Habit> {
+  async createHabit(insertHabit: InsertHabit): Promise<Habit> {
     await this.ensureInitialized();
     const [habit] = await db
       .insert(habits)
-      .values({ ...insertHabit, userId })
+      .values(insertHabit)
       .returning();
     return habit;
   }
@@ -629,7 +604,7 @@ export class DatabaseStorage implements IStorage {
     let newStreak = habit.streak;
     let newLongestStreak = habit.longestStreak;
     let newTotalCompletions = habit.totalCompletions;
-    let newBadges = habit.badges ? [...habit.badges] : [];
+    let newBadges = [...habit.badges];
 
     if (completed) {
       // Calculate XP based on difficulty and streak multiplier
@@ -716,7 +691,7 @@ export class DatabaseStorage implements IStorage {
 
     const newLevel = habit.level + 1;
     const remainingXP = habit.experience - habit.experienceToNext;
-    const newXPToNext = this.calculateXPRequirement(newLevel, habit.difficultyRating ?? 3);
+    const newXPToNext = this.calculateXPRequirement(newLevel, habit.difficultyRating);
 
     const [updatedHabit] = await db
       .update(habits)
@@ -743,12 +718,11 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`Habit with id ${habitId} not found`);
     }
 
-    const currentBadges = habit.badges || [];
-    if (currentBadges.includes(badge)) {
+    if (habit.badges.includes(badge)) {
       return habit; // Badge already awarded
     }
 
-    const newBadges = [...currentBadges, badge];
+    const newBadges = [...habit.badges, badge];
 
     const [updatedHabit] = await db
       .update(habits)

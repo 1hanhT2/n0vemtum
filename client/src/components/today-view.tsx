@@ -266,24 +266,24 @@ export function TodayView() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="space-y-4 sm:space-y-6 landscape-optimize"
+      className="space-y-6"
     >
-      <div className="mb-4 sm:mb-8 space-y-3 sm:space-y-4 landscape-optimize">
+      <div className="mb-8 space-y-4">
         <div>
-          <h2 className="responsive-heading font-bold text-gray-800 dark:text-white mb-2 landscape-compact">✨ Today's Focus</h2>
-          <p className="responsive-text text-gray-600 dark:text-gray-300 landscape-compact">{formatDate(today)}</p>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">✨ Today's Focus</h2>
+          <p className="text-gray-600 dark:text-gray-300">{formatDate(today)}</p>
         </div>
         
         <GamificationSummary habits={habits || []} />
         {habits && (
-          <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-xl transition-colors duration-200 hover:dark:from-gray-700 hover:dark:to-gray-600 landscape-card">
+          <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-xl transition-colors duration-200 hover:dark:from-gray-700 hover:dark:to-gray-600">
             <div className="flex items-center justify-between">
-              <span className="responsive-text font-medium text-gray-700 dark:text-gray-300 landscape-compact">Progress</span>
-              <span className="responsive-text font-bold text-gray-800 dark:text-white landscape-compact">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
+              <span className="text-sm font-bold text-gray-800 dark:text-white">
                 {Object.values(habitCompletions).filter(Boolean).length} / {habits.length} completed
               </span>
             </div>
-            <div className="mt-2 w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 landscape-compact">
+            <div className="mt-2 w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
               <div 
                 className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
                 style={{ 
@@ -297,7 +297,7 @@ export function TodayView() {
 
       {/* AI Motivational Message */}
       {motivationalMessage && (
-        <Card className="rounded-2xl shadow-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 border-purple-200 dark:border-gray-600 transition-all duration-200 hover:dark:from-gray-700 hover:dark:to-gray-600 hover:shadow-xl landscape-card">
+        <Card className="rounded-2xl shadow-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 border-purple-200 dark:border-gray-600 transition-all duration-200 hover:dark:from-gray-700 hover:dark:to-gray-600 hover:shadow-xl">
           <CardContent className="pt-6">
             <div className="flex items-start space-x-3">
               <Sparkles className="w-6 h-6 text-purple-500 dark:text-purple-400 mt-1 flex-shrink-0" />
