@@ -4,6 +4,37 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile-first responsive design */
+@media (max-width: 640px) {
+  .mobile-optimized {
+    @apply px-2 py-1;
+  }
+  
+  .mobile-grid {
+    @apply grid-cols-1 gap-2;
+  }
+  
+  .mobile-text {
+    @apply text-sm;
+  }
+  
+  .mobile-button {
+    @apply px-3 py-2 text-sm;
+  }
+  
+  .mobile-card {
+    @apply p-3 rounded-lg;
+  }
+  
+  .mobile-nav {
+    @apply flex-col space-y-1;
+  }
+  
+  .mobile-header {
+    @apply flex-col items-start space-y-2;
+  }
+}
+
 :root {
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(20, 14.3%, 4.1%);

@@ -5,6 +5,7 @@ import {
   settings,
   achievements,
   streaks,
+  users,
   type Habit, 
   type InsertHabit,
   type DailyEntry,
@@ -16,7 +17,9 @@ import {
   type Achievement,
   type InsertAchievement,
   type Streak,
-  type InsertStreak
+  type InsertStreak,
+  type User,
+  type InsertUser
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lte, not } from "drizzle-orm";
@@ -74,6 +77,27 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   private initialized = false;
+  
+  // User operations for authentication
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async upsertUser(userData: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
 
   private async ensureInitialized() {
     if (!this.initialized) {
