@@ -44,16 +44,16 @@ export interface IStorage {
   calculateTierPromotion(habitId: number): Promise<Habit>;
 
   // Daily Entries
-  getDailyEntry(date: string): Promise<DailyEntry | undefined>;
-  getDailyEntries(startDate?: string, endDate?: string): Promise<DailyEntry[]>;
+  getDailyEntry(date: string, userId: string): Promise<DailyEntry | undefined>;
+  getDailyEntries(userId: string, startDate?: string, endDate?: string): Promise<DailyEntry[]>;
   createDailyEntry(entry: InsertDailyEntry): Promise<DailyEntry>;
-  updateDailyEntry(date: string, entry: Partial<InsertDailyEntry>): Promise<DailyEntry>;
+  updateDailyEntry(date: string, entry: Partial<InsertDailyEntry>, userId: string): Promise<DailyEntry>;
 
   // Weekly Reviews
-  getWeeklyReview(weekStartDate: string): Promise<WeeklyReview | undefined>;
-  getWeeklyReviews(): Promise<WeeklyReview[]>;
+  getWeeklyReview(weekStartDate: string, userId: string): Promise<WeeklyReview | undefined>;
+  getWeeklyReviews(userId: string): Promise<WeeklyReview[]>;
   createWeeklyReview(review: InsertWeeklyReview): Promise<WeeklyReview>;
-  updateWeeklyReview(weekStartDate: string, review: Partial<InsertWeeklyReview>): Promise<WeeklyReview>;
+  updateWeeklyReview(weekStartDate: string, review: Partial<InsertWeeklyReview>, userId: string): Promise<WeeklyReview>;
 
   // Settings
   getSetting(key: string): Promise<Setting | undefined>;
@@ -61,15 +61,15 @@ export interface IStorage {
   setSetting(setting: InsertSetting): Promise<Setting>;
 
   // Achievements
-  getAchievements(): Promise<Achievement[]>;
-  unlockAchievement(id: number): Promise<Achievement>;
-  initializeAchievements(): Promise<void>;
+  getAchievements(userId: string): Promise<Achievement[]>;
+  unlockAchievement(id: number, userId: string): Promise<Achievement>;
+  initializeAchievements(userId: string): Promise<void>;
 
   // Streaks
-  getStreaks(): Promise<Streak[]>;
-  getStreak(type: string): Promise<Streak | undefined>;
-  updateStreak(type: string, streak: Partial<InsertStreak>): Promise<Streak>;
-  calculateStreaks(date: string): Promise<void>;
+  getStreaks(userId: string): Promise<Streak[]>;
+  getStreak(type: string, userId: string): Promise<Streak | undefined>;
+  updateStreak(type: string, streak: Partial<InsertStreak>, userId: string): Promise<Streak>;
+  calculateStreaks(date: string, userId: string): Promise<void>;
 
   // Data management
   resetAllData(): Promise<void>;
@@ -86,8 +86,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   private async initializeDefaults() {
-    await this.initializeDefaultHabits();
-    await this.initializeAchievements();
+    // Skip initialization for auth-enabled version
+    // Initialization will happen per user
   }
 
   private async initializeDefaultHabits() {
