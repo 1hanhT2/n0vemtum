@@ -4,6 +4,9 @@ export function useAuth() {
   const { data: user, isLoading, error } = useQuery({
     queryKey: ["/api/auth/user"],
     retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   // If there's an unauthorized error, assume not authenticated
