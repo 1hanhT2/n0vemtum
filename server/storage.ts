@@ -588,15 +588,15 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async calculateStreaks(date: string): Promise<void> {
+  async calculateStreaks(date: string, userId: string): Promise<void> {
     await this.ensureInitialized();
     try {
       // Get today's entry
-      const todayEntry = await this.getDailyEntry(date);
+      const todayEntry = await this.getDailyEntry(date, userId);
       if (!todayEntry || !todayEntry.isCompleted) return;
 
       // Calculate daily completion streak
-      const dailyStreak = await this.getStreak('daily_completion');
+      const dailyStreak = await this.getStreak('daily_completion', userId);
       const yesterday = new Date(date);
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayStr = yesterday.toISOString().split('T')[0];
@@ -630,7 +630,9 @@ export class DatabaseStorage implements IStorage {
   async updateHabitProgress(habitId: number, completed: boolean, date: string): Promise<Habit> {
     await this.ensureInitialized();
     
-    const habit = await this.getHabitById(habitId);
+    // For now, use a default userId - this method signature needs to be updated
+    const defaultUserId = "default";
+    const habit = await this.getHabitById(habitId, defaultUserId);
     if (!habit) {
       throw new Error(`Habit with id ${habitId} not found`);
     }
@@ -716,7 +718,9 @@ export class DatabaseStorage implements IStorage {
   async levelUpHabit(habitId: number): Promise<Habit> {
     await this.ensureInitialized();
     
-    const habit = await this.getHabitById(habitId);
+    // For now, use a default userId - this method signature needs to be updated
+    const defaultUserId = "default";
+    const habit = await this.getHabitById(habitId, defaultUserId);
     if (!habit) {
       throw new Error(`Habit with id ${habitId} not found`);
     }
@@ -749,7 +753,9 @@ export class DatabaseStorage implements IStorage {
   async awardBadge(habitId: number, badge: string): Promise<Habit> {
     await this.ensureInitialized();
     
-    const habit = await this.getHabitById(habitId);
+    // For now, use a default userId - this method signature needs to be updated
+    const defaultUserId = "default";
+    const habit = await this.getHabitById(habitId, defaultUserId);
     if (!habit) {
       throw new Error(`Habit with id ${habitId} not found`);
     }
@@ -772,7 +778,9 @@ export class DatabaseStorage implements IStorage {
   async calculateTierPromotion(habitId: number): Promise<Habit> {
     await this.ensureInitialized();
     
-    const habit = await this.getHabitById(habitId);
+    // For now, use a default userId - this method signature needs to be updated
+    const defaultUserId = "default";
+    const habit = await this.getHabitById(habitId, defaultUserId);
     if (!habit) {
       throw new Error(`Habit with id ${habitId} not found`);
     }
