@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { Landing } from "@/pages/Landing";
 import { Home } from "@/pages/Home";
-import { ErrorBoundary } from "@/components/error-boundary"; //Importing ErrorBoundary
+
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -30,16 +30,14 @@ function Router() {
 
 function App() {
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <div className="min-h-screen bg-background text-foreground">
-            <Toaster />
-            <Router />
-          </div>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <div className="min-h-screen bg-background text-foreground">
+          <Toaster />
+          <Router />
+        </div>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 

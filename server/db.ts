@@ -1,32 +1,15 @@
-import { drizzle } from "drizzle-orm/neon-http";
-import { neon, NeonQueryFunction } from "@neondatabase/serverless";
-import { config } from "./config";
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import ws from "ws";
+import * as schema from "@shared/schema";
 
-if (!config.databaseUrl) {
-  throw new Error("DATABASE_URL environment variable is required");
+neonConfig.webSocketConstructor = ws;
+
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    "DATABASE_URL must be set. Did you forget to provision a database?",
+  );
 }
 
-let sql: NeonQueryFunction<boolean, boolean>;
-
-try {
-  sql = neon(config.databaseUrl);
-} catch (error) {
-  console.error("Failed to initialize database connection:", error);
-  throw error;
-}
-
-export const db = drizzle(sql, {
-  logger: config.isDevelopment,
-});
-
-// Test database connection
-export async function testDbConnection() {
-  try {
-    await sql`SELECT 1`;
-    console.log("Database connection successful");
-    return true;
-  } catch (error) {
-    console.error("Database connection failed:", error);
-    return false;
-  }
-}
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const db = drizzle({ client: pool, schema });
