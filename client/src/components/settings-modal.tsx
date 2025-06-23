@@ -95,21 +95,35 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   };
 
   const handleSaveSettings = async () => {
+    // Validate all habits before saving
+    const invalidHabits = habitSettings.filter(habit => 
+      !habit.name.trim() || habit.name.length > 50
+    );
+    
+    if (invalidHabits.length > 0) {
+      toast({
+        title: "Invalid habit names",
+        description: "Please ensure all habits have valid names (1-50 characters).",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       // Handle new habits
       for (const habit of habitSettings) {
         if (habit.isNew) {
           await createHabit.mutateAsync({
-            name: habit.name,
-            emoji: habit.emoji,
+            name: habit.name.trim(),
+            emoji: habit.emoji || '✨',
             order: habitSettings.indexOf(habit) + 1,
             isActive: true,
           });
         } else if (habits?.find(h => h.id === habit.id)) {
           await updateHabit.mutateAsync({
             id: habit.id,
-            name: habit.name,
-            emoji: habit.emoji,
+            name: habit.name.trim(),
+            emoji: habit.emoji || '✨',
             order: habitSettings.indexOf(habit) + 1,
           });
         }
@@ -169,6 +183,20 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   };
 
   const updateHabitSetting = (id: number, field: 'name' | 'emoji', value: string) => {
+    // Validate input
+    if (field === 'name' && value.length > 50) {
+      toast({
+        title: "Name too long",
+        description: "Habit names must be 50 characters or less.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (field === 'emoji' && value.length > 4) {
+      value = value.slice(0, 4); // Limit emoji length
+    }
+
     setHabitSettings(prev => prev.map(habit => 
       habit.id === id ? { ...habit, [field]: value } : habit
     ));

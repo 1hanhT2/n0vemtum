@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,12 +33,13 @@ import { LevelUpNotification } from "@/components/level-up-notification";
 import { HabitHealthRadar } from "@/components/habit-health-radar";
 import { TierPromotionNotification } from "@/components/tier-promotion-notification";
 import { TierExplanation } from "@/components/tier-explanation";
+import { RefreshCw } from "lucide-react";
 
 export function TodayView() {
   const { toast } = useToast();
   const today = getCurrentDateKey();
-  
-  const { data: habits, isLoading: habitsLoading } = useHabits();
+
+  const { data: habits, isLoading: habitsLoading, error: habitsError } = useHabits();
   const { data: dailyEntry, isLoading: entryLoading } = useDailyEntry(today);
   const createDailyEntry = useCreateDailyEntry();
   const updateDailyEntry = useUpdateDailyEntry();
@@ -80,7 +81,7 @@ export function TodayView() {
     if (habits && Object.keys(habitCompletions).length > 0) {
       const completionRate = (Object.values(habitCompletions).filter(Boolean).length / habits.length) * 100;
       const currentStreakValue = currentStreak?.currentStreak ?? 0;
-      
+
       motivationMutation.mutate(
         { completionRate, currentStreak: currentStreakValue },
         {
@@ -99,7 +100,7 @@ export function TodayView() {
         method: 'POST',
         credentials: 'include',
       });
-      
+
       if (response.ok) {
         queryClient.invalidateQueries({ queryKey: ['/api/habits'] });
         toast({
@@ -124,7 +125,7 @@ export function TodayView() {
     const completedCount = Object.values(completions).filter(Boolean).length;
     const totalHabits = habits.length;
     const percentage = completedCount / totalHabits;
-    
+
     // Convert percentage to 1-5 scale
     if (percentage === 1) return 5;
     if (percentage >= 0.8) return 4;
@@ -137,7 +138,7 @@ export function TodayView() {
     if (isDayCompleted) return; // Prevent changes if day is completed
     const newCompletions = { ...habitCompletions, [habitId]: checked };
     setHabitCompletions(newCompletions);
-    
+
     // Update habit progress for gamification
     updateHabitProgress.mutate({
       habitId,
@@ -146,12 +147,12 @@ export function TodayView() {
     }, {
       onSuccess: (updatedHabit) => {
         const oldHabit = habits?.find(h => h.id === habitId);
-        
+
         // Check if habit can level up
         if (updatedHabit.experience >= updatedHabit.experienceToNext) {
           setLevelUpHabitId(habitId);
         }
-        
+
         // Check for tier promotion
         if (oldHabit && oldHabit.tier !== updatedHabit.tier) {
           setTierPromotion({
@@ -162,12 +163,12 @@ export function TodayView() {
         }
       }
     });
-    
+
     // Auto-calculate scores based on completion
     const newScore = calculateCompletionScore(newCompletions);
     setPunctualityScore([newScore]);
     setAdherenceScore([newScore]);
-    
+
     // Auto-save habit completion with calculated scores
     const entryData = {
       date: today,
@@ -273,7 +274,7 @@ export function TodayView() {
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">✨ Today's Focus</h2>
           <p className="text-gray-600 dark:text-gray-300">{formatDate(today)}</p>
         </div>
-        
+
         <GamificationSummary habits={habits || []} />
         {habits && (
           <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-xl transition-colors duration-200 hover:dark:from-gray-700 hover:dark:to-gray-600">
@@ -345,14 +346,14 @@ export function TodayView() {
                     <span className="text-lg font-medium text-gray-800 dark:text-gray-200 group-hover:dark:text-white transition-colors">{habit.name}</span>
                   </label>
                 </div>
-                
+
                 <div className="space-y-4">
                   <HabitDifficultyDisplay
                     habit={habit}
                     onAnalyze={handleAnalyzeHabit}
                     isAnalyzing={analyzingHabit === habit.id}
                   />
-                  
+
                   {/* Only show progression if gamification data exists */}
                   {habit.level !== undefined && (
                     <HabitProgression

@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { Landing } from "@/pages/Landing";
 import { Home } from "@/pages/Home";
+import { ErrorBoundary } from '@/components/error-boundary';
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -22,10 +23,18 @@ function Router() {
   }
 
   if (!isAuthenticated) {
-    return <Landing />;
+    return (
+      <ErrorBoundary>
+        <Landing />
+      </ErrorBoundary>
+    );
   }
 
-  return <Home />;
+  return (
+    <ErrorBoundary>
+      <Home />
+    </ErrorBoundary>
+  );
 }
 
 function App() {
