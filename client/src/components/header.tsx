@@ -20,9 +20,9 @@ export function Header({ onSettingsClick }: HeaderProps) {
               <img src={logoWHITE__1_} alt="m0mentum logo" className="w-8 h-8 sm:w-10 sm:h-10 pl-[2px] pr-[2px] pt-[2px] pb-[2px] sm:pl-[3px] sm:pr-[3px] sm:pt-[3px] sm:pb-[3px] group-hover:blur-sm transition-all duration-500 ease-in-out" />
               <h1 className="logo-text text-xl sm:text-[30px] font-extralight ml-[4px] mr-[4px] sm:ml-[6px] sm:mr-[6px] mt-[0px] mb-[0px] group-hover:blur-sm transition-all duration-500 ease-in-out" style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300 }}>
                 <span className="sm:hidden">m0</span>
-                <span className="hidden sm:inline">m0mentum</span>
+                <span className="hidden sm:inline">n0ventum</span>
               </h1>
-              
+
               {/* Motivational text centered over the entire logo+text container */}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 ease-in-out pointer-events-none">
                 <span className="logo-text text-xs sm:text-sm font-light whitespace-nowrap bg-white bg-opacity-20 backdrop-blur-sm px-3 py-1 rounded-full" style={{ fontFamily: 'Manrope, sans-serif' }}>
@@ -30,12 +30,12 @@ export function Header({ onSettingsClick }: HeaderProps) {
                 </span>
               </div>
             </div>
-            
+
             {/* Separator - mobile only */}
             <div className="sm:hidden flex items-center">
               <div className="w-6 h-px bg-white bg-opacity-30"></div>
             </div>
-            
+
             {/* Settings button - part of centered unit on mobile, separate on desktop */}
             <Button
               onClick={onSettingsClick}
@@ -46,7 +46,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
               <span className="text-lg sm:text-xl">⚙️</span>
             </Button>
           </div>
-          
+
           {/* Desktop-only settings button positioned separately */}
           <Button
             onClick={onSettingsClick}
