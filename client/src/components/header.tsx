@@ -19,8 +19,8 @@ export function Header({ onSettingsClick }: HeaderProps) {
               <span className="hidden sm:inline">m0mentum</span>
             </h1>
             
-            {/* Motivational text that appears in center on hover */}
-            <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-500 ease-in-out pointer-events-none">
+            {/* Motivational text that appears in center on hover - positioned to account for logo width */}
+            <div className="absolute left-[55%] sm:left-[52%] top-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-500 ease-in-out pointer-events-none">
               <span className="logo-text text-xs sm:text-sm font-light whitespace-nowrap bg-white bg-opacity-20 backdrop-blur-sm px-3 py-1 rounded-full" style={{ fontFamily: 'Manrope, sans-serif' }}>
                 n0thing is impossible
               </span>
