@@ -332,10 +332,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Data reset route
-  app.post("/api/reset-data", async (req, res) => {
+  app.post("/api/reset-data", isAuthenticated, async (req: any, res) => {
     try {
-      await storage.resetAllData();
-      res.json({ message: "Data reset successfully" });
+      const userId = req.user.claims.sub;
+      await storage.resetUserData(userId);
+      
+      // Destroy the session to log out the user
+      req.session.destroy((err: any) => {
+        if (err) {
+          console.error("Session destroy error:", err);
+        }
+      });
+      
+      res.clearCookie('connect.sid');
+      res.json({ message: "Data reset successfully and user logged out" });
     } catch (error) {
       console.error("Failed to reset data:", error);
       res.status(500).json({ error: "Failed to reset data" });

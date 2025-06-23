@@ -1,5 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +49,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
     dailyReminder: false,
     weeklyReview: false,
   });
+  const [showResetDialog, setShowResetDialog] = useState(false);
 
   useEffect(() => {
     if (habits) {
@@ -179,9 +190,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
       return;
     }
 
-    if (!window.confirm('Are you sure you want to reset all data? This action cannot be undone.')) {
-      return;
-    }
+    setShowResetDialog(false);
     
     try {
       const response = await fetch('/api/reset-data', {
@@ -196,8 +205,16 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
         throw new Error('Failed to reset data');
       }
       
-      // Force page reload to refresh all data
-      window.location.reload();
+      toast({
+        title: "Data Reset Complete",
+        description: "All your data has been permanently deleted. You will be logged out.",
+        variant: "default",
+      });
+      
+      // Log out user and redirect to landing page
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
       
     } catch (error) {
       console.error('Reset data error:', error);
@@ -512,7 +529,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
               {updateHabit.isPending ? "Saving..." : "Save Changes"}
             </Button>
             <Button
-              onClick={handleResetData}
+              onClick={() => setShowResetDialog(true)}
               variant="destructive"
               className="px-4"
             >
@@ -521,6 +538,41 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
           </div>
         </div>
       </DialogContent>
+
+      {/* Reset Data Confirmation Dialog */}
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-red-600 dark:text-red-400">
+              ⚠️ Permanently Delete All Data
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p className="font-semibold">This action cannot be undone.</p>
+              <p>This will permanently delete:</p>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li>All your habit tracking data</li>
+                <li>Daily entries and completion records</li>
+                <li>Weekly reviews and insights</li>
+                <li>Achievement progress and badges</li>
+                <li>Streaks and statistics</li>
+                <li>Personal settings and preferences</li>
+              </ul>
+              <p className="font-semibold text-red-600 dark:text-red-400 mt-3">
+                You will be logged out after the reset is complete.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleResetData}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Yes, Delete Everything
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

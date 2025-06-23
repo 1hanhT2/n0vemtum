@@ -73,6 +73,7 @@ export interface IStorage {
 
   // Data management
   resetAllData(): Promise<void>;
+  resetUserData(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
