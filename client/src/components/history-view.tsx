@@ -30,8 +30,12 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
   const monthStart = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0];
   const monthEnd = new Date(currentYear, currentMonth + 1, 0).toISOString().split('T')[0];
   
-  const { data: dailyEntries = [], isLoading } = useDailyEntries(monthStart, monthEnd);
-  const { data: habits = [] } = useHabits();
+  const { data: dailyEntries = [], isLoading } = isGuestMode
+    ? { data: [], isLoading: false }
+    : useDailyEntries(monthStart, monthEnd);
+  const { data: habits = [] } = isGuestMode
+    ? { data: getMockHabits(), isLoading: false }
+    : useHabits();
 
   const selectedEntry = useMemo(() => {
     if (!selectedDate) return null;

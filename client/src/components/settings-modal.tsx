@@ -9,6 +9,7 @@ import { useHabitSuggestions } from "@/hooks/use-ai";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { X, Plus, Trash2, Sparkles } from "lucide-react";
+import { getMockHabits } from "@/lib/mockData";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -18,11 +19,15 @@ interface SettingsModalProps {
 
 export function SettingsModal({ isOpen, onClose, isGuestMode = false }: SettingsModalProps) {
   const { toast } = useToast();
-  const { data: habits } = useHabits();
+  const { data: habits } = isGuestMode 
+    ? { data: getMockHabits() }
+    : useHabits();
   const updateHabit = useUpdateHabit();
   const createHabit = useCreateHabit();
   const deleteHabit = useDeleteHabit();
-  const { data: aiSuggestions, isLoading: suggestionsLoading } = useHabitSuggestions();
+  const { data: aiSuggestions, isLoading: suggestionsLoading } = isGuestMode
+    ? { data: ["Try morning journaling", "Practice gratitude daily", "Take evening walks"], isLoading: false }
+    : useHabitSuggestions();
 
   const [habitSettings, setHabitSettings] = useState<Array<{ id: number; name: string; emoji: string; isNew?: boolean }>>([]);
   const [selectedTheme, setSelectedTheme] = useState('blue');

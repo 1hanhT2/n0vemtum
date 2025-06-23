@@ -33,12 +33,15 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
   const weekDates = getWeekDates();
   const weekStartDate = getWeekStartDate();
   
-  const { data: habits, isLoading: habitsLoading } = useHabits();
-  const { data: dailyEntries, isLoading: entriesLoading } = useDailyEntries(
-    weekDates[0], 
-    weekDates[6]
-  );
-  const { data: weeklyReview } = useWeeklyReview(weekStartDate);
+  const { data: habits, isLoading: habitsLoading } = isGuestMode 
+    ? { data: getMockHabits(), isLoading: false }
+    : useHabits();
+  const { data: dailyEntries, isLoading: entriesLoading } = isGuestMode
+    ? { data: [], isLoading: false }
+    : useDailyEntries(weekDates[0], weekDates[6]);
+  const { data: weeklyReview } = isGuestMode
+    ? { data: null }
+    : useWeeklyReview(weekStartDate);
   const createWeeklyReview = useCreateWeeklyReview();
   const updateWeeklyReview = useUpdateWeeklyReview();
   const weeklyInsightsMutation = useWeeklyInsights(weekDates[0], weekDates[6]);

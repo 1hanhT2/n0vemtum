@@ -159,6 +159,21 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     const newCompletions = { ...habitCompletions, [habitId]: checked };
     setHabitCompletions(newCompletions);
 
+    if (isGuestMode) {
+      // In guest mode, just show visual feedback without API calls
+      toast({
+        title: checked ? "Habit Completed!" : "Habit Unchecked",
+        description: checked ? "Great job! Sign in to save your progress." : "Progress not saved in demo mode.",
+        variant: "default",
+      });
+      
+      // Auto-calculate scores based on completion for guest mode
+      const newScore = calculateCompletionScore(newCompletions);
+      setPunctualityScore([newScore]);
+      setAdherenceScore([newScore]);
+      return;
+    }
+
     // Update habit progress for gamification
     updateHabitProgress.mutate({
       habitId,
