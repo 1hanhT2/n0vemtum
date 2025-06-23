@@ -96,7 +96,10 @@ export class DatabaseStorage implements IStorage {
         ];
 
         for (const habit of defaultHabits) {
-          await db.insert(habits).values(habit);
+          await db.insert(habits).values({
+            ...habit,
+            userId: 'default'
+          });
         }
       }
     } catch (error) {
@@ -186,11 +189,11 @@ export class DatabaseStorage implements IStorage {
       query = query.where(and(
         gte(dailyEntries.date, startDate),
         lte(dailyEntries.date, endDate)
-      ));
+      )) as any;
     } else if (startDate) {
-      query = query.where(gte(dailyEntries.date, startDate));
+      query = query.where(gte(dailyEntries.date, startDate)) as any;
     } else if (endDate) {
-      query = query.where(lte(dailyEntries.date, endDate));
+      query = query.where(lte(dailyEntries.date, endDate)) as any;
     }
     
     return await query.orderBy(dailyEntries.date);
@@ -505,7 +508,10 @@ export class DatabaseStorage implements IStorage {
         ];
 
         for (const achievement of defaultAchievements) {
-          await db.insert(achievements).values(achievement);
+          await db.insert(achievements).values({
+            ...achievement,
+            userId: 'default'
+          });
         }
       }
     } catch (error) {
@@ -542,7 +548,11 @@ export class DatabaseStorage implements IStorage {
     } else {
       const [streak] = await db
         .insert(streaks)
-        .values({ type, ...streakData })
+        .values({ 
+          type, 
+          userId: 'default',
+          ...streakData 
+        })
         .returning();
       return streak;
     }
@@ -600,7 +610,7 @@ export class DatabaseStorage implements IStorage {
     let newStreak = habit.streak;
     let newLongestStreak = habit.longestStreak;
     let newTotalCompletions = habit.totalCompletions;
-    let newBadges = [...habit.badges];
+    let newBadges = [...(habit.badges || [])];
 
     if (completed) {
       // Calculate XP based on difficulty and streak multiplier
@@ -714,11 +724,11 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`Habit with id ${habitId} not found`);
     }
 
-    if (habit.badges.includes(badge)) {
+    if ((habit.badges || []).includes(badge)) {
       return habit; // Badge already awarded
     }
 
-    const newBadges = [...habit.badges, badge];
+    const newBadges = [...(habit.badges || []), badge];
 
     const [updatedHabit] = await db
       .update(habits)
@@ -753,7 +763,7 @@ export class DatabaseStorage implements IStorage {
         consistencyScore >= 50 && 
         longestStreak >= 21 && 
         masteryPoints >= 800 &&
-        difficultyRating >= 4) {
+        (difficultyRating || 3) >= 4) {
       newTier = "diamond";
     }
     // Platinum Tier - Expert level with good performance
@@ -762,7 +772,7 @@ export class DatabaseStorage implements IStorage {
              consistencyScore >= 40 && 
              longestStreak >= 14 && 
              masteryPoints >= 400 &&
-             difficultyRating >= 3) {
+             (difficultyRating || 3) >= 3) {
       newTier = "platinum";
     }
     // Gold Tier - Advanced level with solid progress
