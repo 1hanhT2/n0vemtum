@@ -19,7 +19,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
             </div>
             
             {/* App name with larger movement to create space */}
-            <div className="ml-[4px] mr-[4px] sm:ml-[6px] sm:mr-[6px] transition-all duration-500 ease-in-out sm:group-hover:transform sm:group-hover:translate-x-8">
+            <div className="ml-[4px] mr-[4px] sm:ml-[6px] sm:mr-[6px] transition-all duration-500 ease-in-out sm:group-hover:transform sm:group-hover:translate-x-12">
               <h1 className="logo-text text-xl sm:text-[30px] font-extralight mt-[0px] mb-[0px] group-hover:blur-sm sm:group-hover:blur-none transition-all duration-500 ease-in-out" style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300 }}>
                 <span className="sm:hidden">m0</span>
                 <span className="hidden sm:inline">m0mentum</span>
