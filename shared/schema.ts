@@ -2,6 +2,28 @@ import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, ind
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Session storage table for Replit Auth
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
+// User storage table for Replit Auth
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().notNull(),
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const habits = pgTable("habits", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").notNull().default("default"),
@@ -29,7 +51,7 @@ export const habits = pgTable("habits", {
 
 export const dailyEntries = pgTable("daily_entries", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().default("default"),
+  userId: varchar("user_id").notNull(),
   date: text("date").notNull().unique(), // YYYY-MM-DD format
   habitCompletions: jsonb("habit_completions").notNull().default({}), // { habitId: boolean }
   punctualityScore: integer("punctuality_score").notNull().default(3),
@@ -42,7 +64,7 @@ export const dailyEntries = pgTable("daily_entries", {
 
 export const weeklyReviews = pgTable("weekly_reviews", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().default("default"),
+  userId: varchar("user_id").notNull(),
   weekStartDate: text("week_start_date").notNull().unique(), // YYYY-MM-DD format (Monday)
   accomplishment: text("accomplishment").default(""),
   breakdown: text("breakdown").default(""),
@@ -59,6 +81,7 @@ export const settings = pgTable("settings", {
 
 export const achievements = pgTable("achievements", {
   id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
   type: text("type").notNull(), // 'streak', 'completion', 'consistency', 'milestone'
   name: text("name").notNull(),
   description: text("description").notNull(),
@@ -71,6 +94,7 @@ export const achievements = pgTable("achievements", {
 
 export const streaks = pgTable("streaks", {
   id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
   type: text("type").notNull(), // 'daily_completion', 'habit_specific', 'weekly_review'
   currentStreak: integer("current_streak").notNull().default(0),
   longestStreak: integer("longest_streak").notNull().default(0),
@@ -129,7 +153,5 @@ export type Achievement = typeof achievements.$inferSelect;
 export type InsertStreak = z.infer<typeof insertStreakSchema>;
 export type Streak = typeof streaks.$inferSelect;
 
-export type User = {
-  id: number;
-  username: string;
-};
+export type UpsertUser = typeof users.$inferInsert;
+export type User = typeof users.$inferSelect;
