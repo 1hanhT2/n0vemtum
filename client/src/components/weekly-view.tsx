@@ -206,12 +206,15 @@ export function WeeklyView() {
         </Card>
         
         <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
-          <CardContent className="pt-6">
-            <div className="text-3xl mb-2">⭐</div>
-            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+          <CardContent className="pt-4 sm:pt-6">
+            <div className="text-2xl sm:text-3xl mb-2">⭐</div>
+            <div className="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400">
               {weeklyStats.avgScore.toFixed(1)}
             </div>
-            <div className="text-gray-600 dark:text-gray-300">Average Score</div>
+            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+              <span className="sm:hidden">Score</span>
+              <span className="hidden sm:inline">Average Score</span>
+            </div>
           </CardContent>
         </Card>
       </div>

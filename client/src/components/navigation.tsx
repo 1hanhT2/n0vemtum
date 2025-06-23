@@ -33,9 +33,8 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
                   : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >
-              <span className="text-sm sm:text-lg">{item.icon}</span>
+              <span className="text-lg sm:text-xl">{item.icon}</span>
               <span className="text-xs sm:text-base hidden sm:block">{item.label}</span>
-              <span className="text-xs sm:hidden">{item.label.split(' ')[0]}</span>
             </motion.button>
           ))}
         </div>

@@ -132,7 +132,8 @@ export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitC
             {habit.experience !== undefined && habit.experienceToNext && (
               <div className="space-y-1">
                 <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
-                  <span>Experience</span>
+                  <span className="sm:hidden">XP</span>
+                  <span className="hidden sm:inline">Experience</span>
                   <span>{habit.experience}/{habit.experience + habit.experienceToNext} XP</span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
