@@ -13,13 +13,13 @@ export function Header({ onSettingsClick }: HeaderProps) {
       <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center cursor-pointer group relative">
-            {/* Logo with smooth separation animation */}
-            <div className="transition-all duration-500 ease-in-out sm:group-hover:transform sm:group-hover:-translate-x-4">
+            {/* Logo with minimal movement */}
+            <div className="transition-all duration-500 ease-in-out sm:group-hover:transform sm:group-hover:-translate-x-1">
               <img src={logoWHITE__1_} alt="m0mentum logo" className="w-8 h-8 sm:w-10 sm:h-10 pl-[2px] pr-[2px] pt-[2px] pb-[2px] sm:pl-[3px] sm:pr-[3px] sm:pt-[3px] sm:pb-[3px] group-hover:blur-sm sm:group-hover:blur-none transition-all duration-500 ease-in-out" />
             </div>
             
-            {/* App name with smooth separation animation */}
-            <div className="ml-[4px] mr-[4px] sm:ml-[6px] sm:mr-[6px] transition-all duration-500 ease-in-out sm:group-hover:transform sm:group-hover:translate-x-4">
+            {/* App name with larger movement to create space */}
+            <div className="ml-[4px] mr-[4px] sm:ml-[6px] sm:mr-[6px] transition-all duration-500 ease-in-out sm:group-hover:transform sm:group-hover:translate-x-8">
               <h1 className="logo-text text-xl sm:text-[30px] font-extralight mt-[0px] mb-[0px] group-hover:blur-sm sm:group-hover:blur-none transition-all duration-500 ease-in-out" style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300 }}>
                 <span className="sm:hidden">m0</span>
                 <span className="hidden sm:inline">m0mentum</span>
