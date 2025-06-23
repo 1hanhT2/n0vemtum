@@ -310,11 +310,11 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                 {Object.values(habitCompletions).filter(Boolean).length} / {habits.length} completed
               </span>
             </div>
-            <div className="mt-2 w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+            <div className="mt-2 w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 overflow-hidden">
               <div 
                 className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
                 style={{ 
-                  width: `${habits.length > 0 ? (Object.values(habitCompletions).filter(Boolean).length / habits.length) * 100 : 0}%` 
+                  width: `${Math.min(100, habits.length > 0 ? (Object.values(habitCompletions).filter(Boolean).length / habits.length) * 100 : 0)}%` 
                 }}
               ></div>
             </div>

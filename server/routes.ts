@@ -109,10 +109,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const habit = await storage.updateHabitProgress(id, completed, date, userId);
       
-      // Check for tier promotion after progress update
-      const promotedHabit = await storage.calculateTierPromotion(id);
-      
-      res.json(promotedHabit);
+      // Check for tier promotion after progress update, but handle errors gracefully
+      try {
+        const promotedHabit = await storage.calculateTierPromotion(id);
+        res.json(promotedHabit);
+      } catch (tierError) {
+        console.warn(`Tier promotion failed for habit ${id}, returning updated habit:`, tierError);
+        res.json(habit);
+      }
     } catch (error) {
       console.error(`Habit progress update error for habit ${req.params.id}:`, error);
       res.status(400).json({ error: error instanceof Error ? error.message : "Failed to update habit progress" });
