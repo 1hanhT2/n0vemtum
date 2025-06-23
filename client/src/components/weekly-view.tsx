@@ -180,22 +180,28 @@ export function WeeklyView() {
       {/* Statistics Cards */}
       <div className="grid md:grid-cols-3 gap-6">
         <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
-          <CardContent className="pt-6">
-            <div className="text-3xl mb-2">📅</div>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+          <CardContent className="pt-4 sm:pt-6">
+            <div className="text-2xl sm:text-3xl mb-2">📅</div>
+            <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
               {weeklyStats.completedDays}/7
             </div>
-            <div className="text-gray-600 dark:text-gray-300">Days Completed</div>
+            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+              <span className="sm:hidden">Days</span>
+              <span className="hidden sm:inline">Days Completed</span>
+            </div>
           </CardContent>
         </Card>
         
         <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
-          <CardContent className="pt-6">
-            <div className="text-3xl mb-2">✅</div>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+          <CardContent className="pt-4 sm:pt-6">
+            <div className="text-2xl sm:text-3xl mb-2">✅</div>
+            <div className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
               {weeklyStats.completionRate.toFixed(0)}%
             </div>
-            <div className="text-gray-600 dark:text-gray-300">Habit Completion</div>
+            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+              <span className="sm:hidden">Rate</span>
+              <span className="hidden sm:inline">Habit Completion</span>
+            </div>
           </CardContent>
         </Card>
         

@@ -111,17 +111,19 @@ export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitC
             <div className="flex flex-wrap items-center gap-2 mb-2">
               {habit.tier && (
                 <Badge className={`text-xs px-2 py-1 bg-gradient-to-r ${tierColor} text-white`}>
-                  {tierEmoji} {habit.tier}
+                  {tierEmoji} <span className="hidden sm:inline">{habit.tier}</span>
                 </Badge>
               )}
               {habit.level && (
                 <Badge variant="outline" className="text-xs px-2 py-1">
-                  Level {habit.level}
+                  <span className="sm:hidden">Lv.{habit.level}</span>
+                  <span className="hidden sm:inline">Level {habit.level}</span>
                 </Badge>
               )}
               {habit.streak && habit.streak > 0 && (
                 <Badge className="text-xs px-2 py-1 bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200">
-                  🔥 {habit.streak} day streak
+                  🔥 <span className="sm:hidden">{habit.streak}</span>
+                  <span className="hidden sm:inline">{habit.streak} day streak</span>
                 </Badge>
               )}
             </div>
