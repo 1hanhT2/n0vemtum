@@ -34,16 +34,27 @@ import { HabitHealthRadar } from "@/components/habit-health-radar";
 import { TierPromotionNotification } from "@/components/tier-promotion-notification";
 import { TierExplanation } from "@/components/tier-explanation";
 import { RefreshCw } from "lucide-react";
+import { getMockHabits, getMockDailyEntry, getMockStreak } from "@/lib/mockData";
 
-export function TodayView() {
+interface TodayViewProps {
+  isGuestMode?: boolean;
+}
+
+export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const { toast } = useToast();
   const today = getCurrentDateKey();
 
-  const { data: habits, isLoading: habitsLoading, error: habitsError } = useHabits();
-  const { data: dailyEntry, isLoading: entryLoading } = useDailyEntry(today);
+  const { data: habits, isLoading: habitsLoading, error: habitsError } = isGuestMode 
+    ? { data: getMockHabits(), isLoading: false, error: null }
+    : useHabits();
+  const { data: dailyEntry, isLoading: entryLoading } = isGuestMode
+    ? { data: getMockDailyEntry(today), isLoading: false }
+    : useDailyEntry(today);
   const createDailyEntry = useCreateDailyEntry();
   const updateDailyEntry = useUpdateDailyEntry();
-  const { data: currentStreak } = useStreak('daily_completion');
+  const { data: currentStreak } = isGuestMode
+    ? { data: getMockStreak('daily_completion') }
+    : useStreak('daily_completion');
   const [analyzingHabit, setAnalyzingHabit] = useState<number | null>(null);
   const motivationMutation = useMotivationalMessage();
   const levelUpHabit = useLevelUpHabit();

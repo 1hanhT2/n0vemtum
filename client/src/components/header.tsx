@@ -5,9 +5,10 @@ import logoWHITE__1_ from "@assets/logoWHITE (1).png";
 
 interface HeaderProps {
   onSettingsClick: () => void;
+  isGuestMode?: boolean;
 }
 
-export function Header({ onSettingsClick }: HeaderProps) {
+export function Header({ onSettingsClick, isGuestMode = false }: HeaderProps) {
   return (
     <header className="gradient-bg text-white shadow-lg">
       <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">

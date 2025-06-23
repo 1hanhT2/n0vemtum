@@ -8,10 +8,17 @@ import { HistoryView } from "@/components/history-view";
 import { AchievementsPanel } from "@/components/achievements-panel";
 import { AnalyticsView } from "@/components/analytics-view";
 import { SettingsModal } from "@/components/settings-modal";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Eye, LogIn } from "lucide-react";
 
 type View = 'today' | 'weekly' | 'history' | 'achievements' | 'analytics';
 
-export function Home() {
+interface HomeProps {
+  isGuestMode?: boolean;
+}
+
+export function Home({ isGuestMode = false }: HomeProps) {
   const { user } = useAuth();
   const [currentView, setCurrentView] = useState<View>('today');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -19,31 +26,52 @@ export function Home() {
   const renderCurrentView = () => {
     switch (currentView) {
       case 'today':
-        return <TodayView />;
+        return <TodayView isGuestMode={isGuestMode} />;
       case 'weekly':
-        return <WeeklyView />;
+        return <WeeklyView isGuestMode={isGuestMode} />;
       case 'history':
-        return <HistoryView />;
+        return <HistoryView isGuestMode={isGuestMode} />;
       case 'achievements':
-        return <AchievementsPanel />;
+        return <AchievementsPanel isGuestMode={isGuestMode} />;
       case 'analytics':
-        return <AnalyticsView />;
+        return <AnalyticsView isGuestMode={isGuestMode} />;
       default:
-        return <TodayView />;
+        return <TodayView isGuestMode={isGuestMode} />;
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header onSettingsClick={() => setIsSettingsOpen(true)} />
+      <Header onSettingsClick={() => setIsSettingsOpen(true)} isGuestMode={isGuestMode} />
       
       <div className="container mx-auto px-4 py-6">
+        {isGuestMode && (
+          <Alert className="mb-6 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+            <Eye className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>You're viewing the demo version. Sign in to save your progress and access all features.</span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => window.location.href = "/api/login"}
+                className="ml-4"
+              >
+                <LogIn className="h-4 w-4 mr-2" />
+                Sign In
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Welcome back, {user?.firstName || user?.email}!
+            {isGuestMode ? "Welcome to the Demo!" : `Welcome back, ${user?.firstName || user?.email}!`}
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
-            Keep building those habits and tracking your progress.
+            {isGuestMode 
+              ? "Explore the habit tracking features with sample data." 
+              : "Keep building those habits and tracking your progress."
+            }
           </p>
         </div>
 
@@ -57,6 +85,7 @@ export function Home() {
       <SettingsModal 
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)} 
+        isGuestMode={isGuestMode}
       />
     </div>
   );

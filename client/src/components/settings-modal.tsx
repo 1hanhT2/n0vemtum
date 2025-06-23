@@ -13,9 +13,10 @@ import { X, Plus, Trash2, Sparkles } from "lucide-react";
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  isGuestMode?: boolean;
 }
 
-export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
+export function SettingsModal({ isOpen, onClose, isGuestMode = false }: SettingsModalProps) {
   const { toast } = useToast();
   const { data: habits } = useHabits();
   const updateHabit = useUpdateHabit();

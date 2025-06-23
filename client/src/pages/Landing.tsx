@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Target, Trophy, TrendingUp, Users } from "lucide-react";
+import { Target, Trophy, TrendingUp, Users, Eye, LogIn } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
@@ -30,13 +30,25 @@ export function Landing() {
             Transform your daily routines into powerful habits with gamification, 
             AI insights, and progress tracking that keeps you motivated.
           </p>
-          <Button 
-            onClick={handleLogin}
-            size="lg"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
-          >
-            Get Started
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              onClick={handleLogin}
+              size="lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+            >
+              <LogIn className="h-5 w-5 mr-2" />
+              Get Started
+            </Button>
+            <Button 
+              onClick={() => setLocation("/demo")}
+              variant="outline"
+              size="lg"
+              className="px-8 py-3 text-lg"
+            >
+              <Eye className="h-5 w-5 mr-2" />
+              Try Demo
+            </Button>
+          </div>
           <p className="text-sm text-gray-500 mt-4">
             Note: This demo uses mock authentication for development purposes.
           </p>

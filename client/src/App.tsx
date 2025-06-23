@@ -52,6 +52,11 @@ function Router() {
           </AuthenticatedRoute>
         </ErrorBoundary>
       </Route>
+      <Route path="/demo">
+        <ErrorBoundary>
+          <Home isGuestMode={true} />
+        </ErrorBoundary>
+      </Route>
       <Route>
         <ErrorBoundary>
           <Landing />
