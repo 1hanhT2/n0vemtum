@@ -14,10 +14,15 @@ export function Header({ onSettingsClick }: HeaderProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 sm:space-x-3 cursor-pointer transition-all duration-300 hover:scale-105">
             <img src={logoWHITE__1_} alt="m0mentum logo" className="w-8 h-8 sm:w-10 sm:h-10 pl-[2px] pr-[2px] pt-[2px] pb-[2px] sm:pl-[3px] sm:pr-[3px] sm:pt-[3px] sm:pb-[3px]" />
-            <h1 className="logo-text text-xl sm:text-[30px] font-extralight ml-[4px] mr-[4px] sm:ml-[6px] sm:mr-[6px] mt-[0px] mb-[0px]" style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300 }}>
-              <span className="sm:hidden">m0</span>
-              <span className="hidden sm:inline">m0mentum</span>
-            </h1>
+            <div className="flex items-center space-x-2">
+              <span className="logo-text text-xs sm:text-sm font-light opacity-80" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                n0thing is impossible
+              </span>
+              <h1 className="logo-text text-xl sm:text-[30px] font-extralight ml-[4px] mr-[4px] sm:ml-[6px] sm:mr-[6px] mt-[0px] mb-[0px]" style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300 }}>
+                <span className="sm:hidden">m0</span>
+                <span className="hidden sm:inline">m0mentum</span>
+              </h1>
+            </div>
           </div>
           <Button
             onClick={onSettingsClick}
