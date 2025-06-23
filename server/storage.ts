@@ -555,24 +555,24 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(streaks).orderBy(streaks.type);
   }
 
-  async getStreak(type: string): Promise<Streak | undefined> {
+  async getStreak(type: string, userId: string): Promise<Streak | undefined> {
     await this.ensureInitialized();
     const [streak] = await db
       .select()
       .from(streaks)
-      .where(eq(streaks.type, type));
+      .where(and(eq(streaks.type, type), eq(streaks.userId, userId)));
     return streak || undefined;
   }
 
-  async updateStreak(type: string, streakData: Partial<InsertStreak>): Promise<Streak> {
+  async updateStreak(type: string, streakData: Partial<InsertStreak>, userId: string): Promise<Streak> {
     await this.ensureInitialized();
-    const existing = await this.getStreak(type);
+    const existing = await this.getStreak(type, userId);
     
     if (existing) {
       const [streak] = await db
         .update(streaks)
         .set({ ...streakData, updatedAt: new Date() })
-        .where(eq(streaks.type, type))
+        .where(and(eq(streaks.type, type), eq(streaks.userId, userId)))
         .returning();
       return streak;
     } else {
@@ -580,7 +580,7 @@ export class DatabaseStorage implements IStorage {
         .insert(streaks)
         .values({ 
           type, 
-          userId: 'default',
+          userId,
           ...streakData 
         })
         .returning();
