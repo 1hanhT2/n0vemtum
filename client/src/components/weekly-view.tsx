@@ -11,6 +11,7 @@ import { getWeekDates, getWeekStartDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles } from "lucide-react";
+import { getMockHabits } from "@/lib/mockData";
 import {
   ResponsiveContainer,
   LineChart,
@@ -69,14 +70,14 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
 
   // Generate AI insights when data is available
   useEffect(() => {
-    if (dailyEntries && habits && dailyEntries.length > 0) {
+    if (!isGuestMode && dailyEntries && habits && dailyEntries.length > 0) {
       weeklyInsightsMutation.mutate(undefined, {
         onSuccess: (data) => {
           setAiInsights(data);
         },
       });
     }
-  }, [dailyEntries, habits]);
+  }, [dailyEntries, habits, isGuestMode]);
 
   // Calculate weekly statistics
   const weeklyStats = {

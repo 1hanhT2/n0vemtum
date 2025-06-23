@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,6 +12,7 @@ import { formatDate } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Eye, CheckCircle, XCircle, Clock, BarChart3, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { getMockHabits } from "@/lib/mockData";
 
 interface HistoryViewProps {
   isGuestMode?: boolean;
@@ -342,6 +343,9 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
               <CalendarIcon className="w-5 h-5" />
               <span>Historical Data for {selectedDate ? formatDate(selectedDate) : ''}</span>
             </DialogTitle>
+            <DialogDescription>
+              View detailed tracking information, completion statistics, and notes for the selected date.
+            </DialogDescription>
           </DialogHeader>
           
           <ScrollArea className="h-[70vh] pr-4">

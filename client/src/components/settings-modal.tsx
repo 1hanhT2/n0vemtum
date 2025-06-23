@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -101,6 +101,15 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
   };
 
   const handleSaveSettings = async () => {
+    if (isGuestMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Settings changes are not saved in demo mode. Sign in to save your preferences.",
+        variant: "default",
+      });
+      return;
+    }
+
     // Validate all habits before saving
     const invalidHabits = habitSettings.filter(habit => 
       !habit.name.trim() || habit.name.length > 50
@@ -158,6 +167,15 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
   };
 
   const handleResetData = async () => {
+    if (isGuestMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Data reset is not available in demo mode. Sign in to manage your data.",
+        variant: "default",
+      });
+      return;
+    }
+
     if (!window.confirm('Are you sure you want to reset all data? This action cannot be undone.')) {
       return;
     }
