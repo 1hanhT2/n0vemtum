@@ -34,7 +34,7 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
               }`}
             >
               <span className="text-lg sm:text-xl">{item.icon}</span>
-              <span className="text-xs sm:text-base hidden sm:block">{item.label}</span>
+              <span className="text-xs sm:text-base hidden sm:inline">{item.label}</span>
             </motion.button>
           ))}
         </div>

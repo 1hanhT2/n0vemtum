@@ -4,11 +4,12 @@ import { z } from "zod";
 
 export const habits = pgTable("habits", {
   id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().default("default"),
   name: text("name").notNull(),
   emoji: text("emoji").notNull(),
   order: integer("order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
-  difficultyRating: integer("difficulty_rating").default(3),
+  difficultyRating: integer("difficulty_rating").notNull().default(3),
   aiAnalysis: text("ai_analysis"),
   lastAnalyzed: timestamp("last_analyzed"),
   // Gamification fields
@@ -21,13 +22,14 @@ export const habits = pgTable("habits", {
   completionRate: integer("completion_rate").notNull().default(0), // percentage
   totalCompletions: integer("total_completions").notNull().default(0),
   tier: text("tier").notNull().default("bronze"), // bronze, silver, gold, platinum, diamond
-  badges: text("badges").array().default([]), // earned badges for this habit
+  badges: text("badges").array().notNull().default([]), // earned badges for this habit
   lastCompleted: text("last_completed"), // YYYY-MM-DD
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const dailyEntries = pgTable("daily_entries", {
   id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().default("default"),
   date: text("date").notNull().unique(), // YYYY-MM-DD format
   habitCompletions: jsonb("habit_completions").notNull().default({}), // { habitId: boolean }
   punctualityScore: integer("punctuality_score").notNull().default(3),
@@ -40,6 +42,7 @@ export const dailyEntries = pgTable("daily_entries", {
 
 export const weeklyReviews = pgTable("weekly_reviews", {
   id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().default("default"),
   weekStartDate: text("week_start_date").notNull().unique(), // YYYY-MM-DD format (Monday)
   accomplishment: text("accomplishment").default(""),
   breakdown: text("breakdown").default(""),
