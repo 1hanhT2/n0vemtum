@@ -258,7 +258,7 @@ export class DatabaseStorage implements IStorage {
 
     // Calculate streaks when day is completed
     if (updateData.isCompleted === true) {
-      await this.calculateStreaks(date);
+      await this.calculateStreaks(date, userId);
     }
 
     return entry;
@@ -292,7 +292,7 @@ export class DatabaseStorage implements IStorage {
     const [review] = await db
       .update(weeklyReviews)
       .set(updateData)
-      .where(eq(weeklyReviews.weekStartDate, weekStartDate))
+      .where(and(eq(weeklyReviews.weekStartDate, weekStartDate), eq(weeklyReviews.userId, userId)))
       .returning();
     
     if (!review) {
@@ -892,7 +892,7 @@ export class DatabaseStorage implements IStorage {
       }
 
       if (shouldUnlock) {
-        await this.unlockAchievement(achievement.id);
+        await this.unlockAchievement(achievement.id, dailyEntry.userId);
       }
     }
   }

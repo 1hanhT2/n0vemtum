@@ -54,11 +54,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/habits/:id", async (req, res) => {
+  app.put("/api/habits/:id", isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
       const habitData = insertHabitSchema.partial().parse(req.body);
-      const habit = await storage.updateHabit(id, habitData);
+      const habit = await storage.updateHabit(id, habitData, userId);
       res.json(habit);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -69,10 +70,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/habits/:id", async (req, res) => {
+  app.delete("/api/habits/:id", isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      await storage.deleteHabit(id);
+      const userId = req.user.claims.sub;
+      await storage.deleteHabit(id, userId);
       res.json({ message: "Habit deleted successfully" });
     } catch (error) {
       res.status(404).json({ error: "Habit not found" });
@@ -117,10 +119,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Daily entries routes
-  app.get("/api/daily-entries", async (req, res) => {
+  app.get("/api/daily-entries", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { start_date, end_date } = req.query;
       const entries = await storage.getDailyEntries(
+        userId,
         start_date as string, 
         end_date as string
       );
@@ -130,10 +134,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/daily-entries/:date", async (req, res) => {
+  app.get("/api/daily-entries/:date", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { date } = req.params;
-      const entry = await storage.getDailyEntry(date);
+      const entry = await storage.getDailyEntry(date, userId);
       if (!entry) {
         res.status(404).json({ error: "Daily entry not found" });
         return;
@@ -144,9 +149,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/daily-entries", async (req, res) => {
+  app.post("/api/daily-entries", isAuthenticated, async (req: any, res) => {
     try {
-      const entryData = insertDailyEntrySchema.parse(req.body);
+      const userId = req.user.claims.sub;
+      const entryData = insertDailyEntrySchema.parse({ ...req.body, userId });
       const entry = await storage.createDailyEntry(entryData);
       res.json(entry);
     } catch (error) {
@@ -158,11 +164,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/daily-entries/:date", async (req, res) => {
+  app.put("/api/daily-entries/:date", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { date } = req.params;
       const entryData = insertDailyEntrySchema.partial().parse(req.body);
-      const entry = await storage.updateDailyEntry(date, entryData);
+      const entry = await storage.updateDailyEntry(date, entryData, userId);
       res.json(entry);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -174,19 +181,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Weekly reviews routes
-  app.get("/api/weekly-reviews", async (req, res) => {
+  app.get("/api/weekly-reviews", isAuthenticated, async (req: any, res) => {
     try {
-      const reviews = await storage.getWeeklyReviews();
+      const userId = req.user.claims.sub;
+      const reviews = await storage.getWeeklyReviews(userId);
       res.json(reviews);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch weekly reviews" });
     }
   });
 
-  app.get("/api/weekly-reviews/:weekStartDate", async (req, res) => {
+  app.get("/api/weekly-reviews/:weekStartDate", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { weekStartDate } = req.params;
-      const review = await storage.getWeeklyReview(weekStartDate);
+      const review = await storage.getWeeklyReview(weekStartDate, userId);
       if (!review) {
         res.status(404).json({ error: "Weekly review not found" });
         return;
@@ -265,19 +274,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Achievements routes
-  app.get("/api/achievements", async (req, res) => {
+  app.get("/api/achievements", isAuthenticated, async (req: any, res) => {
     try {
-      const achievements = await storage.getAchievements();
+      const userId = req.user.claims.sub;
+      const achievements = await storage.getAchievements(userId);
       res.json(achievements);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch achievements" });
     }
   });
 
-  app.post("/api/achievements/:id/unlock", async (req, res) => {
+  app.post("/api/achievements/:id/unlock", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const id = parseInt(req.params.id);
-      const achievement = await storage.unlockAchievement(id);
+      const achievement = await storage.unlockAchievement(id, userId);
       res.json(achievement);
     } catch (error) {
       res.status(404).json({ error: "Achievement not found" });
@@ -285,19 +296,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Streaks routes
-  app.get("/api/streaks", async (req, res) => {
+  app.get("/api/streaks", isAuthenticated, async (req: any, res) => {
     try {
-      const streaks = await storage.getStreaks();
+      const userId = req.user.claims.sub;
+      const streaks = await storage.getStreaks(userId);
       res.json(streaks);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch streaks" });
     }
   });
 
-  app.get("/api/streaks/:type", async (req, res) => {
+  app.get("/api/streaks/:type", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { type } = req.params;
-      const streak = await storage.getStreak(type);
+      const streak = await storage.getStreak(type, userId);
       if (!streak) {
         res.status(404).json({ error: "Streak not found" });
         return;
