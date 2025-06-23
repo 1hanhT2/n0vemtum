@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHabits, useUpdateHabit, useCreateHabit, useDeleteHabit } from "@/hooks/use-habits";
 import { useHabitSuggestions } from "@/hooks/use-ai";
+import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { X, Plus, Trash2, Sparkles } from "lucide-react";
+import { X, Plus, Trash2, Sparkles, User, Mail, Calendar, Hash } from "lucide-react";
 import { getMockHabits } from "@/lib/mockData";
 
 interface SettingsModalProps {
@@ -19,6 +21,7 @@ interface SettingsModalProps {
 
 export function SettingsModal({ isOpen, onClose, isGuestMode = false }: SettingsModalProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const { data: habits } = isGuestMode 
     ? { data: getMockHabits() }
     : useHabits();
@@ -294,6 +297,62 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
         </div>
 
         <div className="space-y-6">
+          {/* Account Section */}
+          {!isGuestMode && user && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
+                <User className="w-5 h-5 mr-2" />
+                Account Information
+              </h3>
+              <Card>
+                <CardContent className="pt-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <Hash className="w-4 h-4 text-muted-foreground" />
+                      <div>
+                        <Label className="text-sm font-medium">User ID</Label>
+                        <p className="text-sm text-muted-foreground font-mono">{user.id}</p>
+                      </div>
+                    </div>
+                    {user.email && (
+                      <div className="flex items-center space-x-3">
+                        <Mail className="w-4 h-4 text-muted-foreground" />
+                        <div>
+                          <Label className="text-sm font-medium">Email</Label>
+                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                        </div>
+                      </div>
+                    )}
+                    {user.username && (
+                      <div className="flex items-center space-x-3">
+                        <User className="w-4 h-4 text-muted-foreground" />
+                        <div>
+                          <Label className="text-sm font-medium">Username</Label>
+                          <p className="text-sm text-muted-foreground">{user.username}</p>
+                        </div>
+                      </div>
+                    )}
+                    {user.createdAt && (
+                      <div className="flex items-center space-x-3">
+                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                        <div>
+                          <Label className="text-sm font-medium">Member Since</Label>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(user.createdAt).toLocaleDateString('en-US', { 
+                              year: 'numeric', 
+                              month: 'long', 
+                              day: 'numeric' 
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
           {/* Habit Names */}
           <div>
             <div className="flex items-center justify-between mb-4">
