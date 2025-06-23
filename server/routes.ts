@@ -12,6 +12,7 @@ import {
 import { z } from "zod";
 import { generateHabitSuggestions, generateWeeklyInsights, generateMotivationalMessage, analyzeHabitDifficulty } from "./ai";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { validateDateParam, validateNumericParam, sanitizeBody } from "./validation";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication middleware
@@ -36,25 +37,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const habits = await storage.getHabits(userId);
       res.json(habits);
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch habits" });
+      console.error("Failed to fetch habits:", error);
+      res.status(500).json({ message: "Failed to fetch habits" });
     }
   });
 
-  app.post("/api/habits", async (req, res) => {
+  app.post("/api/habits", isAuthenticated, async (req: any, res) => {
     try {
-      const habitData = insertHabitSchema.parse(req.body);
+      const userId = req.user.claims.sub;
+      const habitData = insertHabitSchema.parse({ ...req.body, userId });
       const habit = await storage.createHabit(habitData);
       res.json(habit);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ error: "Invalid habit data", details: error.errors });
+        res.status(400).json({ message: "Invalid habit data", details: error.errors });
       } else {
-        res.status(500).json({ error: "Failed to create habit" });
+        console.error("Failed to create habit:", error);
+        res.status(500).json({ message: "Failed to create habit" });
       }
     }
   });
 
-  app.put("/api/habits/:id", isAuthenticated, async (req: any, res) => {
+  app.put("/api/habits/:id", isAuthenticated, validateNumericParam('id'), sanitizeBody, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const userId = req.user.claims.sub;
@@ -134,7 +138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/daily-entries/:date", isAuthenticated, async (req: any, res) => {
+  app.get("/api/daily-entries/:date", isAuthenticated, validateDateParam('date'), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { date } = req.params;
@@ -206,9 +210,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/weekly-reviews", async (req, res) => {
+  app.post("/api/weekly-reviews", isAuthenticated, async (req: any, res) => {
     try {
-      const reviewData = insertWeeklyReviewSchema.parse(req.body);
+      const userId = req.user.claims.sub;
+      const reviewData = insertWeeklyReviewSchema.parse({ ...req.body, userId });
       const review = await storage.createWeeklyReview(reviewData);
       res.json(review);
     } catch (error) {
@@ -220,11 +225,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/weekly-reviews/:weekStartDate", async (req, res) => {
+  app.put("/api/weekly-reviews/:weekStartDate", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { weekStartDate } = req.params;
       const reviewData = insertWeeklyReviewSchema.partial().parse(req.body);
-      const review = await storage.updateWeeklyReview(weekStartDate, reviewData);
+      const review = await storage.updateWeeklyReview(weekStartDate, reviewData, userId);
       res.json(review);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -236,19 +242,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Settings routes
-  app.get("/api/settings", async (req, res) => {
+  app.get("/api/settings", isAuthenticated, async (req: any, res) => {
     try {
-      const settings = await storage.getSettings();
+      const userId = req.user.claims.sub;
+      const settings = await storage.getSettings(userId);
       res.json(settings);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch settings" });
     }
   });
 
-  app.get("/api/settings/:key", async (req, res) => {
+  app.get("/api/settings/:key", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { key } = req.params;
-      const setting = await storage.getSetting(key);
+      const setting = await storage.getSetting(key, userId);
       if (!setting) {
         res.status(404).json({ error: "Setting not found" });
         return;
@@ -259,9 +267,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/settings", async (req, res) => {
+  app.post("/api/settings", isAuthenticated, async (req: any, res) => {
     try {
-      const settingData = insertSettingSchema.parse(req.body);
+      const userId = req.user.claims.sub;
+      const settingData = insertSettingSchema.parse({ ...req.body, userId });
       const setting = await storage.setSetting(settingData);
       res.json(setting);
     } catch (error) {
@@ -333,9 +342,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI-powered routes
-  app.get("/api/ai/habit-suggestions", async (req, res) => {
+  app.get("/api/ai/habit-suggestions", isAuthenticated, async (req: any, res) => {
     try {
-      const habits = await storage.getHabits();
+      const userId = req.user.claims.sub;
+      const habits = await storage.getHabits(userId);
       const suggestions = await generateHabitSuggestions(habits);
       res.json(suggestions);
     } catch (error) {
@@ -344,12 +354,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/ai/weekly-insights", async (req, res) => {
+  app.post("/api/ai/weekly-insights", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { startDate, endDate } = req.body;
       const [dailyEntries, habits] = await Promise.all([
-        storage.getDailyEntries(startDate, endDate),
-        storage.getHabits()
+        storage.getDailyEntries(userId, startDate, endDate),
+        storage.getHabits(userId)
       ]);
       
       const insights = await generateWeeklyInsights(dailyEntries, habits);
@@ -377,10 +388,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/ai/analyze-habit-difficulty/:id", async (req, res) => {
+  app.post("/api/ai/analyze-habit-difficulty/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const habitId = parseInt(req.params.id);
-      const habit = await storage.getHabitById(habitId);
+      const habit = await storage.getHabitById(habitId, userId);
       
       if (!habit) {
         res.status(404).json({ error: "Habit not found" });
@@ -392,7 +404,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const startDate = thirtyDaysAgo.toISOString().split('T')[0];
       
-      const dailyEntries = await storage.getDailyEntries(startDate);
+      const dailyEntries = await storage.getDailyEntries(userId, startDate);
       const completionData = dailyEntries.map(entry => ({
         date: entry.date,
         completed: entry.habitCompletions?.[habitId] || false
@@ -401,7 +413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const analysis = await analyzeHabitDifficulty(habit, completionData);
       
       // Update the habit with the analysis
-      await storage.updateHabitDifficulty(habitId, analysis.difficulty, analysis.analysis);
+      await storage.updateHabitDifficulty(habitId, analysis.difficulty, analysis.analysis, userId);
       
       res.json(analysis);
     } catch (error) {
