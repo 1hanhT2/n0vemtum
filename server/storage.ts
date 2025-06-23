@@ -933,6 +933,30 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Failed to reset data');
     }
   }
+
+  async resetUserData(userId: string): Promise<void> {
+    await this.ensureInitialized();
+    
+    try {
+      console.log(`Resetting all data for user: ${userId}`);
+      
+      // Delete all user-specific data in the correct order to avoid foreign key conflicts
+      await db.delete(achievements).where(eq(achievements.userId, userId));
+      await db.delete(streaks).where(eq(streaks.userId, userId));
+      await db.delete(settings).where(eq(settings.userId, userId));
+      await db.delete(weeklyReviews).where(eq(weeklyReviews.userId, userId));
+      await db.delete(dailyEntries).where(eq(dailyEntries.userId, userId));
+      await db.delete(habits).where(eq(habits.userId, userId));
+      
+      // Also delete the user record itself
+      await db.delete(users).where(eq(users.id, userId));
+      
+      console.log(`All data for user ${userId} has been permanently deleted`);
+    } catch (error) {
+      console.error(`Failed to reset data for user ${userId}:`, error);
+      throw new Error('Failed to reset user data');
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
