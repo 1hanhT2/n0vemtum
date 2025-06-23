@@ -67,59 +67,78 @@ export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitC
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      className="w-full"
     >
-      <Card className={`p-3 sm:p-4 transition-all duration-200 hover:shadow-md ${
-        checked ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : ''
+      <Card className={`p-4 transition-all duration-200 hover:shadow-lg border-2 ${
+        checked 
+          ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800 shadow-lg' 
+          : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
       }`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3 flex-1 min-w-0">
-            <Checkbox
-              checked={checked}
-              onCheckedChange={handleToggle}
-              className="flex-shrink-0"
-            />
-            
-            <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-              <span className="text-lg sm:text-xl flex-shrink-0">{habit.emoji}</span>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-sm sm:text-base truncate">{habit.name}</h3>
-                <div className="flex items-center space-x-1 sm:space-x-2 mt-1">
-                  {habit.tier && (
-                    <Badge variant="secondary" className={`text-xs bg-gradient-to-r ${tierColor} text-white`}>
-                      {tierEmoji} {habit.tier}
-                    </Badge>
-                  )}
-                  {habit.level && (
-                    <Badge variant="outline" className="text-xs">
-                      Lv.{habit.level}
-                    </Badge>
-                  )}
-                </div>
-              </div>
+        <div className="flex items-center space-x-4">
+          {/* Large touch-friendly checkbox */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => handleToggle(!checked)}
+            className={`w-12 h-12 rounded-full border-2 transition-all duration-200 touch-target flex items-center justify-center ${
+              checked
+                ? 'bg-green-500 border-green-500 text-white shadow-lg'
+                : 'border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500'
+            }`}
+          >
+            {checked && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                className="text-xl font-bold"
+              >
+                ✓
+              </motion.div>
+            )}
+          </motion.button>
+          
+          {/* Habit content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center space-x-3 mb-2">
+              <span className="text-2xl flex-shrink-0">{habit.emoji}</span>
+              <h3 className="font-semibold text-base text-gray-900 dark:text-white truncate">
+                {habit.name}
+              </h3>
             </div>
-          </div>
-
-          <div className="flex flex-col items-end space-y-1 flex-shrink-0 ml-2">
-            <div className="flex items-center space-x-1 sm:space-x-2 text-xs text-muted-foreground">
+            
+            {/* Mobile-optimized badges and stats */}
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              {habit.tier && (
+                <Badge className={`text-xs px-2 py-1 bg-gradient-to-r ${tierColor} text-white`}>
+                  {tierEmoji} {habit.tier}
+                </Badge>
+              )}
+              {habit.level && (
+                <Badge variant="outline" className="text-xs px-2 py-1">
+                  Level {habit.level}
+                </Badge>
+              )}
               {habit.streak && habit.streak > 0 && (
-                <div className="flex items-center space-x-1">
-                  <Flame className="h-3 w-3 text-orange-500" />
-                  <span>{habit.streak}</span>
-                </div>
-              )}
-              {habit.masteryPoints && (
-                <div className="flex items-center space-x-1">
-                  <Trophy className="h-3 w-3 text-yellow-500" />
-                  <span>{habit.masteryPoints}</span>
-                </div>
+                <Badge className="text-xs px-2 py-1 bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200">
+                  🔥 {habit.streak} day streak
+                </Badge>
               )}
             </div>
             
+            {/* Experience bar for mobile */}
             {habit.experience !== undefined && habit.experienceToNext && (
-              <div className="w-16 sm:w-20">
-                <Progress value={experiencePercentage} className="h-1 sm:h-2" />
-                <div className="text-xs text-muted-foreground text-center mt-1">
-                  {habit.experience}/{habit.experience + habit.experienceToNext} XP
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+                  <span>Experience</span>
+                  <span>{habit.experience}/{habit.experience + habit.experienceToNext} XP</span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <motion.div 
+                    className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${experiencePercentage}%` }}
+                  />
                 </div>
               </div>
             )}

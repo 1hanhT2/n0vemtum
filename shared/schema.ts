@@ -2,30 +2,7 @@ import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, ind
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Session storage table for authentication
-export const sessions = pgTable(
-  "sessions",
-  {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
-    expire: timestamp("expire").notNull(),
-  },
-  (table) => [index("IDX_session_expire").on(table.expire)],
-);
-
-// Users table for authentication
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().notNull(),
-  email: varchar("email").unique(),
-  name: varchar("name"),
-  profileImageUrl: varchar("profile_image_url"),
-  googleId: varchar("google_id").unique(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
 export const habits = pgTable("habits", {
-  userId: varchar("user_id").references(() => users.id).notNull(),
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   emoji: text("emoji").notNull(),
@@ -50,7 +27,6 @@ export const habits = pgTable("habits", {
 });
 
 export const dailyEntries = pgTable("daily_entries", {
-  userId: varchar("user_id").references(() => users.id).notNull(),
   id: serial("id").primaryKey(),
   date: text("date").notNull().unique(), // YYYY-MM-DD format
   habitCompletions: jsonb("habit_completions").notNull().default({}), // { habitId: boolean }
@@ -63,7 +39,6 @@ export const dailyEntries = pgTable("daily_entries", {
 });
 
 export const weeklyReviews = pgTable("weekly_reviews", {
-  userId: varchar("user_id").references(() => users.id).notNull(),
   id: serial("id").primaryKey(),
   weekStartDate: text("week_start_date").notNull().unique(), // YYYY-MM-DD format (Monday)
   accomplishment: text("accomplishment").default(""),
@@ -73,7 +48,6 @@ export const weeklyReviews = pgTable("weekly_reviews", {
 });
 
 export const settings = pgTable("settings", {
-  userId: varchar("user_id").references(() => users.id).notNull(),
   id: serial("id").primaryKey(),
   key: text("key").notNull().unique(),
   value: text("value").notNull(),
@@ -81,7 +55,6 @@ export const settings = pgTable("settings", {
 });
 
 export const achievements = pgTable("achievements", {
-  userId: varchar("user_id").references(() => users.id).notNull(),
   id: serial("id").primaryKey(),
   type: text("type").notNull(), // 'streak', 'completion', 'consistency', 'milestone'
   name: text("name").notNull(),
@@ -94,7 +67,6 @@ export const achievements = pgTable("achievements", {
 });
 
 export const streaks = pgTable("streaks", {
-  userId: varchar("user_id").references(() => users.id).notNull(),
   id: serial("id").primaryKey(),
   type: text("type").notNull(), // 'daily_completion', 'habit_specific', 'weekly_review'
   currentStreak: integer("current_streak").notNull().default(0),
@@ -154,12 +126,7 @@ export type Achievement = typeof achievements.$inferSelect;
 export type InsertStreak = z.infer<typeof insertStreakSchema>;
 export type Streak = typeof streaks.$inferSelect;
 
-export type User = typeof users.$inferSelect;
-export type InsertUser = typeof users.$inferInsert;
-
-// User schema for validation
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+export type User = {
+  id: number;
+  username: string;
+};
