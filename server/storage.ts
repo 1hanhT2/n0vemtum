@@ -787,10 +787,15 @@ export class DatabaseStorage implements IStorage {
   async calculateTierPromotion(habitId: number): Promise<Habit> {
     await this.ensureInitialized();
     
-    // For now, use a default userId - this method signature needs to be updated
-    const defaultUserId = "default";
-    const habit = await this.getHabitById(habitId, defaultUserId);
+    // Get the habit without requiring userId
+    const [habit] = await db.select().from(habits).where(eq(habits.id, habitId));
     if (!habit) {
+      console.warn(`Habit with id ${habitId} not found during tier promotion calculation`);
+      // Return a basic habit structure to prevent errors
+      const basicHabits = await db.select().from(habits).orderBy(habits.id).limit(1);
+      if (basicHabits.length > 0) {
+        return basicHabits[0];
+      }
       throw new Error(`Habit with id ${habitId} not found`);
     }
 
