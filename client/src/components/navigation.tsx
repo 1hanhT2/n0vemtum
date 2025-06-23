@@ -20,8 +20,6 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
   return (
     <nav className="border-b bg-white/95 dark:bg-gray-900/95 dark:border-gray-700 backdrop-blur-sm sticky top-0 z-10">
       <div className="max-w-4xl mx-auto px-2 sm:px-4">
-        {/* App Name Placeholder - To be replaced */}
-        <h1 className="text-xl font-bold text-white">n0ventum</h1>
         <div className="flex justify-start sm:justify-center space-x-1 py-2 sm:py-4 overflow-x-auto scrollbar-hide">
           {navItems.map((item) => (
             <motion.button
