@@ -30,9 +30,9 @@ export interface IStorage {
   upsertUser(user: InsertUser): Promise<User>;
   
   // Habits
-  getHabits(): Promise<Habit[]>;
+  getHabits(userId?: string): Promise<Habit[]>;
   getHabitById(id: number): Promise<Habit | undefined>;
-  createHabit(habit: InsertHabit): Promise<Habit>;
+  createHabit(habit: InsertHabit, userId: string): Promise<Habit>;
   updateHabit(id: number, habit: Partial<InsertHabit>): Promise<Habit>;
   updateHabitDifficulty(id: number, difficulty: number, analysis: string): Promise<Habit>;
   deleteHabit(id: number): Promise<void>;
@@ -107,8 +107,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   private async initializeDefaults() {
-    await this.initializeDefaultHabits();
-    await this.initializeAchievements();
+    // Skip initialization for user-based auth system
+    // Data will be created per user when they authenticate
   }
 
   private async initializeDefaultHabits() {
