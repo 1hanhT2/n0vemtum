@@ -185,42 +185,33 @@ export function TodayView() {
     }
   };
 
-  const handleCompleteDay = () => {
-    const entryData = {
-      date: today,
-      habitCompletions,
-      punctualityScore: punctualityScore[0],
-      adherenceScore: adherenceScore[0],
-      notes,
-      isCompleted: true,
-    };
+  const handleCompleteDay = async () => {
+    try {
+      const entryData = {
+        date: today,
+        habitCompletions,
+        punctualityScore: punctualityScore[0],
+        adherenceScore: adherenceScore[0],
+        notes,
+        isCompleted: true,
+      };
 
-    if (dailyEntry) {
-      updateDailyEntry.mutate(
-        { date: today, ...entryData },
-        {
-          onSuccess: (data) => {
-            setIsDayCompleted(true);
-            queryClient.invalidateQueries({ queryKey: ['/api/daily-entries'] });
-            queryClient.invalidateQueries({ queryKey: ['/api/daily-entries', today] });
-            toast({
-              title: "Day completed successfully!",
-              description: "Your progress has been locked and saved.",
-            });
-          },
-        }
-      );
-    } else {
-      createDailyEntry.mutate(entryData, {
-        onSuccess: (data) => {
-          setIsDayCompleted(true);
-          queryClient.invalidateQueries({ queryKey: ['/api/daily-entries'] });
-          queryClient.invalidateQueries({ queryKey: ['/api/daily-entries', today] });
-          toast({
-            title: "Day completed successfully!",
-            description: "Your progress has been locked and saved.",
-          });
-        },
+      if (dailyEntry) {
+        await updateDailyEntry.mutateAsync({ date: today, ...entryData });
+      } else {
+        await createDailyEntry.mutateAsync(entryData);
+      }
+
+      setIsDayCompleted(true);
+      toast({
+        title: "Day Completed!",
+        description: "Your progress has been saved and locked for today.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to complete day. Please try again.",
+        variant: "destructive",
       });
     }
   };

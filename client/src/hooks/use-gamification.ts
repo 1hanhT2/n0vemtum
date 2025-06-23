@@ -36,13 +36,7 @@ export function useUpdateHabitProgress() {
 
   return useMutation({
     mutationFn: async ({ habitId, completed, date }: { habitId: number; completed: boolean; date: string }) => {
-      const response = await apiRequest(`/api/habits/${habitId}/progress`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ completed, date }),
-      });
+      const response = await apiRequest('POST', `/api/habits/${habitId}/progress`, { completed, date });
       return response.json();
     },
     onSuccess: (habit, { completed }) => {

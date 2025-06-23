@@ -628,12 +628,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Add gamification methods before checkAchievements
-  async updateHabitProgress(habitId: number, completed: boolean, date: string): Promise<Habit> {
+  async updateHabitProgress(habitId: number, completed: boolean, date: string, userId: string): Promise<Habit> {
     await this.ensureInitialized();
     
-    // For now, use a default userId - this method signature needs to be updated
-    const defaultUserId = "default";
-    const habit = await this.getHabitById(habitId, defaultUserId);
+    const habit = await this.getHabitById(habitId, userId);
     if (!habit) {
       throw new Error(`Habit with id ${habitId} not found`);
     }
@@ -707,7 +705,7 @@ export class DatabaseStorage implements IStorage {
         badges: newBadges,
         lastCompleted: completed ? date : habit.lastCompleted
       })
-      .where(eq(habits.id, habitId))
+      .where(and(eq(habits.id, habitId), eq(habits.userId, userId)))
       .returning();
 
     // Check for tier promotion after updating progress

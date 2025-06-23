@@ -99,8 +99,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/habits/:id/progress", isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
       const { completed, date } = req.body;
-      const habit = await storage.updateHabitProgress(id, completed, date);
+      const habit = await storage.updateHabitProgress(id, completed, date, userId);
       
       // Check for tier promotion after progress update
       const promotedHabit = await storage.calculateTierPromotion(id);

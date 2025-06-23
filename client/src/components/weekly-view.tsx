@@ -53,6 +53,13 @@ export function WeeklyView() {
     }
   }, [weeklyReview]);
 
+  // Handle AI insights response
+  useEffect(() => {
+    if (weeklyInsightsMutation.isSuccess && weeklyInsightsMutation.data) {
+      setAiInsights(weeklyInsightsMutation.data);
+    }
+  }, [weeklyInsightsMutation.isSuccess, weeklyInsightsMutation.data]);
+
   // Generate AI insights when data is available
   useEffect(() => {
     if (dailyEntries && habits && dailyEntries.length > 0) {
@@ -281,35 +288,49 @@ export function WeeklyView() {
         </Card>
       </div>
 
-      {/* AI Weekly Insights */}
-      {aiInsights && (
-        <Card className="rounded-2xl shadow-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-purple-200 dark:border-purple-800">
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
-              <Sparkles className="w-6 h-6 text-purple-500 mr-2" />
-              AI Weekly Insights
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-2">Patterns Observed</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">{aiInsights.patterns}</p>
-                
-                <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-2">This Week's Strengths</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-300">{aiInsights.strengths}</p>
+      {/* AI Insights Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Sparkles className="w-5 h-5 text-purple-500" />
+            <span>AI Weekly Insights</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {aiInsights ? (
+            <div className="space-y-4">
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Key Insights</h4>
+                <p className="text-blue-700 dark:text-blue-300 text-sm">{aiInsights.insights}</p>
               </div>
-              <div>
-                <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-2">Improvement Suggestions</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">{aiInsights.improvements}</p>
-                
-                <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-2">Motivation</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-300 italic">{aiInsights.motivation}</p>
+              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <h4 className="font-semibold text-green-800 dark:text-green-200 mb-2">Recommendations</h4>
+                <p className="text-green-700 dark:text-green-300 text-sm">{aiInsights.recommendations}</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <div className="text-center py-8">
+              <Button
+                onClick={() => weeklyInsightsMutation.mutate()}
+                disabled={weeklyInsightsMutation.isPending}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                {weeklyInsightsMutation.isPending ? (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                    Generating Insights...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Generate AI Insights
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Reflection Questions */}
       <Card className="rounded-2xl shadow-lg">
