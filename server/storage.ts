@@ -145,11 +145,11 @@ export class DatabaseStorage implements IStorage {
     return habit || undefined;
   }
 
-  async createHabit(insertHabit: InsertHabit): Promise<Habit> {
+  async createHabit(insertHabit: InsertHabit, userId: string): Promise<Habit> {
     await this.ensureInitialized();
     const [habit] = await db
       .insert(habits)
-      .values(insertHabit)
+      .values({ ...insertHabit, userId })
       .returning();
     return habit;
   }
@@ -629,7 +629,7 @@ export class DatabaseStorage implements IStorage {
     let newStreak = habit.streak;
     let newLongestStreak = habit.longestStreak;
     let newTotalCompletions = habit.totalCompletions;
-    let newBadges = [...habit.badges];
+    let newBadges = habit.badges ? [...habit.badges] : [];
 
     if (completed) {
       // Calculate XP based on difficulty and streak multiplier
@@ -716,7 +716,7 @@ export class DatabaseStorage implements IStorage {
 
     const newLevel = habit.level + 1;
     const remainingXP = habit.experience - habit.experienceToNext;
-    const newXPToNext = this.calculateXPRequirement(newLevel, habit.difficultyRating);
+    const newXPToNext = this.calculateXPRequirement(newLevel, habit.difficultyRating ?? 3);
 
     const [updatedHabit] = await db
       .update(habits)
@@ -743,11 +743,12 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`Habit with id ${habitId} not found`);
     }
 
-    if (habit.badges.includes(badge)) {
+    const currentBadges = habit.badges || [];
+    if (currentBadges.includes(badge)) {
       return habit; // Badge already awarded
     }
 
-    const newBadges = [...habit.badges, badge];
+    const newBadges = [...currentBadges, badge];
 
     const [updatedHabit] = await db
       .update(habits)

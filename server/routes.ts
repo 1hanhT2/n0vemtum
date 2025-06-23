@@ -12,22 +12,28 @@ import {
 import { z } from "zod";
 import { generateHabitSuggestions, generateWeeklyInsights, generateMotivationalMessage, analyzeHabitDifficulty } from "./ai";
 
+import { setupAuth, requireAuth } from "./replitAuth";
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication
+  await setupAuth(app);
   
   // Habits routes
-  app.get("/api/habits", async (req, res) => {
+  app.get("/api/habits", requireAuth, async (req, res) => {
     try {
-      const habits = await storage.getHabits();
+      const user = req.user as any;
+      const habits = await storage.getHabits(user.id);
       res.json(habits);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch habits" });
     }
   });
 
-  app.post("/api/habits", async (req, res) => {
+  app.post("/api/habits", requireAuth, async (req, res) => {
     try {
+      const user = req.user as any;
       const habitData = insertHabitSchema.parse(req.body);
-      const habit = await storage.createHabit(habitData);
+      const habit = await storage.createHabit(habitData, user.id);
       res.json(habit);
     } catch (error) {
       if (error instanceof z.ZodError) {
