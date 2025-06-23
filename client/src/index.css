@@ -4,6 +4,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile-first responsive design */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Add safe area padding for mobile devices */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar for horizontal navigation */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Touch-friendly tap targets */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
 :root {
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(20, 14.3%, 4.1%);
