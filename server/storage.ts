@@ -254,7 +254,7 @@ export class DatabaseStorage implements IStorage {
     await this.ensureInitialized();
     const [entry] = await db
       .update(dailyEntries)
-      .set(updateData)
+      .set({ ...updateData, updatedAt: new Date() })
       .where(and(eq(dailyEntries.date, date), eq(dailyEntries.userId, userId)))
       .returning();
     
@@ -262,9 +262,13 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`Daily entry for date ${date} not found`);
     }
 
-    // Calculate streaks when day is completed
+    // Only calculate streaks and achievements when day is actually completed, not on every update
     if (updateData.isCompleted === true) {
-      await this.calculateStreaks(date, userId);
+      // Run streak calculation and achievement checking in parallel
+      await Promise.all([
+        this.calculateStreaks(date, userId),
+        this.checkAchievements(0, entry) // Pass 0 as placeholder, will get actual streak inside
+      ]);
     }
 
     return entry;
@@ -663,16 +667,15 @@ export class DatabaseStorage implements IStorage {
   async updateHabitProgress(habitId: number, completed: boolean, date: string, userId?: string): Promise<Habit> {
     await this.ensureInitialized();
     
-    // If userId is not provided, find the habit by id and get userId from it
-    if (!userId) {
-      const [foundHabit] = await db.select().from(habits).where(eq(habits.id, habitId));
-      if (!foundHabit) {
-        throw new Error(`Habit with id ${habitId} not found`);
-      }
-      userId = foundHabit.userId;
-    }
+    // Get habit with userId in single query if not provided
+    const habit = userId 
+      ? await this.getHabitById(habitId, userId)
+      : await db.select().from(habits).where(eq(habits.id, habitId)).then(([h]) => {
+          if (!h) throw new Error(`Habit with id ${habitId} not found`);
+          userId = h.userId;
+          return h;
+        });
     
-    const habit = await this.getHabitById(habitId, userId);
     if (!habit) {
       throw new Error(`Habit with id ${habitId} not found for user ${userId}`);
     }
@@ -749,10 +752,13 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(habits.id, habitId), eq(habits.userId, userId)))
       .returning();
 
-    // Check for tier promotion after updating progress
-    const tierPromotedHabit = await this.calculateTierPromotion(habitId);
+    // Skip expensive tier promotion calculation on every update
+    // Only check tier promotion on level boundaries (every 100 XP)
+    if (completed && newExperience % 100 < 20) {
+      return await this.calculateTierPromotion(habitId);
+    }
     
-    return tierPromotedHabit;
+    return updatedHabit;
   }
 
   async levelUpHabit(habitId: number): Promise<Habit> {

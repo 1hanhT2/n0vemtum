@@ -49,18 +49,21 @@ export function useUpdateHabitProgress() {
       return response.json();
     },
     onSuccess: (habit, { completed }) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/habits'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/daily-entries'] });
+      // Use optimistic updates instead of invalidating all queries
+      queryClient.setQueryData(['/api/habits'], (oldHabits: any[]) => 
+        oldHabits?.map(h => h.id === habit.id ? habit : h)
+      );
       
       if (completed) {
-        // Check for new badges or tier promotions
-        const newBadges = habit.badges.filter((badge: string) => 
-          !queryClient.getQueryData(['/api/habits'])?.find((h: any) => h.id === habit.id)?.badges?.includes(badge)
-        );
+        // Check for new badges or tier promotions (simplified check)
+        const oldHabit = queryClient.getQueryData(['/api/habits'])?.find((h: any) => h.id === habit.id);
+        const newBadges = habit.badges?.filter((badge: string) => 
+          !oldHabit?.badges?.includes(badge)
+        ) || [];
         
         if (newBadges.length > 0) {
           toast({
-            title: "New Badge Earned! 🏆",
+            title: "New Badge Earned!",
             description: `${habit.emoji} ${habit.name} earned: ${newBadges.join(', ')}`,
           });
         }

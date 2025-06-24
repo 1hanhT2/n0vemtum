@@ -36,6 +36,15 @@ import { TierExplanation } from "@/components/tier-explanation";
 import { RefreshCw } from "lucide-react";
 import { getMockHabits, getMockDailyEntry, getMockStreak } from "@/lib/mockData";
 
+// Debounce utility function
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
+  let timeout: NodeJS.Timeout;
+  return ((...args: any[]) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(null, args), wait);
+  }) as T;
+}
+
 interface TodayViewProps {
   isGuestMode?: boolean;
 }
@@ -47,6 +56,18 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const { data: habits, isLoading: habitsLoading, error: habitsError } = isGuestMode 
     ? { data: getMockHabits(), isLoading: false, error: null }
     : useHabits();
+  // Debounced save function to prevent excessive API calls
+  const debouncedSave = useCallback(
+    debounce((entryData: any) => {
+      if (dailyEntry) {
+        updateDailyEntry.mutate({ date: today, ...entryData });
+      } else {
+        createDailyEntry.mutate(entryData);
+      }
+    }, 500), // Wait 500ms after user stops interacting
+    [dailyEntry, updateDailyEntry, createDailyEntry, today]
+  );
+
   const { data: dailyEntry, isLoading: entryLoading } = isGuestMode
     ? { data: getMockDailyEntry(today), isLoading: false }
     : useDailyEntry(today);
