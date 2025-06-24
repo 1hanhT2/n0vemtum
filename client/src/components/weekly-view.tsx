@@ -71,6 +71,7 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
   // Handle AI insights response
   useEffect(() => {
     if (weeklyInsightsMutation.isSuccess && weeklyInsightsMutation.data) {
+      console.log('Weekly insights received:', weeklyInsightsMutation.data);
       setAiInsights(weeklyInsightsMutation.data);
     }
   }, [weeklyInsightsMutation.isSuccess, weeklyInsightsMutation.data]);
@@ -314,14 +315,30 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
         <CardContent>
           {aiInsights ? (
             <div className="space-y-4">
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Key Insights</h4>
-                <p className="text-blue-700 dark:text-blue-300 text-sm">{aiInsights.insights}</p>
-              </div>
-              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                <h4 className="font-semibold text-green-800 dark:text-green-200 mb-2">Recommendations</h4>
-                <p className="text-green-700 dark:text-green-300 text-sm">{aiInsights.recommendations}</p>
-              </div>
+              {aiInsights.patterns && (
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Patterns</h4>
+                  <p className="text-blue-700 dark:text-blue-300 text-sm">{aiInsights.patterns}</p>
+                </div>
+              )}
+              {aiInsights.strengths && (
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <h4 className="font-semibold text-green-800 dark:text-green-200 mb-2">Strengths</h4>
+                  <p className="text-green-700 dark:text-green-300 text-sm">{aiInsights.strengths}</p>
+                </div>
+              )}
+              {aiInsights.improvements && (
+                <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                  <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-2">Areas for Improvement</h4>
+                  <p className="text-orange-700 dark:text-orange-300 text-sm">{aiInsights.improvements}</p>
+                </div>
+              )}
+              {aiInsights.motivation && (
+                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">Motivation</h4>
+                  <p className="text-purple-700 dark:text-purple-300 text-sm">{aiInsights.motivation}</p>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-8">
