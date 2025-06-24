@@ -356,9 +356,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async initializeAchievements(userId: string): Promise<void> {
+    await this.ensureInitialized();
+    
+    // Check if achievements already exist for this specific user
+    const existingAchievements = await db.select().from(achievements).where(eq(achievements.userId, userId));
+    if (existingAchievements.length > 0) {
+      return;
+    }
+
     try {
-      const existingAchievements = await db.select().from(achievements);
-      if (existingAchievements.length === 0) {
         const defaultAchievements = [
           // Streak Achievements
           {
@@ -541,11 +547,19 @@ export class DatabaseStorage implements IStorage {
 
         for (const achievement of defaultAchievements) {
           await db.insert(achievements).values({
-            ...achievement,
-            userId: 'default'
+            userId,
+            name: achievement.name,
+            description: achievement.description,
+            badge: achievement.badge,
+            category: achievement.type,
+            requirement: achievement.requirement,
+            requirementType: achievement.type === 'streak' ? 'daily_streak' : 
+                           achievement.type === 'completion' ? 'daily_completion_rate' : 
+                           achievement.type === 'milestone' ? 'total_days' : 
+                           achievement.type === 'consistency' ? 'weekly_reviews' : 'special',
+            isUnlocked: false,
           });
         }
-      }
     } catch (error) {
       console.error('Failed to initialize achievements:', error);
     }
