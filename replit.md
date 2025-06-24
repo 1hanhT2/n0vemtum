@@ -57,7 +57,12 @@ This project is **n0ventum**, a modern habit tracking web application built with
 - **Levels**: XP-based progression system
 - **Tiers**: Long-term mastery recognition (Bronze → Diamond)
 - **Streaks**: Daily and weekly consistency tracking
-- **Badges**: Achievement system for milestones
+- **Achievements**: Comprehensive badge system with 23 achievements across categories:
+  - Streak achievements (First Steps, Getting Started, Week Warrior, Monthly Master, etc.)
+  - Milestone achievements (Getting Into It, Century Club, Habit Master)
+  - Completion achievements (Perfect Day, Near Perfect)
+  - Consistency achievements (Reflection Master, Self-Aware)
+  - Special achievements (Early Bird, Habit Creator, Perfectionist)
 - **Mastery Points**: Advanced progression metrics
 
 ## Data Flow
@@ -113,9 +118,18 @@ This project is **n0ventum**, a modern habit tracking web application built with
 Preferred communication style: Simple, everyday language.
 ```
 
+## Recent Changes
+
+✓ Fixed AI weekly insights display by updating component to match API response structure (patterns, strengths, improvements, motivation)
+✓ Completed comprehensive achievement system with 23 achievements across multiple categories
+✓ Fixed achievement initialization for existing users, especially after data resets
+✓ Updated database schema to support proper achievement tracking
+✓ Achievement system now properly initializes on user login and displays correctly
+
 ## Changelog
 
 ```
 Changelog:
-- June 24, 2025. Initial setup
+- June 24, 2025: Initial setup and core functionality
+- January 21, 2025: Fixed AI insights display, completed achievement system implementation
 ```
