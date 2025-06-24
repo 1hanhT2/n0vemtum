@@ -180,7 +180,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
     }
   };
 
-  const handleResetData = async () => {
+  const handleResetDataInternal = async () => {
     if (isGuestMode) {
       toast({
         title: "Demo Mode",
@@ -225,6 +225,8 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
       });
     }
   };
+
+  const [handleResetData, isResettingData] = usePendingProtection(handleResetDataInternal);
 
   const updateHabitSetting = (id: number, field: 'name' | 'emoji', value: string) => {
     // Validate input

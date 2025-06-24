@@ -1,11 +1,38 @@
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
+import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Rate limiting for API endpoints
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: {
+    error: "Too many requests from this IP, please try again later."
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const strictLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 10, // Limit each IP to 10 requests per minute for sensitive endpoints
+  message: {
+    error: "Rate limit exceeded for this action, please wait before trying again."
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply rate limiting to API routes
+app.use('/api', apiLimiter);
+app.use('/api/reset-data', strictLimiter);
+app.use('/api/habits/*/progress', strictLimiter);
 
 app.use((req, res, next) => {
   const start = Date.now();

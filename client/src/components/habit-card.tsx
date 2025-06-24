@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import { Trophy, Flame, Target, TrendingUp } from "lucide-react";
+import { useThrottle } from '@/hooks/use-debounce';
 
 interface Habit {
   id: number;
@@ -50,10 +51,12 @@ const tierEmojis = {
 export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitCardProps) {
   const [checked, setChecked] = useState(isCompleted);
 
-  const handleToggle = (value: boolean) => {
+  const handleToggleInternal = (value: boolean) => {
     setChecked(value);
     onToggle?.(habit.id, value);
   };
+
+  const handleToggle = useThrottle(handleToggleInternal, 500);
 
   const experiencePercentage = habit.experience && habit.experienceToNext 
     ? (habit.experience / (habit.experience + habit.experienceToNext)) * 100 
