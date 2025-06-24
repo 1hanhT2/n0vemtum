@@ -265,9 +265,10 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         description: "Your progress has been saved and locked for today.",
       });
     } catch (error) {
+      console.error('Day completion error:', error);
       toast({
         title: "Error",
-        description: "Failed to complete day. Please try again.",
+        description: `Failed to complete day: ${error instanceof Error ? error.message : 'Please try again'}`,
         variant: "destructive",
       });
     }

@@ -157,34 +157,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/daily-entries", isAuthenticated, async (req: any, res) => {
+  app.post("/api/daily-entries", isAuthenticated, sanitizeBody, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      console.log('Creating daily entry for user:', userId, 'with data:', req.body);
       const entryData = insertDailyEntrySchema.parse({ ...req.body, userId });
       const entry = await storage.createDailyEntry(entryData);
+      console.log('Daily entry created successfully:', entry.id);
       res.json(entry);
     } catch (error) {
-      console.error("Daily entry creation error:", error);
+      console.error("Create daily entry error:", error);
       if (error instanceof z.ZodError) {
         res.status(400).json({ error: "Invalid daily entry data", details: error.errors });
       } else {
-        res.status(500).json({ error: "Failed to create daily entry" });
+        res.status(400).json({ error: error instanceof Error ? error.message : "Failed to create daily entry" });
       }
     }
   });
 
-  app.put("/api/daily-entries/:date", isAuthenticated, async (req: any, res) => {
+  app.put("/api/daily-entries/:date", isAuthenticated, validateDateParam('date'), sanitizeBody, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { date } = req.params;
-      const entryData = insertDailyEntrySchema.partial().parse(req.body);
-      const entry = await storage.updateDailyEntry(date, entryData, userId);
+      console.log('Updating daily entry for user:', userId, 'date:', date, 'with data:', req.body);
+      const updateData = insertDailyEntrySchema.partial().parse(req.body);
+      const entry = await storage.updateDailyEntry(date, updateData, userId);
+      console.log('Daily entry updated successfully:', entry.id);
       res.json(entry);
     } catch (error) {
+      console.error(`Update daily entry error for date ${req.params.date}:`, error);
       if (error instanceof z.ZodError) {
         res.status(400).json({ error: "Invalid daily entry data", details: error.errors });
       } else {
-        res.status(404).json({ error: "Daily entry not found" });
+        res.status(400).json({ error: error instanceof Error ? error.message : "Failed to update daily entry" });
       }
     }
   });

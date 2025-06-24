@@ -237,41 +237,57 @@ export class DatabaseStorage implements IStorage {
 
   async createDailyEntry(insertEntry: InsertDailyEntry): Promise<DailyEntry> {
     await this.ensureInitialized();
-    const [entry] = await db
-      .insert(dailyEntries)
-      .values(insertEntry)
-      .returning();
+    try {
+      console.log('Creating daily entry with data:', insertEntry);
+      const [entry] = await db
+        .insert(dailyEntries)
+        .values(insertEntry)
+        .returning();
+      console.log('Daily entry created in database:', entry);
 
-    // Calculate streaks when day is completed
-    if (insertEntry.isCompleted === true) {
-      await this.calculateStreaks(insertEntry.date, insertEntry.userId);
+      // Calculate streaks when day is completed
+      if (insertEntry.isCompleted === true) {
+        console.log('Day completed, calculating streaks...');
+        await this.calculateStreaks(insertEntry.date, insertEntry.userId);
+      }
+
+      return entry;
+    } catch (error) {
+      console.error('Database error creating daily entry:', error);
+      throw error;
     }
-
-    return entry;
   }
 
   async updateDailyEntry(date: string, updateData: Partial<InsertDailyEntry>, userId: string): Promise<DailyEntry> {
     await this.ensureInitialized();
-    const [entry] = await db
-      .update(dailyEntries)
-      .set({ ...updateData, updatedAt: new Date() })
-      .where(and(eq(dailyEntries.date, date), eq(dailyEntries.userId, userId)))
-      .returning();
-    
-    if (!entry) {
-      throw new Error(`Daily entry for date ${date} not found`);
-    }
+    try {
+      console.log('Updating daily entry for date:', date, 'user:', userId, 'with data:', updateData);
+      const [entry] = await db
+        .update(dailyEntries)
+        .set({ ...updateData, updatedAt: new Date() })
+        .where(and(eq(dailyEntries.date, date), eq(dailyEntries.userId, userId)))
+        .returning();
+      
+      if (!entry) {
+        throw new Error(`Daily entry for date ${date} not found`);
+      }
+      console.log('Daily entry updated in database:', entry);
 
-    // Only calculate streaks and achievements when day is actually completed, not on every update
-    if (updateData.isCompleted === true) {
-      // Run streak calculation and achievement checking in parallel
-      await Promise.all([
-        this.calculateStreaks(date, userId),
-        this.checkAchievements(0, entry) // Pass 0 as placeholder, will get actual streak inside
-      ]);
-    }
+      // Only calculate streaks and achievements when day is actually completed, not on every update
+      if (updateData.isCompleted === true) {
+        console.log('Day completed, calculating streaks and achievements...');
+        // Run streak calculation and achievement checking in parallel
+        await Promise.all([
+          this.calculateStreaks(date, userId),
+          this.checkAchievements(0, entry) // Pass 0 as placeholder, will get actual streak inside
+        ]);
+      }
 
-    return entry;
+      return entry;
+    } catch (error) {
+      console.error('Database error updating daily entry:', error);
+      throw error;
+    }
   }
 
   // Weekly Reviews

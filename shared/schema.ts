@@ -52,7 +52,7 @@ export const habits = pgTable("habits", {
 export const dailyEntries = pgTable("daily_entries", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").notNull(),
-  date: text("date").notNull().unique(), // YYYY-MM-DD format
+  date: text("date").notNull(), // YYYY-MM-DD format
   habitCompletions: jsonb("habit_completions").notNull().default({}), // { habitId: boolean }
   punctualityScore: integer("punctuality_score").notNull().default(3),
   adherenceScore: integer("adherence_score").notNull().default(3),
@@ -60,6 +60,7 @@ export const dailyEntries = pgTable("daily_entries", {
   isCompleted: boolean("is_completed").notNull().default(false),
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const weeklyReviews = pgTable("weekly_reviews", {
