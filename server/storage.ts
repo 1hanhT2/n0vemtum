@@ -564,6 +564,7 @@ export class DatabaseStorage implements IStorage {
         for (const achievement of defaultAchievements) {
           await db.insert(achievements).values({
             userId,
+            type: achievement.type,
             name: achievement.name,
             description: achievement.description,
             badge: achievement.badge,
