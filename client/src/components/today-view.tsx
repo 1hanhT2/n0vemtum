@@ -56,16 +56,15 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const updateDailyEntry = useUpdateDailyEntry();
 
   // Debounced save function to prevent excessive API calls
-  const debouncedSave = useCallback(
-    debounce((entryData: any) => {
-      if (dailyEntry) {
-        updateDailyEntry.mutate({ date: today, ...entryData });
-      } else {
-        createDailyEntry.mutate(entryData);
-      }
-    }, 500), // Wait 500ms after user stops interacting
-    [dailyEntry, updateDailyEntry, createDailyEntry, today]
-  );
+  const debouncedSaveInternal = useCallback((entryData: any) => {
+    if (dailyEntry) {
+      updateDailyEntry.mutate({ date: today, ...entryData });
+    } else {
+      createDailyEntry.mutate(entryData);
+    }
+  }, [dailyEntry, updateDailyEntry, createDailyEntry, today]);
+
+  const debouncedSave = useDebounce(debouncedSaveInternal, 500);
   const { data: currentStreak } = isGuestMode
     ? { data: getMockStreak('daily_completion') }
     : useStreak('daily_completion');
