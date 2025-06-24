@@ -56,6 +56,13 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const { data: habits, isLoading: habitsLoading, error: habitsError } = isGuestMode 
     ? { data: getMockHabits(), isLoading: false, error: null }
     : useHabits();
+
+  const { data: dailyEntry, isLoading: entryLoading } = isGuestMode
+    ? { data: getMockDailyEntry(today), isLoading: false }
+    : useDailyEntry(today);
+  const createDailyEntry = useCreateDailyEntry();
+  const updateDailyEntry = useUpdateDailyEntry();
+
   // Debounced save function to prevent excessive API calls
   const debouncedSave = useCallback(
     debounce((entryData: any) => {
@@ -67,12 +74,6 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     }, 500), // Wait 500ms after user stops interacting
     [dailyEntry, updateDailyEntry, createDailyEntry, today]
   );
-
-  const { data: dailyEntry, isLoading: entryLoading } = isGuestMode
-    ? { data: getMockDailyEntry(today), isLoading: false }
-    : useDailyEntry(today);
-  const createDailyEntry = useCreateDailyEntry();
-  const updateDailyEntry = useUpdateDailyEntry();
   const { data: currentStreak } = isGuestMode
     ? { data: getMockStreak('daily_completion') }
     : useStreak('daily_completion');
