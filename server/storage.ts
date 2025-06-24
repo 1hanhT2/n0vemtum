@@ -377,15 +377,30 @@ export class DatabaseStorage implements IStorage {
 
   async unlockAchievement(id: number, userId: string): Promise<Achievement> {
     await this.ensureInitialized();
+    
+    // First check if the achievement exists for this user
+    const existingAchievement = await db
+      .select()
+      .from(achievements)
+      .where(and(eq(achievements.id, id), eq(achievements.userId, userId)))
+      .limit(1);
+    
+    if (existingAchievement.length === 0) {
+      console.warn(`Achievement with id ${id} not found for user ${userId}, skipping unlock`);
+      return null as any; // Return null instead of throwing error
+    }
+    
+    // If already unlocked, return it
+    if (existingAchievement[0].isUnlocked) {
+      return existingAchievement[0];
+    }
+    
     const [achievement] = await db
       .update(achievements)
       .set({ isUnlocked: true, unlockedAt: new Date() })
       .where(and(eq(achievements.id, id), eq(achievements.userId, userId)))
       .returning();
     
-    if (!achievement) {
-      throw new Error(`Achievement with id ${id} not found`);
-    }
     return achievement;
   }
 
@@ -959,7 +974,12 @@ export class DatabaseStorage implements IStorage {
       }
 
       if (shouldUnlock) {
-        await this.unlockAchievement(achievement.id, dailyEntry.userId);
+        try {
+          await this.unlockAchievement(achievement.id, dailyEntry.userId);
+        } catch (error) {
+          console.warn(`Failed to unlock achievement ${achievement.id} for user ${dailyEntry.userId}:`, error);
+          // Continue processing other achievements instead of failing completely
+        }
       }
     }
   }
