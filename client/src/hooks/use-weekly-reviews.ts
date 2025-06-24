@@ -9,7 +9,7 @@ export function useWeeklyReviews() {
 }
 
 export function useWeeklyReview(weekStartDate: string) {
-  return useQuery<WeeklyReview>({
+  return useQuery<WeeklyReview | null>({
     queryKey: ["/api/weekly-reviews", weekStartDate],
     queryFn: async () => {
       const response = await fetch(`/api/weekly-reviews/${weekStartDate}`, { credentials: "include" });
@@ -25,7 +25,11 @@ export function useCreateWeeklyReview() {
   
   return useMutation({
     mutationFn: async (review: InsertWeeklyReview) => {
-      const response = await apiRequest("POST", "/api/weekly-reviews", review);
+      const response = await apiRequest("/api/weekly-reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(review)
+      });
       return response.json();
     },
     onSuccess: (data) => {
