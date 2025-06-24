@@ -566,9 +566,10 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleResetData}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={isResettingData}
+              className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
             >
-              Yes, Delete Everything
+              {isResettingData ? "Deleting..." : "Yes, Delete Everything"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

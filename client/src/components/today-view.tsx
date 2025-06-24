@@ -242,7 +242,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     }
   };
 
-  const handleCompleteDay = async () => {
+  const handleCompleteDayInternal = async () => {
     try {
       const entryData = {
         date: today,
@@ -273,6 +273,8 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       });
     }
   };
+
+  const [handleCompleteDay, isCompletingDay] = usePendingProtection(handleCompleteDayInternal);
 
   const handleScoreChange = (type: 'punctuality' | 'adherence', value: number[]) => {
     if (isDayCompleted) return; // Prevent changes if day is completed
@@ -529,10 +531,10 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                 whileTap={{ scale: 0.95 }}
               >
                 <Button
-                  disabled={createDailyEntry.isPending || updateDailyEntry.isPending}
+                  disabled={createDailyEntry.isPending || updateDailyEntry.isPending || isCompletingDay}
                   className="gradient-bg text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl"
                 >
-                  {createDailyEntry.isPending || updateDailyEntry.isPending
+                  {createDailyEntry.isPending || updateDailyEntry.isPending || isCompletingDay
                     ? "Saving..."
                     : "Complete Day ✨"
                   }
