@@ -15,9 +15,13 @@ export function useHabitSuggestions(habitIds?: number[]) {
 export function useWeeklyInsights(startDate?: string, endDate?: string) {
   return useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/ai/weekly-insights", {
-        startDate,
-        endDate,
+      const response = await apiRequest("/api/ai/weekly-insights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startDate,
+          endDate,
+        }),
       });
       return response.json();
     },
