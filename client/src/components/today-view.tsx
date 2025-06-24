@@ -35,6 +35,7 @@ import { TierPromotionNotification } from "@/components/tier-promotion-notificat
 import { TierExplanation } from "@/components/tier-explanation";
 import { RefreshCw } from "lucide-react";
 import { getMockHabits, getMockDailyEntry, getMockStreak } from "@/lib/mockData";
+import { useDebounce, usePendingProtection } from '@/hooks/use-debounce';
 
 // Debounce utility function
 function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {

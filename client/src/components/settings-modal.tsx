@@ -22,6 +22,7 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { X, Plus, Trash2, Sparkles, User, Mail, Calendar, Hash } from "lucide-react";
 import { getMockHabits } from "@/lib/mockData";
+import { usePendingProtection } from "@/hooks/use-debounce";
 
 interface SettingsModalProps {
   isOpen: boolean;
