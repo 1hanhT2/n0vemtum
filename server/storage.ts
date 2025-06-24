@@ -104,6 +104,11 @@ export class DatabaseStorage implements IStorage {
         },
       })
       .returning();
+    
+    // Initialize achievements for new or existing users
+    console.log(`User upserted: ${user.id}, initializing achievements`);
+    await this.initializeAchievements(user.id);
+    
     return user;
   }
 
@@ -338,7 +343,16 @@ export class DatabaseStorage implements IStorage {
   // Achievements
   async getAchievements(userId: string): Promise<Achievement[]> {
     await this.ensureInitialized();
-    return await db.select().from(achievements).where(eq(achievements.userId, userId)).orderBy(achievements.createdAt);
+    
+    // Check if achievements exist for this user
+    const existingAchievements = await db.select().from(achievements).where(eq(achievements.userId, userId));
+    if (existingAchievements.length === 0) {
+      console.log(`Initializing achievements for user ${userId}`);
+      await this.initializeAchievements(userId);
+      return await db.select().from(achievements).where(eq(achievements.userId, userId)).orderBy(achievements.createdAt);
+    }
+    
+    return existingAchievements.sort((a, b) => (a.createdAt?.getTime() || 0) - (b.createdAt?.getTime() || 0));
   }
 
   async unlockAchievement(id: number, userId: string): Promise<Achievement> {
@@ -361,9 +375,11 @@ export class DatabaseStorage implements IStorage {
     // Check if achievements already exist for this specific user
     const existingAchievements = await db.select().from(achievements).where(eq(achievements.userId, userId));
     if (existingAchievements.length > 0) {
+      console.log(`User ${userId} already has ${existingAchievements.length} achievements`);
       return;
     }
 
+    console.log(`Creating default achievements for user ${userId}`);
     try {
         const defaultAchievements = [
           // Streak Achievements
