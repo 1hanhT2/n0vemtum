@@ -12,13 +12,20 @@ export function useWeeklyReview(weekStartDate: string) {
   return useQuery<WeeklyReview | null>({
     queryKey: ["/api/weekly-reviews", weekStartDate],
     queryFn: async () => {
-      const response = await fetch(`/api/weekly-reviews/${weekStartDate}`, { credentials: "include" });
-      if (response.status === 404) return null;
-      if (!response.ok) throw new Error('Failed to fetch weekly review');
-      return response.json();
+      try {
+        const response = await fetch(`/api/weekly-reviews/${weekStartDate}`, { credentials: "include" });
+        if (response.status === 404) return null;
+        if (!response.ok) throw new Error('Failed to fetch weekly review');
+        return response.json();
+      } catch (error) {
+        // Silently handle network errors and return null for missing reviews
+        console.log('Weekly review not found, this is normal for new weeks');
+        return null;
+      }
     },
-    retry: false, // Don't retry on 404 errors
-    staleTime: 1000 * 60 * 5, // Consider data stale after 5 minutes
+    retry: false,
+    staleTime: 1000 * 60 * 5,
+    throwOnError: false, // Don't throw errors to prevent UI error displays
   });
 }
 
