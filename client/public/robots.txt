@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Allow: /landing
+Allow: /demo
+
+Disallow: /settings
+Disallow: /api/
+
+Sitemap: https://n0ventum.replit.app/sitemap.xml
