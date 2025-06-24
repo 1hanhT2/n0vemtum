@@ -31,19 +31,23 @@ export function getSession() {
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
     createTableIfMissing: false,
-    ttl: sessionTtl,
+    ttl: sessionTtl / 1000, // TTL should be in seconds for pg store
     tableName: "sessions",
   });
+  
   return session({
-    secret: process.env.SESSION_SECRET || 'default-dev-secret-change-in-production',
+    name: 'n0ventum.sid', // Custom session name
+    secret: process.env.SESSION_SECRET || 'default-dev-secret-change-in-production-' + process.env.REPL_ID,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
+    rolling: true, // Reset expiry on each request
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Always false for Replit development
       maxAge: sessionTtl,
       sameSite: 'lax',
+      path: '/',
     },
   });
 }
@@ -112,10 +116,19 @@ export async function setupAuth(app: Express) {
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    const user = {};
-    updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
-    verified(null, user);
+    try {
+      const claims = tokens.claims();
+      console.log('OAuth verification for user:', claims.sub, claims.email);
+      
+      const user = { claims };
+      updateUserSession(user, tokens);
+      await upsertUser(claims);
+      console.log('User verification completed successfully');
+      verified(null, user);
+    } catch (error) {
+      console.error('OAuth verification error:', error);
+      verified(error);
+    }
   };
 
   for (const domain of process.env
@@ -132,8 +145,15 @@ export async function setupAuth(app: Express) {
     passport.use(strategy);
   }
 
-  passport.serializeUser((user: Express.User, cb) => cb(null, user));
-  passport.deserializeUser((user: Express.User, cb) => cb(null, user));
+  passport.serializeUser((user: any, done) => {
+    console.log('Serializing user:', user);
+    done(null, user);
+  });
+
+  passport.deserializeUser((user: any, done) => {
+    console.log('Deserializing user:', user);
+    done(null, user);
+  });
 
   app.get("/api/login", (req, res, next) => {
     passport.authenticate(`replitauth:${req.hostname}`, {
