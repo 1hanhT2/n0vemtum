@@ -40,8 +40,8 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
   const { data: dailyEntries, isLoading: entriesLoading } = isGuestMode
     ? { data: [], isLoading: false }
     : useDailyEntries(weekDates[0], weekDates[6]);
-  const { data: weeklyReview } = isGuestMode
-    ? { data: null }
+  const { data: weeklyReview, error: weeklyReviewError, isLoading: weeklyReviewLoading } = isGuestMode
+    ? { data: null, error: null, isLoading: false }
     : useWeeklyReview(weekStartDate);
   const createWeeklyReview = useCreateWeeklyReview();
   const updateWeeklyReview = useUpdateWeeklyReview();
@@ -60,6 +60,13 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
       setAdjustment(weeklyReview.adjustment || '');
     }
   }, [weeklyReview]);
+
+  // Handle weekly review error
+  useEffect(() => {
+    if (weeklyReviewError && !isGuestMode) {
+      console.log('Weekly review not found for', weekStartDate, '- this is normal for new weeks');
+    }
+  }, [weeklyReviewError, weekStartDate, isGuestMode]);
 
   // Handle AI insights response
   useEffect(() => {

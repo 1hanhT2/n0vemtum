@@ -17,6 +17,8 @@ export function useWeeklyReview(weekStartDate: string) {
       if (!response.ok) throw new Error('Failed to fetch weekly review');
       return response.json();
     },
+    retry: false, // Don't retry on 404 errors
+    staleTime: 1000 * 60 * 5, // Consider data stale after 5 minutes
   });
 }
 
