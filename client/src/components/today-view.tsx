@@ -37,15 +37,6 @@ import { RefreshCw } from "lucide-react";
 import { getMockHabits, getMockDailyEntry, getMockStreak } from "@/lib/mockData";
 import { useDebounce, usePendingProtection } from '@/hooks/use-debounce';
 
-// Debounce utility function
-function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
-  let timeout: NodeJS.Timeout;
-  return ((...args: any[]) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(null, args), wait);
-  }) as T;
-}
-
 interface TodayViewProps {
   isGuestMode?: boolean;
 }
