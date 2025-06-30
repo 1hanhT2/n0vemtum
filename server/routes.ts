@@ -89,7 +89,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/habits/:id/level-up", isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const habit = await storage.levelUpHabit(id);
+      const userId = req.user.claims.sub;
+      const habit = await storage.levelUpHabit(id, userId);
       res.json(habit);
     } catch (error) {
       res.status(400).json({ error: error instanceof Error ? error.message : "Failed to level up habit" });

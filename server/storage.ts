@@ -39,7 +39,7 @@ export interface IStorage {
   
   // Gamification
   updateHabitProgress(habitId: number, completed: boolean, date: string, userId?: string): Promise<Habit>;
-  levelUpHabit(habitId: number): Promise<Habit>;
+  levelUpHabit(habitId: number, userId: string): Promise<Habit>;
   awardBadge(habitId: number, badge: string): Promise<Habit>;
   calculateTierPromotion(habitId: number): Promise<Habit>;
 
@@ -792,12 +792,10 @@ export class DatabaseStorage implements IStorage {
     return updatedHabit;
   }
 
-  async levelUpHabit(habitId: number): Promise<Habit> {
+  async levelUpHabit(habitId: number, userId: string): Promise<Habit> {
     await this.ensureInitialized();
     
-    // For now, use a default userId - this method signature needs to be updated
-    const defaultUserId = "default";
-    const habit = await this.getHabitById(habitId, defaultUserId);
+    const habit = await this.getHabitById(habitId, userId);
     if (!habit) {
       throw new Error(`Habit with id ${habitId} not found`);
     }
