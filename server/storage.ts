@@ -711,6 +711,14 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`Habit with id ${habitId} not found for user ${userId}`);
     }
 
+    // Check current completion state for this date to prevent duplicate experience
+    const dailyEntry = await this.getDailyEntry(date, userId!);
+    const habitCompletions = dailyEntry?.habitCompletions as Record<string, boolean> || {};
+    const currentlyCompleted = habitCompletions[habitId.toString()] || false;
+    
+    // Only process experience if state is actually changing
+    const isStateChanging = currentlyCompleted !== completed;
+
     let newExperience = habit.experience;
     let newMasteryPoints = habit.masteryPoints;
     let newStreak = habit.streak;
@@ -718,8 +726,8 @@ export class DatabaseStorage implements IStorage {
     let newTotalCompletions = habit.totalCompletions;
     let newBadges = [...(habit.badges || [])];
 
-    if (completed) {
-      // Calculate XP based on difficulty and streak multiplier
+    if (completed && isStateChanging) {
+      // Only award XP if transitioning from incomplete to complete
       const baseXP = 20;
       const difficultyMultiplier = (habit.difficultyRating || 3) * 0.3 + 0.4; // 0.7x to 1.9x
       const streakMultiplier = Math.min(1 + (habit.streak * 0.1), 2.0); // Up to 2x
@@ -757,7 +765,10 @@ export class DatabaseStorage implements IStorage {
       if (newStreak >= 5 && !newBadges.includes("streak_starter")) {
         newBadges.push("streak_starter");
       }
-    } else {
+    } else if (!completed && isStateChanging) {
+      // Only adjust totals if transitioning from complete to incomplete
+      newTotalCompletions = Math.max(0, newTotalCompletions - 1);
+      
       // Reset streak if not completed today and yesterday
       if (habit.lastCompleted !== date && habit.lastCompleted !== this.getPreviousDate(date)) {
         newStreak = 0;
@@ -767,6 +778,11 @@ export class DatabaseStorage implements IStorage {
     // Calculate completion rate
     const totalDays = this.getDaysBetween(habit.createdAt?.toISOString().split('T')[0] || date, date) + 1;
     const completionRate = Math.floor((newTotalCompletions / totalDays) * 100);
+
+    // Only update habit if state is actually changing to prevent unnecessary writes
+    if (!isStateChanging) {
+      return habit;
+    }
 
     const [updatedHabit] = await db
       .update(habits)
