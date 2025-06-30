@@ -41,7 +41,7 @@ export interface IStorage {
   updateHabitProgress(habitId: number, completed: boolean, date: string, userId?: string): Promise<Habit>;
   levelUpHabit(habitId: number, userId: string): Promise<Habit>;
   awardBadge(habitId: number, badge: string): Promise<Habit>;
-  calculateTierPromotion(habitId: number): Promise<Habit>;
+  calculateTierPromotion(habitId: number, userId: string): Promise<Habit>;
 
   // Daily Entries
   getDailyEntry(date: string, userId: string): Promise<DailyEntry | undefined>;
@@ -786,7 +786,7 @@ export class DatabaseStorage implements IStorage {
     // Skip expensive tier promotion calculation on every update
     // Only check tier promotion on level boundaries (every 100 XP)
     if (completed && newExperience % 100 < 20) {
-      return await this.calculateTierPromotion(habitId);
+      return await this.calculateTierPromotion(habitId, userId);
     }
     
     return updatedHabit;
@@ -816,11 +816,11 @@ export class DatabaseStorage implements IStorage {
         experienceToNext: newXPToNext,
         masteryPoints: habit.masteryPoints + (newLevel * 10)
       })
-      .where(eq(habits.id, habitId))
+      .where(and(eq(habits.id, habitId), eq(habits.userId, userId)))
       .returning();
 
     // Check for tier promotion after leveling up
-    const tierPromotedHabit = await this.calculateTierPromotion(habitId);
+    const tierPromotedHabit = await this.calculateTierPromotion(habitId, userId);
     
     return tierPromotedHabit;
   }
@@ -850,19 +850,13 @@ export class DatabaseStorage implements IStorage {
     return updatedHabit;
   }
 
-  async calculateTierPromotion(habitId: number): Promise<Habit> {
+  async calculateTierPromotion(habitId: number, userId: string): Promise<Habit> {
     await this.ensureInitialized();
     
-    // Get the habit without requiring userId
-    const [habit] = await db.select().from(habits).where(eq(habits.id, habitId));
+    // Get the habit for the specific user
+    const habit = await this.getHabitById(habitId, userId);
     if (!habit) {
-      console.warn(`Habit with id ${habitId} not found during tier promotion calculation`);
-      // Return a basic habit structure to prevent errors
-      const basicHabits = await db.select().from(habits).orderBy(habits.id).limit(1);
-      if (basicHabits.length > 0) {
-        return basicHabits[0];
-      }
-      throw new Error(`Habit with id ${habitId} not found`);
+      throw new Error(`Habit with id ${habitId} not found for user ${userId}`);
     }
 
     let newTier = habit.tier;
