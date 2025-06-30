@@ -912,7 +912,7 @@ export class DatabaseStorage implements IStorage {
       const [updatedHabit] = await db
         .update(habits)
         .set({ tier: newTier })
-        .where(eq(habits.id, habitId))
+        .where(and(eq(habits.id, habitId), eq(habits.userId, userId)))
         .returning();
       
       return updatedHabit;
