@@ -167,10 +167,42 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     return 1;
   };
 
+  // Store temporary habit completions in localStorage
+  const saveTemporaryCompletions = (completions: Record<number, boolean>) => {
+    const tempData = {
+      date: today,
+      habitCompletions: completions,
+      punctualityScore: punctualityScore[0],
+      adherenceScore: adherenceScore[0],
+      notes: notes,
+      lastUpdated: new Date().toISOString()
+    };
+    localStorage.setItem(`temp_daily_entry_${today}`, JSON.stringify(tempData));
+  };
+
+  // Load temporary completions from localStorage on component mount
+  useEffect(() => {
+    const tempData = localStorage.getItem(`temp_daily_entry_${today}`);
+    if (tempData && !dailyEntry) {
+      try {
+        const parsed = JSON.parse(tempData);
+        setHabitCompletions(parsed.habitCompletions || {});
+        setPunctualityScore([parsed.punctualityScore || 3]);
+        setAdherenceScore([parsed.adherenceScore || 3]);
+        setNotes(parsed.notes || '');
+      } catch (error) {
+        console.error('Error loading temporary data:', error);
+      }
+    }
+  }, [today, dailyEntry]);
+
   const handleHabitToggle = (habitId: number, checked: boolean) => {
     if (isDayCompleted) return; // Prevent changes if day is completed
     const newCompletions = { ...habitCompletions, [habitId]: checked };
     setHabitCompletions(newCompletions);
+    
+    // Save to temporary storage instead of database
+    saveTemporaryCompletions(newCompletions);
 
     if (isGuestMode) {
       // In guest mode, just show visual feedback without API calls
@@ -187,29 +219,12 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       return;
     }
 
-    // Update habit progress for gamification
-    updateHabitProgress.mutate({
-      habitId,
-      completed: checked,
-      date: today
-    }, {
-      onSuccess: (updatedHabit) => {
-        const oldHabit = habits?.find(h => h.id === habitId);
-
-        // Check if habit can level up
-        if (updatedHabit.experience >= updatedHabit.experienceToNext) {
-          setLevelUpHabitId(habitId);
-        }
-
-        // Check for tier promotion
-        if (oldHabit && oldHabit.tier !== updatedHabit.tier) {
-          setTierPromotion({
-            habitId,
-            oldTier: oldHabit.tier,
-            newTier: updatedHabit.tier
-          });
-        }
-      }
+    // In real mode, habit progress will be updated when "finish day" is pressed
+    // For now, just show user feedback that the change is pending
+    toast({
+      title: "Changes Saved Temporarily",
+      description: "Click 'Finish Day' to finalize your progress",
+      variant: "default",
     });
 
     // Auto-calculate scores based on completion
@@ -217,24 +232,28 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     setPunctualityScore([newScore]);
     setAdherenceScore([newScore]);
 
-    // Auto-save habit completion with calculated scores
-    const entryData = {
-      date: today,
-      habitCompletions: newCompletions,
-      punctualityScore: newScore,
-      adherenceScore: newScore,
-      notes,
-    };
-
-    if (dailyEntry) {
-      updateDailyEntry.mutate({ date: today, ...entryData });
-    } else {
-      createDailyEntry.mutate(entryData);
-    }
+    // Save temporary data to localStorage (no database write until "finish day")
+    saveTemporaryCompletions(newCompletions);
   };
 
   const handleCompleteDayInternal = async () => {
     try {
+      // Process all habit completions and update gamification
+      const habitUpdatePromises = Object.entries(habitCompletions).map(([habitId, completed]) => {
+        if (completed) {
+          return updateHabitProgress.mutateAsync({
+            habitId: parseInt(habitId),
+            completed: true,
+            date: today
+          });
+        }
+        return Promise.resolve();
+      });
+
+      // Wait for all habit updates to complete
+      await Promise.all(habitUpdatePromises);
+
+      // Create or update daily entry
       const entryData = {
         date: today,
         habitCompletions,
@@ -250,11 +269,18 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         await createDailyEntry.mutateAsync(entryData);
       }
 
+      // Clear temporary storage
+      localStorage.removeItem(`temp_daily_entry_${today}`);
+
       setIsDayCompleted(true);
       toast({
         title: "Day Completed!",
         description: "Your progress has been saved and locked for today.",
       });
+
+      // Invalidate queries to refresh habit data
+      queryClient.invalidateQueries({ queryKey: ['/api/habits'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/daily-entries'] });
     } catch (error) {
       console.error('Day completion error:', error);
       toast({
@@ -275,20 +301,14 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       setAdherenceScore(value);
     }
 
-    // Auto-save scores
-    const entryData = {
-      date: today,
-      habitCompletions,
-      punctualityScore: type === 'punctuality' ? value[0] : punctualityScore[0],
-      adherenceScore: type === 'adherence' ? value[0] : adherenceScore[0],
-      notes,
-    };
+    // Save to temporary storage (no database write until "finish day")
+    saveTemporaryCompletions(habitCompletions);
+  };
 
-    if (dailyEntry) {
-      updateDailyEntry.mutate({ date: today, ...entryData });
-    } else {
-      createDailyEntry.mutate(entryData);
-    }
+  const handleNotesChange = (newNotes: string) => {
+    if (isDayCompleted) return;
+    setNotes(newNotes);
+    saveTemporaryCompletions(habitCompletions);
   };
 
   if (habitsLoading || entryLoading) {
@@ -494,7 +514,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         <CardContent>
           <Textarea
             value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            onChange={(e) => handleNotesChange(e.target.value)}
             disabled={isDayCompleted}
             className="w-full h-32 resize-none"
             placeholder="Add your thoughts, wins, or observations for today..."
