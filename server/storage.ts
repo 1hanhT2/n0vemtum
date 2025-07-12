@@ -40,7 +40,7 @@ export interface IStorage {
   // Gamification
   updateHabitProgress(habitId: number, completed: boolean, date: string, userId?: string): Promise<Habit>;
   levelUpHabit(habitId: number, userId: string): Promise<Habit>;
-  awardBadge(habitId: number, badge: string): Promise<Habit>;
+  awardBadge(habitId: number, badge: string, userId: string): Promise<Habit>;
   calculateTierPromotion(habitId: number, userId: string): Promise<Habit>;
 
   // Daily Entries
@@ -841,14 +841,12 @@ export class DatabaseStorage implements IStorage {
     return tierPromotedHabit;
   }
 
-  async awardBadge(habitId: number, badge: string): Promise<Habit> {
+  async awardBadge(habitId: number, badge: string, userId: string): Promise<Habit> {
     await this.ensureInitialized();
     
-    // For now, use a default userId - this method signature needs to be updated
-    const defaultUserId = "default";
-    const habit = await this.getHabitById(habitId, defaultUserId);
+    const habit = await this.getHabitById(habitId, userId);
     if (!habit) {
-      throw new Error(`Habit with id ${habitId} not found`);
+      throw new Error(`Habit with id ${habitId} not found for user ${userId}`);
     }
 
     if ((habit.badges || []).includes(badge)) {
@@ -860,10 +858,10 @@ export class DatabaseStorage implements IStorage {
     const [updatedHabit] = await db
       .update(habits)
       .set({ badges: newBadges })
-      .where(eq(habits.id, habitId))
+      .where(and(eq(habits.id, habitId), eq(habits.userId, userId)))
       .returning();
 
-    return updatedHabit;
+    return updatedHabit || habit;
   }
 
   async calculateTierPromotion(habitId: number, userId: string): Promise<Habit> {

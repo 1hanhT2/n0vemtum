@@ -55,14 +55,14 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const createDailyEntry = useCreateDailyEntry();
   const updateDailyEntry = useUpdateDailyEntry();
 
-  // Debounced save function to prevent excessive API calls
+  // Debounced save function to prevent excessive API calls - memoized to prevent recreating
   const debouncedSaveInternal = useCallback((entryData: any) => {
     if (dailyEntry) {
       updateDailyEntry.mutate({ date: today, ...entryData });
     } else {
       createDailyEntry.mutate(entryData);
     }
-  }, [dailyEntry, updateDailyEntry, createDailyEntry, today]);
+  }, [dailyEntry?.id, today]); // Only recreate if dailyEntry ID changes, not the whole object
 
   const debouncedSave = useDebounce(debouncedSaveInternal, 500);
   const { data: currentStreak } = isGuestMode
@@ -168,16 +168,25 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   };
 
   // Store temporary habit completions in localStorage
-  const saveTemporaryCompletions = (completions: Record<number, boolean>) => {
-    const tempData = {
-      date: today,
-      habitCompletions: completions,
-      punctualityScore: punctualityScore[0],
-      adherenceScore: adherenceScore[0],
-      notes: notes,
-      lastUpdated: new Date().toISOString()
-    };
-    localStorage.setItem(`temp_daily_entry_${today}`, JSON.stringify(tempData));
+  const saveTemporaryCompletions = (completions: Record<number, boolean>, punctuality?: number, adherence?: number, dailyNotes?: string) => {
+    try {
+      const tempData = {
+        date: today,
+        habitCompletions: completions,
+        punctualityScore: punctuality ?? punctualityScore[0],
+        adherenceScore: adherence ?? adherenceScore[0],
+        notes: dailyNotes ?? notes,
+        lastUpdated: new Date().toISOString()
+      };
+      localStorage.setItem(`temp_daily_entry_${today}`, JSON.stringify(tempData));
+    } catch (error) {
+      console.error('Failed to save temporary data:', error);
+      toast({
+        title: "Storage Warning",
+        description: "Unable to save temporary changes. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Load temporary completions from localStorage on component mount
@@ -192,6 +201,8 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         setNotes(parsed.notes || '');
       } catch (error) {
         console.error('Error loading temporary data:', error);
+        // Clear corrupted data
+        localStorage.removeItem(`temp_daily_entry_${today}`);
       }
     }
   }, [today, dailyEntry]);
@@ -201,9 +212,6 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     const newCompletions = { ...habitCompletions, [habitId]: checked };
     setHabitCompletions(newCompletions);
     
-    // Save to temporary storage instead of database
-    saveTemporaryCompletions(newCompletions);
-
     if (isGuestMode) {
       // In guest mode, just show visual feedback without API calls
       toast({
@@ -233,25 +241,28 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     setAdherenceScore([newScore]);
 
     // Save temporary data to localStorage (no database write until "finish day")
-    saveTemporaryCompletions(newCompletions);
+    saveTemporaryCompletions(newCompletions, newScore, newScore);
   };
 
   const handleCompleteDayInternal = async () => {
     try {
-      // Process all habit completions and update gamification
-      const habitUpdatePromises = Object.entries(habitCompletions).map(([habitId, completed]) => {
+      // Process habit completions sequentially to avoid race conditions
+      const completedHabits = Object.entries(habitCompletions).filter(([_, completed]) => completed);
+      
+      for (const [habitId, completed] of completedHabits) {
         if (completed) {
-          return updateHabitProgress.mutateAsync({
-            habitId: parseInt(habitId),
-            completed: true,
-            date: today
-          });
+          try {
+            await updateHabitProgress.mutateAsync({
+              habitId: parseInt(habitId),
+              completed: true,
+              date: today
+            });
+          } catch (error) {
+            console.error(`Failed to update habit ${habitId}:`, error);
+            // Continue processing other habits even if one fails
+          }
         }
-        return Promise.resolve();
-      });
-
-      // Wait for all habit updates to complete
-      await Promise.all(habitUpdatePromises);
+      }
 
       // Create or update daily entry
       const entryData = {
@@ -297,18 +308,20 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     if (isDayCompleted) return; // Prevent changes if day is completed
     if (type === 'punctuality') {
       setPunctualityScore(value);
+      // Save to temporary storage with updated punctuality score
+      saveTemporaryCompletions(habitCompletions, value[0], adherenceScore[0]);
     } else {
       setAdherenceScore(value);
+      // Save to temporary storage with updated adherence score
+      saveTemporaryCompletions(habitCompletions, punctualityScore[0], value[0]);
     }
-
-    // Save to temporary storage (no database write until "finish day")
-    saveTemporaryCompletions(habitCompletions);
   };
 
   const handleNotesChange = (newNotes: string) => {
     if (isDayCompleted) return;
     setNotes(newNotes);
-    saveTemporaryCompletions(habitCompletions);
+    // Save to temporary storage with updated notes
+    saveTemporaryCompletions(habitCompletions, punctualityScore[0], adherenceScore[0], newNotes);
   };
 
   if (habitsLoading || entryLoading) {

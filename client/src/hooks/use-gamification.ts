@@ -56,7 +56,8 @@ export function useUpdateHabitProgress() {
       
       if (completed) {
         // Check for new badges or tier promotions (simplified check)
-        const oldHabit = queryClient.getQueryData(['/api/habits'])?.find((h: any) => h.id === habit.id);
+        const oldHabits = queryClient.getQueryData(['/api/habits']) as any[];
+        const oldHabit = oldHabits?.find((h: any) => h.id === habit.id);
         const newBadges = habit.badges?.filter((badge: string) => 
           !oldHabit?.badges?.includes(badge)
         ) || [];
