@@ -48,24 +48,26 @@ export function Home({ isGuestMode = false }: HomeProps) {
         {isGuestMode && (
           <Alert className="mb-6 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
             <Eye className="h-4 w-4" />
-            <AlertDescription className="flex items-center justify-between">
-              <span>You're viewing the demo version. Sign in to save your progress and access all features.</span>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => window.location.href = "/api/login"}
-                className="ml-4"
-              >
-                <LogIn className="h-4 w-4 mr-2" />
-                Sign In
-              </Button>
+            <AlertDescription>
+              <div className="flex items-center justify-between">
+                <span>You're viewing the demo version. Sign in to save your progress and access all features.</span>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => window.location.href = "/api/login"}
+                  className="ml-4 flex-shrink-0"
+                >
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Sign In
+                </Button>
+              </div>
             </AlertDescription>
           </Alert>
         )}
         
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            {isGuestMode ? "Welcome to the Demo!" : `Welcome back, ${user?.firstName || user?.email}!`}
+            {isGuestMode ? "Welcome to the Demo!" : `Welcome back, ${(user as any)?.firstName || (user as any)?.email || 'User'}!`}
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
             {isGuestMode 
