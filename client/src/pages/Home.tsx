@@ -46,23 +46,23 @@ export function Home({ isGuestMode = false }: HomeProps) {
       
       <div className="container mx-auto px-4 py-6">
         {isGuestMode && (
-          <Alert className="mb-6 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
-            <Eye className="h-4 w-4" />
-            <AlertDescription>
-              <div className="flex items-center justify-between">
-                <span>You're viewing the demo version. Sign in to save your progress and access all features.</span>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => window.location.href = "/api/login"}
-                  className="ml-4 flex-shrink-0"
-                >
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Sign In
-                </Button>
+          <div className="mb-6 border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Eye className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                <span className="text-sm text-blue-800 dark:text-blue-200">You're viewing the demo version. Sign in to save your progress and access all features.</span>
               </div>
-            </AlertDescription>
-          </Alert>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => window.location.href = "/api/login"}
+                className="ml-4 flex-shrink-0"
+              >
+                <LogIn className="h-4 w-4 mr-2" />
+                Sign In
+              </Button>
+            </div>
+          </div>
         )}
         
         <div className="mb-6">
