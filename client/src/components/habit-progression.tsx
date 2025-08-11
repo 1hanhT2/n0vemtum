@@ -176,11 +176,11 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-4 gap-4 text-center">
-          <div className="space-y-1">
+          <div className="space-y-1 relative">
             <div className="flex items-center justify-center">
               <Flame className="w-4 h-4 text-orange-500" />
             </div>
-            <div className="text-sm font-medium">{streak}</div>
+            <div className="text-lg font-bold text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30 rounded-md px-2 py-1">{streak}</div>
             <div className="text-xs text-gray-500">Current</div>
           </div>
           <div className="space-y-1">

@@ -144,13 +144,50 @@ export class DatabaseStorage implements IStorage {
   // Habits
   async getHabits(userId: string): Promise<Habit[]> {
     await this.ensureInitialized();
-    return await db.select().from(habits).where(eq(habits.userId, userId)).orderBy(habits.order);
+    const userHabits = await db.select().from(habits).where(eq(habits.userId, userId)).orderBy(habits.order);
+    
+    // Check and reset streaks if habits haven't been completed recently
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = this.getPreviousDate(today);
+    
+    const updatedHabits = await Promise.all(userHabits.map(async (habit) => {
+      // If the habit wasn't completed yesterday or today, the streak should be reset
+      if (habit.streak > 0 && habit.lastCompleted !== today && habit.lastCompleted !== yesterday) {
+        // Reset the streak in the database
+        const [updated] = await db
+          .update(habits)
+          .set({ streak: 0 })
+          .where(eq(habits.id, habit.id))
+          .returning();
+        return updated;
+      }
+      return habit;
+    }));
+    
+    return updatedHabits;
   }
 
   async getHabitById(id: number, userId: string): Promise<Habit | undefined> {
     await this.ensureInitialized();
     const [habit] = await db.select().from(habits).where(and(eq(habits.id, id), eq(habits.userId, userId)));
-    return habit || undefined;
+    if (!habit) return undefined;
+    
+    // Check and reset streak if habit hasn't been completed recently
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = this.getPreviousDate(today);
+    
+    // If the habit wasn't completed yesterday or today, the streak should be reset
+    if (habit.streak > 0 && habit.lastCompleted !== today && habit.lastCompleted !== yesterday) {
+      // Reset the streak in the database
+      const [updated] = await db
+        .update(habits)
+        .set({ streak: 0 })
+        .where(eq(habits.id, habit.id))
+        .returning();
+      return updated;
+    }
+    
+    return habit;
   }
 
   async createHabit(insertHabit: InsertHabit): Promise<Habit> {
