@@ -118,6 +118,9 @@ export async function setupAuth(app: Express) {
   ) => {
     try {
       const claims = tokens.claims();
+      if (!claims) {
+        throw new Error('Failed to get claims from tokens');
+      }
       console.log('OAuth verification for user:', claims.sub, claims.email);
       
       const user = { claims };
@@ -189,7 +192,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 
   const user = req.user as any;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  if (!req.isAuthenticated() || !user || !user.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 

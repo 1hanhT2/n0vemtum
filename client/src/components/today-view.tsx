@@ -56,15 +56,20 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const updateDailyEntry = useUpdateDailyEntry();
 
   // Debounced save function to prevent excessive API calls - memoized to prevent recreating
-  const debouncedSaveInternal = useCallback((entryData: any) => {
-    if (dailyEntry) {
+  const debouncedSaveInternal = useCallback((entryData: any, existingEntry: typeof dailyEntry) => {
+    if (existingEntry) {
       updateDailyEntry.mutate({ date: today, ...entryData });
     } else {
       createDailyEntry.mutate(entryData);
     }
-  }, [dailyEntry?.id, today]); // Only recreate if dailyEntry ID changes, not the whole object
+  }, [today, updateDailyEntry, createDailyEntry]); // Dependencies that are stable
 
-  const debouncedSave = useDebounce(debouncedSaveInternal, 500);
+  const debouncedSave = useDebounce(
+    useCallback((entryData: any) => {
+      debouncedSaveInternal(entryData, dailyEntry);
+    }, [debouncedSaveInternal, dailyEntry]), 
+    500
+  );
   const { data: currentStreak } = isGuestMode
     ? { data: getMockStreak('daily_completion') }
     : useStreak('daily_completion');
@@ -275,9 +280,9 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       };
 
       if (dailyEntry) {
-        await updateDailyEntry.mutateAsync({ date: today, ...entryData });
+        await updateDailyEntry.mutateAsync({ ...entryData });
       } else {
-        await createDailyEntry.mutateAsync(entryData);
+        await createDailyEntry.mutateAsync({ userId: 'current', ...entryData });
       }
 
       // Clear temporary storage
@@ -424,7 +429,14 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
 
                 <div className="space-y-4">
                   <HabitDifficultyDisplay
-                    habit={habit}
+                    habit={{
+                      id: habit.id,
+                      name: habit.name,
+                      emoji: habit.emoji,
+                      difficultyRating: habit.difficultyRating || undefined,
+                      aiAnalysis: habit.aiAnalysis || undefined,
+                      lastAnalyzed: habit.lastAnalyzed ? habit.lastAnalyzed.toString() : undefined,
+                    }}
                     onAnalyze={handleAnalyzeHabit}
                     isAnalyzing={analyzingHabit === habit.id}
                   />

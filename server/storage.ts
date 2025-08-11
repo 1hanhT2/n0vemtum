@@ -603,12 +603,7 @@ export class DatabaseStorage implements IStorage {
             name: achievement.name,
             description: achievement.description,
             badge: achievement.badge,
-            category: achievement.type,
             requirement: achievement.requirement,
-            requirementType: achievement.type === 'streak' ? 'daily_streak' : 
-                           achievement.type === 'completion' ? 'daily_completion_rate' : 
-                           achievement.type === 'milestone' ? 'total_days' : 
-                           achievement.type === 'consistency' ? 'weekly_reviews' : 'special',
             isUnlocked: false,
           });
         }
@@ -699,6 +694,7 @@ export class DatabaseStorage implements IStorage {
     await this.ensureInitialized();
     
     // Get habit with userId in single query if not provided
+    let effectiveUserId: string;
     const habit = userId 
       ? await this.getHabitById(habitId, userId)
       : await db.select().from(habits).where(eq(habits.id, habitId)).then(([h]) => {
@@ -710,9 +706,12 @@ export class DatabaseStorage implements IStorage {
     if (!habit) {
       throw new Error(`Habit with id ${habitId} not found for user ${userId}`);
     }
+    
+    // Now we're guaranteed to have a userId
+    effectiveUserId = userId || habit.userId;
 
     // Check current completion state for this date to prevent duplicate experience
-    const dailyEntry = await this.getDailyEntry(date, userId!);
+    const dailyEntry = await this.getDailyEntry(date, effectiveUserId);
     const habitCompletions = dailyEntry?.habitCompletions as Record<string, boolean> || {};
     const currentlyCompleted = habitCompletions[habitId.toString()] || false;
     
@@ -776,8 +775,12 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Calculate completion rate
-    const totalDays = this.getDaysBetween(habit.createdAt?.toISOString().split('T')[0] || date, date) + 1;
-    const completionRate = Math.floor((newTotalCompletions / totalDays) * 100);
+    // If createdAt is null, use the current date as fallback
+    const habitStartDate = habit.createdAt 
+      ? habit.createdAt.toISOString().split('T')[0]
+      : date;
+    const totalDays = this.getDaysBetween(habitStartDate, date) + 1;
+    const completionRate = Math.min(100, Math.floor((newTotalCompletions / totalDays) * 100));
 
     // Only update habit if state is actually changing to prevent unnecessary writes
     if (!isStateChanging) {
@@ -796,13 +799,13 @@ export class DatabaseStorage implements IStorage {
         badges: newBadges,
         lastCompleted: completed ? date : habit.lastCompleted
       })
-      .where(and(eq(habits.id, habitId), eq(habits.userId, userId)))
+      .where(and(eq(habits.id, habitId), eq(habits.userId, effectiveUserId)))
       .returning();
 
     // Skip expensive tier promotion calculation on every update
     // Only check tier promotion on level boundaries (every 100 XP)
     if (completed && newExperience % 100 < 20) {
-      return await this.calculateTierPromotion(habitId, userId);
+      return await this.calculateTierPromotion(habitId, effectiveUserId);
     }
     
     return updatedHabit;
