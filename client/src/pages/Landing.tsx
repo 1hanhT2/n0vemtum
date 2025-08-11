@@ -1,13 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Target, Trophy, TrendingUp, Users, Eye, LogIn, Brain, Calendar, BarChart3, Zap, CheckCircle, Star } from "lucide-react";
+import { Target, Trophy, TrendingUp, Users, Eye, LogIn } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
-
-import heroImage from "@assets/generated_images/habit_tracking_morning_routine_c8f727d7.png";
-import dashboardImage from "@assets/generated_images/progress_tracking_dashboard_interface_526ccd8d.png";
-import gamificationImage from "@assets/generated_images/gamification_achievement_badges_c94b9c98.png";
 
 export function Landing() {
   const { isAuthenticated, isLoading } = useAuth();
