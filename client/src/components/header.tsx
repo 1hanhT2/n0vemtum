@@ -1,8 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
+import { Settings, Sparkles } from "lucide-react";
 import { Link } from "wouter";
-
-import logoWHITE__1_ from "@assets/logoWHITE (1).png";
 
 interface HeaderProps {
   onSettingsClick: () => void;
@@ -11,47 +9,27 @@ interface HeaderProps {
 
 export function Header({ onSettingsClick, isGuestMode = false }: HeaderProps) {
   return (
-    <header className="gradient-bg text-white shadow-lg">
-      <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
-        {/* Mobile: Center the combined logo+settings unit, Desktop: separate layout */}
-        <div className="flex items-center justify-center sm:justify-between">
-          {/* Mobile: Combined logo + settings unit, Desktop: logo only */}
-          <div className="flex items-center space-x-8 sm:space-x-3">
-            {/* Logo and text group - clickable link to today page */}
-            <Link href="/app">
-              <div className="flex items-center space-x-2 sm:space-x-3 cursor-pointer">
-                <img src={logoWHITE__1_} alt="n0ventum logo" className="w-8 h-8 sm:w-10 sm:h-10 pl-[2px] pr-[2px] pt-[2px] pb-[2px] sm:pl-[3px] sm:pr-[3px] sm:pt-[3px] sm:pb-[3px]" />
-                <h1 className="logo-text text-xl sm:text-[30px] font-extralight ml-[4px] mr-[4px] sm:ml-[6px] sm:mr-[6px] mt-[0px] mb-[0px]" style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300 }}>
-                  <span className="sm:hidden">n0</span>
-                  <span className="hidden sm:inline font-light text-left text-[34px]">n0ventum</span>
-                </h1>
+    <header className="fixed top-0 w-full bg-white/80 dark:bg-gray-950/80 backdrop-blur-md z-50 border-b border-gray-200 dark:border-gray-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/app">
+            <div className="flex items-center gap-2 cursor-pointer group">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Sparkles className="h-5 w-5 text-white" />
               </div>
-            </Link>
-            
-            {/* Separator - mobile only */}
-            <div className="sm:hidden flex items-center">
-              <div className="w-6 h-px bg-white bg-opacity-30"></div>
+              <span className="font-['Lexend_Giga'] text-xl font-semibold text-gray-900 dark:text-white">n0ventum</span>
             </div>
-            
-            {/* Settings button - part of centered unit on mobile, separate on desktop */}
-            <Button
-              onClick={onSettingsClick}
-              variant="ghost"
-              size="icon"
-              className="w-8 h-8 sm:w-10 sm:h-10 bg-white bg-opacity-20 rounded-xl hover:bg-opacity-30 transition-all text-white hover:text-white sm:hidden"
-            >
-              <span className="text-lg sm:text-xl">⚙️</span>
-            </Button>
-          </div>
+          </Link>
           
-          {/* Desktop-only settings button positioned separately */}
+          {/* Settings button */}
           <Button
             onClick={onSettingsClick}
             variant="ghost"
             size="icon"
-            className="hidden sm:block w-10 h-10 bg-white bg-opacity-20 rounded-xl hover:bg-opacity-30 transition-all text-white hover:text-white"
+            className="w-10 h-10 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
-            <span className="text-xl">⚙️</span>
+            <Settings className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </Button>
         </div>
       </div>

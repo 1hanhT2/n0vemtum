@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { CalendarDays, TrendingUp, History, Trophy, BarChart3 } from "lucide-react";
 
 type View = 'today' | 'weekly' | 'history' | 'achievements' | 'analytics';
 
@@ -10,37 +10,33 @@ interface NavigationProps {
 
 export function Navigation({ currentView, onViewChange }: NavigationProps) {
   const navItems = [
-    { value: 'today' as const, icon: '📅', label: 'Today' },
-    { value: 'weekly' as const, icon: '📊', label: 'Weekly Review' },
-    { value: 'history' as const, icon: '🗓️', label: 'History' },
-    { value: 'achievements' as const, icon: '🏆', label: 'Achievements' },
-    { value: 'analytics' as const, icon: '📈', label: 'Analytics' },
+    { value: 'today' as const, icon: CalendarDays, label: 'Today' },
+    { value: 'weekly' as const, icon: TrendingUp, label: 'Weekly' },
+    { value: 'history' as const, icon: History, label: 'History' },
+    { value: 'achievements' as const, icon: Trophy, label: 'Achievements' },
+    { value: 'analytics' as const, icon: BarChart3, label: 'Analytics' },
   ];
 
   return (
-    <nav className="border-b bg-white/95 dark:bg-gray-900/95 dark:border-gray-700 backdrop-blur-sm sticky top-0 z-10">
-      <div className="max-w-4xl mx-auto px-2 sm:px-4">
-        <div className="flex justify-center space-x-1 py-2 sm:py-4 overflow-x-auto scrollbar-hide">
-          {navItems.map((item) => (
-            <motion.button
+    <nav className="flex justify-center gap-2 mb-6">
+      <div className="inline-flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button
               key={item.value}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
               onClick={() => onViewChange(item.value)}
-              className={`flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-2 px-3 sm:px-6 py-2 sm:py-3 rounded-xl font-medium transition-all duration-200 whitespace-nowrap min-w-[70px] sm:min-w-auto touch-target ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all duration-200 ${
                 currentView === item.value
-                  ? 'bg-primary text-primary-foreground shadow-lg'
-                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+                  ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
-              style={{ minHeight: '44px' }}
             >
-              <span className="text-lg sm:text-xl">{item.icon}</span>
-              <span className="text-[10px] sm:text-xs md:text-base leading-tight text-center">
-                {item.label.split(' ').join('\n')}
-              </span>
-            </motion.button>
-          ))}
-        </div>
+              <Icon className="h-4 w-4" />
+              <span className="hidden sm:inline text-sm">{item.label}</span>
+            </button>
+          );
+        })}
       </div>
     </nav>
   );

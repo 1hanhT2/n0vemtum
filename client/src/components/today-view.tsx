@@ -349,42 +349,55 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <div className="mb-8 space-y-4">
+      <div className="mb-8 space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">✨ Today's Focus</h2>
-          <p className="text-gray-600 dark:text-gray-300">{formatDate(today)}</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Today's Progress</h2>
+          <p className="text-gray-600 dark:text-gray-400">{formatDate(today)}</p>
         </div>
 
         <GamificationSummary habits={habits || []} />
         {habits && (
-          <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-xl transition-colors duration-200 hover:dark:from-gray-700 hover:dark:to-gray-600">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
-              <span className="text-sm font-bold text-gray-800 dark:text-white">
-                {Object.values(habitCompletions).filter(Boolean).length} / {habits.length} completed
+          <Card className="border border-gray-200 dark:border-gray-800 rounded-2xl bg-white dark:bg-gray-900 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Today's Progress</span>
+              </div>
+              <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                {Object.values(habitCompletions).filter(Boolean).length}/{habits.length}
               </span>
             </div>
-            <div className="mt-2 w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
               <div 
-                className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500 ease-out"
                 style={{ 
                   width: `${Math.min(100, habits.length > 0 ? (Object.values(habitCompletions).filter(Boolean).length / habits.length) * 100 : 0)}%` 
                 }}
               ></div>
             </div>
-          </div>
+            <div className="mt-3 flex justify-between text-sm">
+              <span className="text-gray-600 dark:text-gray-400">
+                {Math.round((Object.values(habitCompletions).filter(Boolean).length / habits.length) * 100)}% Complete
+              </span>
+              <span className="text-gray-600 dark:text-gray-400">
+                {habits.length - Object.values(habitCompletions).filter(Boolean).length} remaining
+              </span>
+            </div>
+          </Card>
         )}
       </div>
 
       {/* AI Motivational Message */}
       {motivationalMessage && (
-        <Card className="rounded-2xl shadow-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 border-purple-200 dark:border-gray-600 transition-all duration-200 hover:dark:from-gray-700 hover:dark:to-gray-600 hover:shadow-xl">
+        <Card className="border border-purple-200 dark:border-purple-800/30 rounded-2xl bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20">
           <CardContent className="pt-6">
-            <div className="flex items-start space-x-3">
-              <Sparkles className="w-6 h-6 text-purple-500 dark:text-purple-400 mt-1 flex-shrink-0" />
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              </div>
               <div>
-                <h3 className="font-semibold text-gray-800 dark:text-white mb-2">AI Coach Says:</h3>
-                <p className="text-gray-700 dark:text-gray-200 italic">{motivationalMessage}</p>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">AI Coach</h3>
+                <p className="text-gray-600 dark:text-gray-300">{motivationalMessage}</p>
               </div>
             </div>
           </CardContent>
@@ -392,21 +405,23 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       )}
 
       {/* Core Routines Checklist */}
-      <Card className="rounded-2xl shadow-lg bg-card dark:bg-gray-800 border-border dark:border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
-            <span className="mr-2">✅</span>
-            Core Routine Checklist
+      <Card className="border border-gray-200 dark:border-gray-800 rounded-2xl bg-white dark:bg-gray-900">
+        <CardHeader className="border-b border-gray-100 dark:border-gray-800 pb-4">
+          <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+              <span className="text-base">✅</span>
+            </div>
+            Today's Habits
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className="pt-6">
+          <div className="space-y-3">
             {habits?.map((habit) => (
               <motion.div
                 key={habit.id}
                 initial={{ scale: 1 }}
-                whileHover={{ scale: 1.02 }}
-                className="p-4 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors space-y-4"
+                whileHover={{ scale: 1.01 }}
+                className="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-750 transition-all space-y-4 hover:shadow-md"
               >
                 <div className="flex items-center space-x-4">
                   <Checkbox
@@ -414,16 +429,18 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                     checked={habitCompletions[habit.id] || false}
                     onCheckedChange={(checked) => handleHabitToggle(habit.id, !!checked)}
                     disabled={isDayCompleted}
-                    className="w-6 h-6"
+                    className="w-5 h-5 border-2"
                   />
                   <label
                     htmlFor={`habit-${habit.id}`}
                     className={`flex-1 flex items-center space-x-3 cursor-pointer ${
-                      habitCompletions[habit.id] ? 'line-through text-gray-500 dark:text-gray-400' : ''
+                      habitCompletions[habit.id] ? 'opacity-60' : ''
                     }`}
                   >
-                    <span className="text-2xl">{habit.emoji}</span>
-                    <span className="text-lg font-medium text-gray-800 dark:text-gray-200 group-hover:dark:text-white transition-colors">{habit.name}</span>
+                    <span className="text-xl">{habit.emoji}</span>
+                    <span className={`text-base font-medium text-gray-900 dark:text-gray-100 transition-all ${
+                      habitCompletions[habit.id] ? 'line-through' : ''
+                    }`}>{habit.name}</span>
                   </label>
                 </div>
 
@@ -458,13 +475,15 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       {/* Scoring Section */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Auto-Calculated Score */}
-        <Card className="rounded-2xl shadow-lg bg-card dark:bg-gray-800 border-border dark:border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
-              <span className="mr-2">🎯</span>
-              Daily Performance Score
+        <Card className="border border-gray-200 dark:border-gray-800 rounded-2xl bg-white dark:bg-gray-900">
+          <CardHeader className="border-b border-gray-100 dark:border-gray-800 pb-4">
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                <span className="text-base">🎯</span>
+              </div>
+              Performance
             </CardTitle>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Auto-calculated based on habit completion</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 ml-10">Auto-calculated score</p>
           </CardHeader>
           <CardContent>
             <div className="text-center mb-4">
