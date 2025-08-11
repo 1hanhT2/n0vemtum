@@ -23,7 +23,7 @@ export function Header({ onSettingsClick, isGuestMode = false }: HeaderProps) {
                 <img src={logoWHITE__1_} alt="n0ventum logo" className="w-8 h-8 sm:w-10 sm:h-10 pl-[2px] pr-[2px] pt-[2px] pb-[2px] sm:pl-[3px] sm:pr-[3px] sm:pt-[3px] sm:pb-[3px]" />
                 <h1 className="logo-text text-xl sm:text-[30px] font-extralight ml-[4px] mr-[4px] sm:ml-[6px] sm:mr-[6px] mt-[0px] mb-[0px]" style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300 }}>
                   <span className="sm:hidden">n0</span>
-                  <span className="hidden sm:inline">n0ventum</span>
+                  <span className="hidden sm:inline font-light text-left text-[34px]">n0ventum</span>
                 </h1>
               </div>
             </Link>
