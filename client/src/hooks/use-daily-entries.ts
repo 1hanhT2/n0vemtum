@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { DailyEntry, InsertDailyEntry } from "@shared/schema";
+import { useDebounce } from "./use-debounce";
 
 export function useDailyEntries(startDate?: string, endDate?: string) {
   const params = new URLSearchParams();
@@ -62,6 +63,28 @@ export function useUpdateDailyEntry() {
         body: JSON.stringify(entry)
       });
       return response.json();
+    },
+    onMutate: async ({ date, ...entry }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/daily-entries", date] });
+      
+      // Snapshot previous value
+      const previousEntry = queryClient.getQueryData(["/api/daily-entries", date]);
+      
+      // Optimistically update
+      queryClient.setQueryData(["/api/daily-entries", date], (old: any) => ({
+        ...old,
+        ...entry,
+        date,
+      }));
+      
+      return { previousEntry, date };
+    },
+    onError: (err, variables, context: any) => {
+      // Rollback on error
+      if (context?.previousEntry) {
+        queryClient.setQueryData(["/api/daily-entries", context.date], context.previousEntry);
+      }
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/daily-entries"] });

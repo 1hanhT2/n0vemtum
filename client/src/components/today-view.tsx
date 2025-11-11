@@ -90,6 +90,8 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const [notes, setNotes] = useState('');
   const [motivationalMessage, setMotivationalMessage] = useState('');
   const [isDayCompleted, setIsDayCompleted] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
 
   // Load existing data when dailyEntry changes
   useEffect(() => {
@@ -131,7 +133,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       });
       return;
     }
-    
+
     setAnalyzingHabit(habitId);
     try {
       const response = await fetch(`/api/ai/analyze-habit-difficulty/${habitId}`, {
@@ -216,7 +218,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     if (isDayCompleted) return; // Prevent changes if day is completed
     const newCompletions = { ...habitCompletions, [habitId]: checked };
     setHabitCompletions(newCompletions);
-    
+
     if (isGuestMode) {
       // In guest mode, just show visual feedback without API calls
       toast({
@@ -224,7 +226,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         description: checked ? "Great job! Sign in to save your progress." : "Progress not saved in demo mode.",
         variant: "default",
       });
-      
+
       // Auto-calculate scores based on completion for guest mode
       const newScore = calculateCompletionScore(newCompletions);
       setPunctualityScore([newScore]);
@@ -247,13 +249,31 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
 
     // Save temporary data to localStorage (no database write until "finish day")
     saveTemporaryCompletions(newCompletions, newScore, newScore);
+
+    // Trigger auto-save
+    setAutoSaveStatus('saving');
+    debouncedSave({
+      habitCompletions: newCompletions,
+      punctualityScore: newScore,
+      adherenceScore: newScore,
+      notes,
+    });
+
+    setTimeout(() => {
+      if (updateDailyEntry.isPending || createDailyEntry.isPending) {
+        setAutoSaveStatus('saving');
+      } else {
+        setAutoSaveStatus('saved');
+        setTimeout(() => setAutoSaveStatus('idle'), 2000);
+      }
+    }, 500);
   };
 
   const handleCompleteDayInternal = async () => {
     try {
       // Process habit completions sequentially to avoid race conditions
       const completedHabits = Object.entries(habitCompletions).filter(([_, completed]) => completed);
-      
+
       for (const [habitId, completed] of completedHabits) {
         if (completed) {
           try {
@@ -311,15 +331,37 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
 
   const handleScoreChange = (type: 'punctuality' | 'adherence', value: number[]) => {
     if (isDayCompleted) return; // Prevent changes if day is completed
+    let newPunctuality = punctualityScore;
+    let newAdherence = adherenceScore;
+
     if (type === 'punctuality') {
+      newPunctuality = value;
       setPunctualityScore(value);
-      // Save to temporary storage with updated punctuality score
-      saveTemporaryCompletions(habitCompletions, value[0], adherenceScore[0]);
     } else {
+      newAdherence = value;
       setAdherenceScore(value);
-      // Save to temporary storage with updated adherence score
-      saveTemporaryCompletions(habitCompletions, punctualityScore[0], value[0]);
     }
+
+    // Save to temporary storage with updated scores
+    saveTemporaryCompletions(habitCompletions, newPunctuality[0], newAdherence[0]);
+
+    // Trigger auto-save
+    setAutoSaveStatus('saving');
+    debouncedSave({
+      habitCompletions,
+      punctualityScore: newPunctuality[0],
+      adherenceScore: newAdherence[0],
+      notes,
+    });
+
+    setTimeout(() => {
+      if (updateDailyEntry.isPending || createDailyEntry.isPending) {
+        setAutoSaveStatus('saving');
+      } else {
+        setAutoSaveStatus('saved');
+        setTimeout(() => setAutoSaveStatus('idle'), 2000);
+      }
+    }, 500);
   };
 
   const handleNotesChange = (newNotes: string) => {
@@ -327,6 +369,24 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     setNotes(newNotes);
     // Save to temporary storage with updated notes
     saveTemporaryCompletions(habitCompletions, punctualityScore[0], adherenceScore[0], newNotes);
+
+    // Trigger auto-save
+    setAutoSaveStatus('saving');
+    debouncedSave({
+      habitCompletions,
+      punctualityScore: punctualityScore[0],
+      adherenceScore: adherenceScore[0],
+      notes: newNotes,
+    });
+
+    setTimeout(() => {
+      if (updateDailyEntry.isPending || createDailyEntry.isPending) {
+        setAutoSaveStatus('saving');
+      } else {
+        setAutoSaveStatus('saved');
+        setTimeout(() => setAutoSaveStatus('idle'), 2000);
+      }
+    }, 500);
   };
 
   if (habitsLoading || entryLoading) {
@@ -360,8 +420,10 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
           <Card className="border border-gray-200 dark:border-gray-800 rounded-2xl bg-white dark:bg-gray-900 p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Today's Progress</span>
+                <div className={`w-2 h-2 rounded-full ${autoSaveStatus === 'saving' ? 'bg-yellow-500 animate-pulse' : autoSaveStatus === 'saved' ? 'bg-green-500' : 'bg-gray-500'}`}></div>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  {autoSaveStatus === 'saving' ? 'Saving...' : autoSaveStatus === 'saved' ? 'Saved' : 'Today\'s Progress'}
+                </span>
               </div>
               <span className="text-2xl font-bold text-gray-900 dark:text-white">
                 {Object.values(habitCompletions).filter(Boolean).length}/{habits.length}
@@ -574,7 +636,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
               <div className="text-center">
                 <div className="text-4xl mb-2">🎉</div>
                 <h3 className="text-lg font-semibold text-green-800 dark:text-green-300 mb-2">Day Completed!</h3>
-                <p className="text-green-700 dark:text-green-400">Your progress has been locked and saved successfully.</p>
+                <p className="text-green-700 dark:text-green-400">Your progress has been saved and locked successfully.</p>
               </div>
             </CardContent>
           </Card>

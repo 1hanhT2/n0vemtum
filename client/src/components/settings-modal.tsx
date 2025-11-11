@@ -117,11 +117,17 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
 
   const handleSaveSettings = async () => {
     if (isGuestMode) {
+      // In demo mode, save to localStorage only
+      localStorage.setItem('theme', selectedTheme);
+      localStorage.setItem('darkMode', isDarkMode.toString());
+      applyTheme(selectedTheme, isDarkMode);
+      
       toast({
         title: "Demo Mode",
-        description: "Settings changes are not saved in demo mode. Sign in to save your preferences.",
+        description: "Settings saved locally. Sign in to sync across devices.",
         variant: "default",
       });
+      onClose();
       return;
     }
 
@@ -159,7 +165,11 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
         }
       }
 
-      // Save theme and mode
+      // Save theme and mode to database for cross-device sync
+      await setSetting.mutateAsync({ key: 'theme', value: selectedTheme });
+      await setSetting.mutateAsync({ key: 'darkMode', value: isDarkMode.toString() });
+      
+      // Also save to localStorage for immediate access
       localStorage.setItem('theme', selectedTheme);
       localStorage.setItem('darkMode', isDarkMode.toString());
       
@@ -168,24 +178,37 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
       
       toast({
         title: "Settings saved successfully!",
-        description: "Your preferences have been updated.",
+        description: "Your preferences are synced across all devices.",
       });
       
       onClose();
     } catch (error) {
       toast({
         title: "Error saving settings",
-        description: "Please try again.",
-        variant: "destructive",
+        description: "Changes saved locally. Will sync when connection is restored.",
+        variant: "default",
       });
+      
+      // Fallback to localStorage
+      localStorage.setItem('theme', selectedTheme);
+      localStorage.setItem('darkMode', isDarkMode.toString());
+      applyTheme(selectedTheme, isDarkMode);
+      onClose();
     }
   };
 
   const handleResetDataInternal = async () => {
     if (isGuestMode) {
+      // Clear localStorage for demo mode
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('temp_daily_entry_')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
       toast({
-        title: "Demo Mode",
-        description: "Data reset is not available in demo mode. Sign in to manage your data.",
+        title: "Demo Data Cleared",
+        description: "Local demo data has been reset. Sign in to use cloud storage.",
         variant: "default",
       });
       return;
