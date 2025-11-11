@@ -4,8 +4,7 @@ import type { Subtask, InsertSubtask } from "@shared/schema";
 
 export function useSubtasks(habitId: number) {
   return useQuery<Subtask[]>({
-    queryKey: ['/api/subtasks', habitId],
-    queryFn: () => fetch(`/api/subtasks/${habitId}`, { credentials: 'include' }).then(res => res.json()),
+    queryKey: [`/api/subtasks/${habitId}`],
   });
 }
 
@@ -20,7 +19,7 @@ export function useCreateSubtask() {
       return await res.json();
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/subtasks', variables.habitId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/subtasks/${variables.habitId}`] });
     },
   });
 }
@@ -36,7 +35,7 @@ export function useUpdateSubtask() {
       return await res.json();
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/subtasks', variables.habitId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/subtasks/${variables.habitId}`] });
     },
   });
 }
@@ -50,7 +49,7 @@ export function useDeleteSubtask() {
       return await res.json();
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/subtasks', variables.habitId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/subtasks/${variables.habitId}`] });
     },
   });
 }
