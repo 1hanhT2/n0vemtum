@@ -4,8 +4,6 @@ import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import SimpleMDE from "react-simplemde-editor";
-import "easymde/dist/easymde.min.css";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -619,38 +617,16 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
             Daily Log & Notes
           </CardTitle>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Supports markdown formatting: **bold**, *italic*, # headers, lists, and more
+            Add your thoughts, wins, or observations for today
           </p>
         </CardHeader>
         <CardContent>
-          <SimpleMDE
+          <Textarea
             value={notes}
-            onChange={(value) => handleNotesChange(value)}
-            options={{
-              spellChecker: false,
-              placeholder: "Add your thoughts, wins, or observations for today...\n\nTip: Use markdown formatting:\n- **bold text**\n- *italic text*\n- # Heading\n- - List item",
-              status: false,
-              toolbar: [
-                "bold",
-                "italic",
-                "heading",
-                "|",
-                "unordered-list",
-                "ordered-list",
-                "|",
-                "link",
-                "quote",
-                "|",
-                "preview",
-                "guide"
-              ],
-              minHeight: "200px",
-              maxHeight: "400px",
-              autoDownloadFontAwesome: false,
-              hideIcons: isDayCompleted ? ["bold", "italic", "heading", "unordered-list", "ordered-list", "link", "quote"] : undefined,
-              showIcons: isDayCompleted ? [] : undefined,
-            }}
-            className={isDayCompleted ? "pointer-events-none opacity-60" : ""}
+            onChange={(e) => handleNotesChange(e.target.value)}
+            placeholder="Add your thoughts, wins, or observations for today..."
+            disabled={isDayCompleted}
+            className="min-h-[200px] resize-y"
           />
         </CardContent>
       </Card>
