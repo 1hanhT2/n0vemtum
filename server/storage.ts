@@ -260,12 +260,7 @@ export class DatabaseStorage implements IStorage {
   async getSubtasks(habitId: number, userId: string): Promise<Subtask[]> {
     await this.ensureInitialized();
     
-    // Verify habit ownership
-    const habit = await this.getHabitById(habitId, userId);
-    if (!habit) {
-      throw new Error(`Habit with id ${habitId} not found or access denied`);
-    }
-    
+    // No need for extra habit ownership check - filtering by userId is sufficient
     return await db
       .select()
       .from(subtasks)
@@ -285,12 +280,8 @@ export class DatabaseStorage implements IStorage {
   async createSubtask(insertSubtask: InsertSubtask): Promise<Subtask> {
     await this.ensureInitialized();
     
-    // Verify habit ownership
-    const [habit] = await db
-      .select()
-      .from(habits)
-      .where(and(eq(habits.id, insertSubtask.habitId), eq(habits.userId, insertSubtask.userId)));
-    
+    // Verify habit ownership using existing method
+    const habit = await this.getHabitById(insertSubtask.habitId, insertSubtask.userId);
     if (!habit) {
       throw new Error(`Habit with id ${insertSubtask.habitId} not found or access denied`);
     }
