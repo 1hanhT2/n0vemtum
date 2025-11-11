@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 interface SubtaskManagerProps {
   habitId: number;
   subtaskCompletions: Record<number, boolean>;
-  onSubtaskToggle: (subtaskId: number, completed: boolean) => void;
+  onSubtaskToggle: (subtaskId: number, completed: boolean, habitId: number, totalSubtasks: number, completedSubtasks: number) => void;
   isDayCompleted: boolean;
   isGuestMode?: boolean;
 }
@@ -53,6 +53,9 @@ export function SubtaskManager({
   const completedCount = activeSubtasks.filter(st => subtaskCompletions[st.id]).length;
 
   if (isLoading) return null;
+  
+  // Don't show anything if there are no subtasks
+  if (activeSubtasks.length === 0) return null;
 
   return (
     <div className="mt-3 space-y-2">
@@ -68,7 +71,7 @@ export function SubtaskManager({
             <Checkbox
               data-testid={`checkbox-subtask-${subtask.id}`}
               checked={subtaskCompletions[subtask.id] || false}
-              onCheckedChange={(checked) => onSubtaskToggle(subtask.id, checked as boolean)}
+              onCheckedChange={(checked) => onSubtaskToggle(subtask.id, checked as boolean, habitId, activeSubtasks.length, completedCount)}
               disabled={isDayCompleted}
               className="h-4 w-4"
             />

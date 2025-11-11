@@ -219,20 +219,33 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     }
   }, [today, dailyEntry]);
 
-  const handleSubtaskToggle = (subtaskId: number, checked: boolean) => {
+  const handleSubtaskToggle = (subtaskId: number, checked: boolean, habitId: number, totalSubtasks: number, completedSubtasks: number) => {
     if (isDayCompleted) return;
     const newSubtaskCompletions = { ...subtaskCompletions, [subtaskId]: checked };
     setSubtaskCompletions(newSubtaskCompletions);
 
+    // Auto-update habit completion based on subtask percentage
+    const newCompletedCount = checked ? completedSubtasks + 1 : completedSubtasks - 1;
+    const completionPercentage = newCompletedCount / totalSubtasks;
+    const isHabitComplete = completionPercentage === 1; // 100% completion required
+    
+    const newHabitCompletions = { ...habitCompletions, [habitId]: isHabitComplete };
+    setHabitCompletions(newHabitCompletions);
+
+    // Recalculate scores based on new habit completion
+    const newScore = calculateCompletionScore(newHabitCompletions);
+    setPunctualityScore([newScore]);
+    setAdherenceScore([newScore]);
+
     if (!isGuestMode) {
-      saveTemporaryCompletions(habitCompletions, newSubtaskCompletions);
+      saveTemporaryCompletions(newHabitCompletions, newSubtaskCompletions, newScore, newScore);
       
       setAutoSaveStatus('saving');
       debouncedSave({
-        habitCompletions,
+        habitCompletions: newHabitCompletions,
         subtaskCompletions: newSubtaskCompletions,
-        punctualityScore: punctualityScore[0],
-        adherenceScore: adherenceScore[0],
+        punctualityScore: newScore,
+        adherenceScore: newScore,
         notes,
       });
     }
@@ -509,6 +522,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                 <div className="flex items-center space-x-4">
                   <Checkbox
                     id={`habit-${habit.id}`}
+                    data-testid={`checkbox-habit-${habit.id}`}
                     checked={habitCompletions[habit.id] || false}
                     onCheckedChange={(checked) => handleHabitToggle(habit.id, !!checked)}
                     disabled={isDayCompleted}
