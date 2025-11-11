@@ -286,7 +286,11 @@ export class DatabaseStorage implements IStorage {
     await this.ensureInitialized();
     
     // Verify habit ownership
-    const habit = await this.getHabitById(insertSubtask.habitId, insertSubtask.userId);
+    const [habit] = await db
+      .select()
+      .from(habits)
+      .where(and(eq(habits.id, insertSubtask.habitId), eq(habits.userId, insertSubtask.userId)));
+    
     if (!habit) {
       throw new Error(`Habit with id ${insertSubtask.habitId} not found or access denied`);
     }
