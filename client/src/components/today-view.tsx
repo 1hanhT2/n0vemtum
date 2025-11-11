@@ -37,7 +37,6 @@ import { RefreshCw } from "lucide-react";
 import { getMockHabits, getMockDailyEntry, getMockStreak } from "@/lib/mockData";
 import { useDebounce, usePendingProtection } from '@/hooks/use-debounce';
 import { SubtaskManager } from "@/components/subtask-manager";
-import { HabitCard } from "@/components/habit-card"; // Assuming HabitCard component exists and accepts these props
 
 interface TodayViewProps {
   isGuestMode?: boolean;
@@ -95,9 +94,6 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const [isDayCompleted, setIsDayCompleted] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
-  // Assuming you have a way to fetch subtasks, e.g., from a hook or context
-  // For now, let's assume a mock structure; replace with your actual data fetching
-  const [subtasksData, setSubtasksData] = useState<Record<number, { id: number; name: string; completed: boolean }[]>>({});
 
   // Load existing data when dailyEntry changes
   useEffect(() => {
@@ -113,29 +109,6 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       setIsDayCompleted(false);
     }
   }, [dailyEntry]);
-
-  // Fetch subtasks for each habit (replace with your actual subtask fetching logic)
-  useEffect(() => {
-    if (habits) {
-      const fetchedSubtasks: Record<number, { id: number; name: string; completed: boolean }[]> = {};
-      habits.forEach(habit => {
-        // Replace this with actual API call or hook to fetch subtasks for habit.id
-        // For mock data:
-        if (habit.id === 1) { // Example habit with subtasks
-          fetchedSubtasks[habit.id] = [
-            { id: 101, name: "Subtask 1 for Habit 1", completed: false },
-            { id: 102, name: "Subtask 2 for Habit 1", completed: false },
-          ];
-        } else if (habit.id === 2) { // Example habit without subtasks
-          fetchedSubtasks[habit.id] = [];
-        } else {
-          fetchedSubtasks[habit.id] = [];
-        }
-      });
-      setSubtasksData(fetchedSubtasks);
-    }
-  }, [habits]);
-
 
   // Generate motivational message when habits change
   useEffect(() => {
@@ -190,29 +163,11 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   };
 
   // Calculate completion percentage score (1-5 scale)
-  const calculateCompletionScore = (completions: Record<number, boolean>, subtaskCompletionsForScore: Record<number, boolean>) => {
+  const calculateCompletionScore = (completions: Record<number, boolean>) => {
     if (!habits || habits.length === 0) return 3;
-
-    let completedHabitCount = 0;
-    habits.forEach(habit => {
-      const habitSubtasks = subtasksData?.[habit.id] || [];
-      if (habitSubtasks.length > 0) {
-        // If habit has subtasks, completion is based on subtasks
-        const completedSubtasks = habitSubtasks.filter(st => subtaskCompletionsForScore[st.id]).length;
-        if (completedSubtasks === habitSubtasks.length && habitSubtasks.length > 0) {
-          completedHabitCount++;
-        }
-      } else {
-        // If habit has no subtasks, completion is based on the habit itself
-        if (completions[habit.id]) {
-          completedHabitCount++;
-        }
-      }
-    });
-
-    const totalHabitsOrSubtasks = habits.length; // This should be total number of primary habits, or total number of subtasks if we want to weight them equally. Let's stick to habit count for now.
-
-    const percentage = completedHabitCount / totalHabitsOrSubtasks;
+    const completedCount = Object.values(completions).filter(Boolean).length;
+    const totalHabits = habits.length;
+    const percentage = completedCount / totalHabits;
 
     // Convert percentage to 1-5 scale
     if (percentage === 1) return 5;
@@ -221,7 +176,6 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     if (percentage >= 0.4) return 2;
     return 1;
   };
-
 
   // Store temporary habit completions in localStorage
   const saveTemporaryCompletions = (completions: Record<number, boolean>, subtasks?: Record<number, boolean>, punctuality?: number, adherence?: number, dailyNotes?: string) => {
@@ -272,7 +226,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
 
     if (!isGuestMode) {
       saveTemporaryCompletions(habitCompletions, newSubtaskCompletions);
-
+      
       setAutoSaveStatus('saving');
       debouncedSave({
         habitCompletions,
@@ -286,35 +240,41 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
 
   const handleHabitToggle = (habitId: number, checked: boolean) => {
     if (isDayCompleted) return; // Prevent changes if day is completed
-
     const newCompletions = { ...habitCompletions, [habitId]: checked };
     setHabitCompletions(newCompletions);
 
     if (isGuestMode) {
+      // In guest mode, just show visual feedback without API calls
       toast({
         title: checked ? "Habit Completed!" : "Habit Unchecked",
         description: checked ? "Great job! Sign in to save your progress." : "Progress not saved in demo mode.",
         variant: "default",
       });
 
-      const newScore = calculateCompletionScore(newCompletions, subtaskCompletions);
+      // Auto-calculate scores based on completion for guest mode
+      const newScore = calculateCompletionScore(newCompletions);
       setPunctualityScore([newScore]);
       setAdherenceScore([newScore]);
       return;
     }
 
+    // In real mode, habit progress will be updated when "finish day" is pressed
+    // For now, just show user feedback that the change is pending
     toast({
       title: "Changes Saved Temporarily",
       description: "Click 'Finish Day' to finalize your progress",
       variant: "default",
     });
 
-    const newScore = calculateCompletionScore(newCompletions, subtaskCompletions);
+    // Auto-calculate scores based on completion
+    const newScore = calculateCompletionScore(newCompletions);
     setPunctualityScore([newScore]);
     setAdherenceScore([newScore]);
 
+    // Save temporary data to localStorage (no database write until "finish day")
     saveTemporaryCompletions(newCompletions, subtaskCompletions, newScore, newScore);
 
+    // Trigger auto-save
     setAutoSaveStatus('saving');
     debouncedSave({
       habitCompletions: newCompletions,
@@ -349,10 +309,12 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
             });
           } catch (error) {
             console.error(`Failed to update habit ${habitId}:`, error);
+            // Continue processing other habits even if one fails
           }
         }
       }
 
+      // Create or update daily entry
       const entryData = {
         date: today,
         habitCompletions,
@@ -369,6 +331,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         await createDailyEntry.mutateAsync({ userId: 'current', ...entryData });
       }
 
+      // Clear temporary storage
       localStorage.removeItem(`temp_daily_entry_${today}`);
 
       setIsDayCompleted(true);
@@ -377,6 +340,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         description: "Your progress has been saved and locked for today.",
       });
 
+      // Invalidate queries to refresh habit data
       queryClient.invalidateQueries({ queryKey: ['/api/habits'] });
       queryClient.invalidateQueries({ queryKey: ['/api/daily-entries'] });
     } catch (error) {
@@ -392,7 +356,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const [handleCompleteDay, isCompletingDay] = usePendingProtection(handleCompleteDayInternal);
 
   const handleScoreChange = (type: 'punctuality' | 'adherence', value: number[]) => {
-    if (isDayCompleted) return;
+    if (isDayCompleted) return; // Prevent changes if day is completed
     let newPunctuality = punctualityScore;
     let newAdherence = adherenceScore;
 
@@ -404,8 +368,10 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       setAdherenceScore(value);
     }
 
+    // Save to temporary storage with updated scores
     saveTemporaryCompletions(habitCompletions, subtaskCompletions, newPunctuality[0], newAdherence[0]);
 
+    // Trigger auto-save
     setAutoSaveStatus('saving');
     debouncedSave({
       habitCompletions,
@@ -428,11 +394,13 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const handleNotesChange = (newNotes: string) => {
     if (isDayCompleted) return;
     setNotes(newNotes);
+    // Save to temporary storage with updated notes
     saveTemporaryCompletions(habitCompletions, subtaskCompletions, punctualityScore[0], adherenceScore[0], newNotes);
   };
 
   const handleNotesBlur = () => {
     if (isDayCompleted) return;
+    // Only save when user stops typing (loses focus)
     debouncedSave({
       habitCompletions,
       subtaskCompletions,
@@ -531,40 +499,67 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         </CardHeader>
         <CardContent className="pt-6">
           <div className="space-y-3">
-            {habits?.map((habit) => {
-              const habitSubtasks = subtasksData?.[habit.id] || [];
-              const completedSubtasks = habitSubtasks.filter(st => subtaskCompletions[st.id]).length;
-
-              return (
-                <motion.div
-                  key={habit.id}
-                  layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-3"
-                >
-                  <HabitCard
-                    habit={habit}
-                    date={today}
-                    isCompleted={habitCompletions[habit.id] || false}
-                    onToggle={handleHabitToggle}
-                    subtaskCount={habitSubtasks.length}
-                    completedSubtaskCount={completedSubtasks}
+            {habits?.map((habit) => (
+              <motion.div
+                key={habit.id}
+                initial={{ scale: 1 }}
+                whileHover={{ scale: 1.01 }}
+                className="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-750 transition-all space-y-4 hover:shadow-md"
+              >
+                <div className="flex items-center space-x-4">
+                  <Checkbox
+                    id={`habit-${habit.id}`}
+                    checked={habitCompletions[habit.id] || false}
+                    onCheckedChange={(checked) => handleHabitToggle(habit.id, !!checked)}
+                    disabled={isDayCompleted}
+                    className="w-5 h-5 border-2"
                   />
-                  {/* Conditionally render SubtaskManager if habit has subtasks */}
-                  {habitSubtasks.length > 0 && (
-                    <SubtaskManager
-                      habitId={habit.id}
-                      subtaskCompletions={subtaskCompletions}
-                      onSubtaskToggle={handleSubtaskToggle}
-                      isDayCompleted={isDayCompleted}
-                      isGuestMode={isGuestMode}
+                  <label
+                    htmlFor={`habit-${habit.id}`}
+                    className={`flex-1 flex items-center space-x-3 cursor-pointer ${
+                      habitCompletions[habit.id] ? 'opacity-60' : ''
+                    }`}
+                  >
+                    <span className="text-xl">{habit.emoji}</span>
+                    <span className={`text-base font-medium text-gray-900 dark:text-gray-100 transition-all ${
+                      habitCompletions[habit.id] ? 'line-through' : ''
+                    }`}>{habit.name}</span>
+                  </label>
+                </div>
+
+                <div className="space-y-4">
+                  <HabitDifficultyDisplay
+                    habit={{
+                      id: habit.id,
+                      name: habit.name,
+                      emoji: habit.emoji,
+                      difficultyRating: habit.difficultyRating || undefined,
+                      aiAnalysis: habit.aiAnalysis || undefined,
+                      lastAnalyzed: habit.lastAnalyzed ? habit.lastAnalyzed.toString() : undefined,
+                    }}
+                    onAnalyze={handleAnalyzeHabit}
+                    isAnalyzing={analyzingHabit === habit.id}
+                  />
+
+                  {/* Only show progression if gamification data exists */}
+                  {habit.level !== undefined && (
+                    <HabitProgression
+                      habit={habit}
+                      onLevelUp={(habitId) => levelUpHabit.mutate(habitId)}
                     />
                   )}
-                </motion.div>
-              );
-            })}
+                </div>
+
+                {/* Subtasks */}
+                <SubtaskManager
+                  habitId={habit.id}
+                  subtaskCompletions={subtaskCompletions}
+                  onSubtaskToggle={handleSubtaskToggle}
+                  isDayCompleted={isDayCompleted}
+                  isGuestMode={isGuestMode}
+                />
+              </motion.div>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -723,6 +718,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
             levelUpHabit.mutate(habitId, {
               onSuccess: (updatedHabit) => {
                 const oldHabit = habits.find(h => h.id === habitId);
+                // Check for tier promotion after level up
                 if (oldHabit && oldHabit.tier !== updatedHabit.tier) {
                   setTierPromotion({
                     habitId,
