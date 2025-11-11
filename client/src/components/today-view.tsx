@@ -36,6 +36,7 @@ import { TierExplanation } from "@/components/tier-explanation";
 import { RefreshCw } from "lucide-react";
 import { getMockHabits, getMockDailyEntry, getMockStreak } from "@/lib/mockData";
 import { useDebounce, usePendingProtection } from '@/hooks/use-debounce';
+import { SubtaskManager } from "@/components/subtask-manager";
 
 interface TodayViewProps {
   isGuestMode?: boolean;
@@ -85,6 +86,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   } | null>(null);
 
   const [habitCompletions, setHabitCompletions] = useState<Record<number, boolean>>({});
+  const [subtaskCompletions, setSubtaskCompletions] = useState<Record<number, boolean>>({});
   const [punctualityScore, setPunctualityScore] = useState<number[]>([3]);
   const [adherenceScore, setAdherenceScore] = useState<number[]>([3]);
   const [notes, setNotes] = useState('');
@@ -97,6 +99,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   useEffect(() => {
     if (dailyEntry) {
       setHabitCompletions(dailyEntry.habitCompletions as Record<number, boolean> || {});
+      setSubtaskCompletions(dailyEntry.subtaskCompletions as Record<number, boolean> || {});
       setPunctualityScore([dailyEntry.punctualityScore]);
       setAdherenceScore([dailyEntry.adherenceScore]);
       setNotes(dailyEntry.notes || '');
@@ -175,11 +178,12 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   };
 
   // Store temporary habit completions in localStorage
-  const saveTemporaryCompletions = (completions: Record<number, boolean>, punctuality?: number, adherence?: number, dailyNotes?: string) => {
+  const saveTemporaryCompletions = (completions: Record<number, boolean>, subtasks?: Record<number, boolean>, punctuality?: number, adherence?: number, dailyNotes?: string) => {
     try {
       const tempData = {
         date: today,
         habitCompletions: completions,
+        subtaskCompletions: subtasks ?? subtaskCompletions,
         punctualityScore: punctuality ?? punctualityScore[0],
         adherenceScore: adherence ?? adherenceScore[0],
         notes: dailyNotes ?? notes,
@@ -203,6 +207,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       try {
         const parsed = JSON.parse(tempData);
         setHabitCompletions(parsed.habitCompletions || {});
+        setSubtaskCompletions(parsed.subtaskCompletions || {});
         setPunctualityScore([parsed.punctualityScore || 3]);
         setAdherenceScore([parsed.adherenceScore || 3]);
         setNotes(parsed.notes || '');
@@ -213,6 +218,25 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       }
     }
   }, [today, dailyEntry]);
+
+  const handleSubtaskToggle = (subtaskId: number, checked: boolean) => {
+    if (isDayCompleted) return;
+    const newSubtaskCompletions = { ...subtaskCompletions, [subtaskId]: checked };
+    setSubtaskCompletions(newSubtaskCompletions);
+
+    if (!isGuestMode) {
+      saveTemporaryCompletions(habitCompletions, newSubtaskCompletions);
+      
+      setAutoSaveStatus('saving');
+      debouncedSave({
+        habitCompletions,
+        subtaskCompletions: newSubtaskCompletions,
+        punctualityScore: punctualityScore[0],
+        adherenceScore: adherenceScore[0],
+        notes,
+      });
+    }
+  };
 
   const handleHabitToggle = (habitId: number, checked: boolean) => {
     if (isDayCompleted) return; // Prevent changes if day is completed
@@ -248,12 +272,13 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     setAdherenceScore([newScore]);
 
     // Save temporary data to localStorage (no database write until "finish day")
-    saveTemporaryCompletions(newCompletions, newScore, newScore);
+    saveTemporaryCompletions(newCompletions, subtaskCompletions, newScore, newScore);
 
     // Trigger auto-save
     setAutoSaveStatus('saving');
     debouncedSave({
       habitCompletions: newCompletions,
+      subtaskCompletions,
       punctualityScore: newScore,
       adherenceScore: newScore,
       notes,
@@ -293,6 +318,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       const entryData = {
         date: today,
         habitCompletions,
+        subtaskCompletions,
         punctualityScore: punctualityScore[0],
         adherenceScore: adherenceScore[0],
         notes,
@@ -343,12 +369,13 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     }
 
     // Save to temporary storage with updated scores
-    saveTemporaryCompletions(habitCompletions, newPunctuality[0], newAdherence[0]);
+    saveTemporaryCompletions(habitCompletions, subtaskCompletions, newPunctuality[0], newAdherence[0]);
 
     // Trigger auto-save
     setAutoSaveStatus('saving');
     debouncedSave({
       habitCompletions,
+      subtaskCompletions,
       punctualityScore: newPunctuality[0],
       adherenceScore: newAdherence[0],
       notes,
@@ -368,7 +395,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     if (isDayCompleted) return;
     setNotes(newNotes);
     // Save to temporary storage with updated notes
-    saveTemporaryCompletions(habitCompletions, punctualityScore[0], adherenceScore[0], newNotes);
+    saveTemporaryCompletions(habitCompletions, subtaskCompletions, punctualityScore[0], adherenceScore[0], newNotes);
   };
 
   const handleNotesBlur = () => {
@@ -376,6 +403,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     // Only save when user stops typing (loses focus)
     debouncedSave({
       habitCompletions,
+      subtaskCompletions,
       punctualityScore: punctualityScore[0],
       adherenceScore: adherenceScore[0],
       notes,
@@ -521,6 +549,15 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                     />
                   )}
                 </div>
+
+                {/* Subtasks */}
+                <SubtaskManager
+                  habitId={habit.id}
+                  subtaskCompletions={subtaskCompletions}
+                  onSubtaskToggle={handleSubtaskToggle}
+                  isDayCompleted={isDayCompleted}
+                  isGuestMode={isGuestMode}
+                />
               </motion.div>
             ))}
           </div>

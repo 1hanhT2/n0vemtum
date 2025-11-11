@@ -6,6 +6,7 @@ import {
   achievements,
   streaks,
   users,
+  subtasks,
   type Habit, 
   type InsertHabit,
   type DailyEntry,
@@ -20,6 +21,8 @@ import {
   type InsertStreak,
   type User,
   type UpsertUser,
+  type Subtask,
+  type InsertSubtask,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lte, not } from "drizzle-orm";
@@ -36,6 +39,13 @@ export interface IStorage {
   updateHabit(id: number, habit: Partial<InsertHabit>, userId: string): Promise<Habit>;
   updateHabitDifficulty(id: number, difficulty: number, analysis: string, userId: string): Promise<Habit>;
   deleteHabit(id: number, userId: string): Promise<void>;
+  
+  // Subtasks
+  getSubtasks(habitId: number, userId: string): Promise<Subtask[]>;
+  getSubtaskById(id: number, userId: string): Promise<Subtask | undefined>;
+  createSubtask(subtask: InsertSubtask): Promise<Subtask>;
+  updateSubtask(id: number, subtask: Partial<InsertSubtask>, userId: string): Promise<Subtask>;
+  deleteSubtask(id: number, userId: string): Promise<void>;
   
   // Gamification
   updateHabitProgress(habitId: number, completed: boolean, date: string, userId?: string): Promise<Habit>;
@@ -233,12 +243,87 @@ export class DatabaseStorage implements IStorage {
 
   async deleteHabit(id: number, userId: string): Promise<void> {
     await this.ensureInitialized();
+    
+    // Delete all subtasks associated with this habit first (with user verification)
+    await db.delete(subtasks).where(and(eq(subtasks.habitId, id), eq(subtasks.userId, userId)));
+    
     const result = await db
       .delete(habits)
       .where(and(eq(habits.id, id), eq(habits.userId, userId)));
     
     if (result.rowCount === 0) {
       throw new Error(`Habit with id ${id} not found`);
+    }
+  }
+
+  // Subtasks
+  async getSubtasks(habitId: number, userId: string): Promise<Subtask[]> {
+    await this.ensureInitialized();
+    
+    // Verify habit ownership
+    const habit = await this.getHabitById(habitId, userId);
+    if (!habit) {
+      throw new Error(`Habit with id ${habitId} not found or access denied`);
+    }
+    
+    return await db
+      .select()
+      .from(subtasks)
+      .where(and(eq(subtasks.habitId, habitId), eq(subtasks.userId, userId)))
+      .orderBy(subtasks.order);
+  }
+
+  async getSubtaskById(id: number, userId: string): Promise<Subtask | undefined> {
+    await this.ensureInitialized();
+    const [subtask] = await db
+      .select()
+      .from(subtasks)
+      .where(and(eq(subtasks.id, id), eq(subtasks.userId, userId)));
+    return subtask || undefined;
+  }
+
+  async createSubtask(insertSubtask: InsertSubtask): Promise<Subtask> {
+    await this.ensureInitialized();
+    
+    // Verify habit ownership
+    const habit = await this.getHabitById(insertSubtask.habitId, insertSubtask.userId);
+    if (!habit) {
+      throw new Error(`Habit with id ${insertSubtask.habitId} not found or access denied`);
+    }
+    
+    const [subtask] = await db
+      .insert(subtasks)
+      .values(insertSubtask)
+      .returning();
+    return subtask;
+  }
+
+  async updateSubtask(id: number, updateData: Partial<InsertSubtask>, userId: string): Promise<Subtask> {
+    await this.ensureInitialized();
+    
+    // Never allow changing userId - remove it from update data if present
+    const { userId: _, ...safeUpdateData } = updateData;
+    
+    const [subtask] = await db
+      .update(subtasks)
+      .set(safeUpdateData)
+      .where(and(eq(subtasks.id, id), eq(subtasks.userId, userId)))
+      .returning();
+    
+    if (!subtask) {
+      throw new Error(`Subtask with id ${id} not found or access denied`);
+    }
+    return subtask;
+  }
+
+  async deleteSubtask(id: number, userId: string): Promise<void> {
+    await this.ensureInitialized();
+    const result = await db
+      .delete(subtasks)
+      .where(and(eq(subtasks.id, id), eq(subtasks.userId, userId)));
+    
+    if (result.rowCount === 0) {
+      throw new Error(`Subtask with id ${id} not found or access denied`);
     }
   }
 

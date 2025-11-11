@@ -54,6 +54,7 @@ export const dailyEntries = pgTable("daily_entries", {
   userId: varchar("user_id").notNull(),
   date: text("date").notNull(), // YYYY-MM-DD format
   habitCompletions: jsonb("habit_completions").notNull().default({}), // { habitId: boolean }
+  subtaskCompletions: jsonb("subtask_completions").notNull().default({}), // { subtaskId: boolean }
   punctualityScore: integer("punctuality_score").notNull().default(3),
   adherenceScore: integer("adherence_score").notNull().default(3),
   notes: text("notes").default(""),
@@ -108,6 +109,16 @@ export const streaks = pgTable("streaks", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const subtasks = pgTable("subtasks", {
+  id: serial("id").primaryKey(),
+  habitId: integer("habit_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  name: text("name").notNull(),
+  order: integer("order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertHabitSchema = createInsertSchema(habits).omit({
   id: true,
   createdAt: true,
@@ -140,6 +151,11 @@ export const insertStreakSchema = createInsertSchema(streaks).omit({
   updatedAt: true,
 });
 
+export const insertSubtaskSchema = createInsertSchema(subtasks).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertHabit = z.infer<typeof insertHabitSchema>;
 export type Habit = typeof habits.$inferSelect;
 
@@ -157,6 +173,9 @@ export type Achievement = typeof achievements.$inferSelect;
 
 export type InsertStreak = z.infer<typeof insertStreakSchema>;
 export type Streak = typeof streaks.$inferSelect;
+
+export type InsertSubtask = z.infer<typeof insertSubtaskSchema>;
+export type Subtask = typeof subtasks.$inferSelect;
 
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;

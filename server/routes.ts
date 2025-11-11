@@ -7,7 +7,8 @@ import {
   insertWeeklyReviewSchema,
   insertSettingSchema,
   insertAchievementSchema,
-  insertStreakSchema
+  insertStreakSchema,
+  insertSubtaskSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { generateHabitSuggestions, generateWeeklyInsights, generateMotivationalMessage, analyzeHabitDifficulty } from "./ai";
@@ -119,11 +120,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/habits/:id/badge", isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
       const { badge } = req.body;
-      const habit = await storage.awardBadge(id, badge);
+      const habit = await storage.awardBadge(id, badge, userId);
       res.json(habit);
     } catch (error) {
       res.status(400).json({ error: error instanceof Error ? error.message : "Failed to award badge" });
+    }
+  });
+
+  // Subtasks routes
+  app.get("/api/subtasks/:habitId", isAuthenticated, async (req: any, res) => {
+    try {
+      const habitId = parseInt(req.params.habitId);
+      const userId = req.user.claims.sub;
+      const subtasks = await storage.getSubtasks(habitId, userId);
+      res.json(subtasks);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('access denied')) {
+        res.status(403).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: "Failed to fetch subtasks" });
+      }
+    }
+  });
+
+  app.post("/api/subtasks", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const subtaskData = insertSubtaskSchema.parse({ ...req.body, userId });
+      const subtask = await storage.createSubtask(subtaskData);
+      res.json(subtask);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid subtask data", details: error.errors });
+      } else if (error instanceof Error && error.message.includes('access denied')) {
+        res.status(403).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: "Failed to create subtask" });
+      }
+    }
+  });
+
+  app.put("/api/subtasks/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      // Parse the request body but exclude sensitive fields
+      const parsedData = insertSubtaskSchema.partial().parse(req.body);
+      
+      // Never allow changing userId - force it to authenticated user
+      const { userId: _, habitId: reqHabitId, ...safeData } = parsedData;
+      
+      // Build the final update data
+      const updateData: Partial<typeof parsedData> = { ...safeData };
+      
+      // If habitId is being changed, verify the new habit belongs to the user
+      if (reqHabitId !== undefined) {
+        const habit = await storage.getHabitById(reqHabitId, userId);
+        if (!habit) {
+          res.status(403).json({ error: "Cannot move subtask to a habit you don't own" });
+          return;
+        }
+        updateData.habitId = reqHabitId;
+      }
+      
+      const subtask = await storage.updateSubtask(id, updateData, userId);
+      res.json(subtask);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid subtask data", details: error.errors });
+      } else if (error instanceof Error && error.message.includes('access denied')) {
+        res.status(403).json({ error: error.message });
+      } else {
+        res.status(404).json({ error: "Subtask not found" });
+      }
+    }
+  });
+
+  app.delete("/api/subtasks/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      await storage.deleteSubtask(id, userId);
+      res.json({ message: "Subtask deleted successfully" });
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('access denied')) {
+        res.status(403).json({ error: error.message });
+      } else {
+        res.status(404).json({ error: "Subtask not found" });
+      }
     }
   });
 
@@ -429,7 +516,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const dailyEntries = await storage.getDailyEntries(userId, startDate);
       const completionData = dailyEntries.map(entry => ({
         date: entry.date,
-        completed: entry.habitCompletions?.[habitId] || false
+        completed: (entry.habitCompletions as Record<number, boolean>)?.[habitId] || false
       }));
 
       const analysis = await analyzeHabitDifficulty(habit, completionData);
