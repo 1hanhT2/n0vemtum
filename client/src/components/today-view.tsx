@@ -68,7 +68,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     useCallback((entryData: any) => {
       debouncedSaveInternal(entryData, dailyEntry);
     }, [debouncedSaveInternal, dailyEntry]), 
-    500
+    1500
   );
   const { data: currentStreak } = isGuestMode
     ? { data: getMockStreak('daily_completion') }
@@ -370,23 +370,13 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     // Save to temporary storage with updated notes
     saveTemporaryCompletions(habitCompletions, punctualityScore[0], adherenceScore[0], newNotes);
 
-    // Trigger auto-save
-    setAutoSaveStatus('saving');
+    // Only trigger debounced save, don't set status immediately
     debouncedSave({
       habitCompletions,
       punctualityScore: punctualityScore[0],
       adherenceScore: adherenceScore[0],
       notes: newNotes,
     });
-
-    setTimeout(() => {
-      if (updateDailyEntry.isPending || createDailyEntry.isPending) {
-        setAutoSaveStatus('saving');
-      } else {
-        setAutoSaveStatus('saved');
-        setTimeout(() => setAutoSaveStatus('idle'), 2000);
-      }
-    }, 500);
   };
 
   if (habitsLoading || entryLoading) {
