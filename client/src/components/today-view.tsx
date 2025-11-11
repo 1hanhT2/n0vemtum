@@ -369,13 +369,16 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     setNotes(newNotes);
     // Save to temporary storage with updated notes
     saveTemporaryCompletions(habitCompletions, punctualityScore[0], adherenceScore[0], newNotes);
+  };
 
-    // Only trigger debounced save, don't set status immediately
+  const handleNotesBlur = () => {
+    if (isDayCompleted) return;
+    // Only save when user stops typing (loses focus)
     debouncedSave({
       habitCompletions,
       punctualityScore: punctualityScore[0],
       adherenceScore: adherenceScore[0],
-      notes: newNotes,
+      notes,
     });
   };
 
@@ -614,6 +617,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
           <Textarea
             value={notes}
             onChange={(e) => handleNotesChange(e.target.value)}
+            onBlur={handleNotesBlur}
             placeholder="Add your thoughts, wins, or observations for today..."
             disabled={isDayCompleted}
             className="min-h-[200px] resize-y"
