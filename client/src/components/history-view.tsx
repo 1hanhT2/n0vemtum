@@ -13,6 +13,7 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Eye, CheckCircle, 
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { getMockHabits } from "@/lib/mockData";
+import ReactMarkdown from 'react-markdown';
 
 interface HistoryViewProps {
   isGuestMode?: boolean;
@@ -445,10 +446,10 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg prose prose-sm dark:prose-invert max-w-none">
+                          <ReactMarkdown className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                             {selectedEntry.notes}
-                          </p>
+                          </ReactMarkdown>
                         </div>
                       </CardContent>
                     </Card>
