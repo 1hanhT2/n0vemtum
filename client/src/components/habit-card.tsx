@@ -30,6 +30,8 @@ interface HabitCardProps {
   date: string;
   isCompleted?: boolean;
   onToggle?: (habitId: number, completed: boolean) => void;
+  subtaskCount?: number;
+  completedSubtaskCount?: number;
 }
 
 const tierColors = {
@@ -48,10 +50,21 @@ const tierEmojis = {
   diamond: '💍',
 };
 
-export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitCardProps) {
-  const [checked, setChecked] = useState(isCompleted);
+export function HabitCard({ habit, date, isCompleted = false, onToggle, subtaskCount = 0, completedSubtaskCount = 0 }: HabitCardProps) {
+  const hasSubtasks = subtaskCount > 0;
+  const subtaskCompletionPercentage = hasSubtasks ? (completedSubtaskCount / subtaskCount) * 100 : 0;
+  
+  // For habits with subtasks, consider completed if all subtasks are done
+  const effectivelyCompleted = hasSubtasks 
+    ? completedSubtaskCount === subtaskCount 
+    : isCompleted;
+  
+  const [checked, setChecked] = useState(effectivelyCompleted);
 
   const handleToggleInternal = (value: boolean) => {
+    // Only allow toggling if there are no subtasks
+    if (hasSubtasks) return;
+    
     setChecked(value);
     onToggle?.(habit.id, value);
   };
@@ -78,16 +91,19 @@ export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitC
           : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
       }`}>
         <div className="flex items-center space-x-4">
-          {/* Large touch-friendly checkbox */}
+          {/* Large touch-friendly checkbox or progress indicator */}
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: hasSubtasks ? 1 : 1.05 }}
+            whileTap={{ scale: hasSubtasks ? 1 : 0.95 }}
             onClick={() => handleToggle(!checked)}
-            className={`w-12 h-12 rounded-full border-2 transition-all duration-200 touch-target flex items-center justify-center ${
+            disabled={hasSubtasks}
+            className={`w-12 h-12 rounded-full border-2 transition-all duration-200 touch-target flex items-center justify-center relative ${
               checked
                 ? 'bg-green-500 border-green-500 text-white shadow-lg'
+                : hasSubtasks && subtaskCompletionPercentage > 0
+                ? 'border-blue-400 dark:border-blue-500'
                 : 'border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500'
-            }`}
+            } ${hasSubtasks ? 'cursor-default' : 'cursor-pointer'}`}
           >
             {checked && (
               <motion.div
@@ -98,6 +114,11 @@ export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitC
               >
                 ✓
               </motion.div>
+            )}
+            {hasSubtasks && !checked && subtaskCompletionPercentage > 0 && (
+              <div className="text-xs font-bold text-blue-600 dark:text-blue-400">
+                {Math.round(subtaskCompletionPercentage)}%
+              </div>
             )}
           </motion.button>
           
