@@ -255,7 +255,6 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     // Trigger auto-save
     setAutoSaveStatus('saving');
     debouncedSave({
-      date: today,
       habitCompletions: newCompletions,
       punctualityScore: newScore,
       adherenceScore: newScore,
@@ -351,7 +350,6 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     // Trigger auto-save
     setAutoSaveStatus('saving');
     debouncedSave({
-      date: today,
       habitCompletions,
       punctualityScore: newPunctuality[0],
       adherenceScore: newAdherence[0],
@@ -373,12 +371,24 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     setNotes(newNotes);
     // Save to temporary storage with updated notes
     saveTemporaryCompletions(habitCompletions, punctualityScore[0], adherenceScore[0], newNotes);
-  };
 
-  const handleNotesBlur = () => {
-    if (isDayCompleted) return;
-    // Save to temporary storage when user leaves the notes field
-    saveTemporaryCompletions(habitCompletions, punctualityScore[0], adherenceScore[0], notes);
+    // Trigger auto-save
+    setAutoSaveStatus('saving');
+    debouncedSave({
+      habitCompletions,
+      punctualityScore: punctualityScore[0],
+      adherenceScore: adherenceScore[0],
+      notes: newNotes,
+    });
+
+    setTimeout(() => {
+      if (updateDailyEntry.isPending || createDailyEntry.isPending) {
+        setAutoSaveStatus('saving');
+      } else {
+        setAutoSaveStatus('saved');
+        setTimeout(() => setAutoSaveStatus('idle'), 2000);
+      }
+    }, 500);
   };
 
   if (habitsLoading || entryLoading) {
