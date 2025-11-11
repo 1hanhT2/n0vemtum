@@ -255,6 +255,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     // Trigger auto-save
     setAutoSaveStatus('saving');
     debouncedSave({
+      date: today,
       habitCompletions: newCompletions,
       punctualityScore: newScore,
       adherenceScore: newScore,
@@ -350,6 +351,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     // Trigger auto-save
     setAutoSaveStatus('saving');
     debouncedSave({
+      date: today,
       habitCompletions,
       punctualityScore: newPunctuality[0],
       adherenceScore: newAdherence[0],
@@ -375,6 +377,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     // Trigger auto-save
     setAutoSaveStatus('saving');
     debouncedSave({
+      date: today,
       habitCompletions,
       punctualityScore: punctualityScore[0],
       adherenceScore: adherenceScore[0],
