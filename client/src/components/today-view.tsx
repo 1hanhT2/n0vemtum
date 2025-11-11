@@ -377,24 +377,8 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
 
   const handleNotesBlur = () => {
     if (isDayCompleted) return;
-    // Trigger auto-save only when user leaves the notes field
-    setAutoSaveStatus('saving');
-    debouncedSave({
-      date: today,
-      habitCompletions,
-      punctualityScore: punctualityScore[0],
-      adherenceScore: adherenceScore[0],
-      notes,
-    });
-
-    setTimeout(() => {
-      if (updateDailyEntry.isPending || createDailyEntry.isPending) {
-        setAutoSaveStatus('saving');
-      } else {
-        setAutoSaveStatus('saved');
-        setTimeout(() => setAutoSaveStatus('idle'), 2000);
-      }
-    }, 500);
+    // Save to temporary storage when user leaves the notes field
+    saveTemporaryCompletions(habitCompletions, punctualityScore[0], adherenceScore[0], notes);
   };
 
   if (habitsLoading || entryLoading) {
@@ -632,9 +616,6 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
           <SimpleMDE
             value={notes}
             onChange={(value) => handleNotesChange(value)}
-            events={{
-              blur: handleNotesBlur
-            }}
             options={{
               spellChecker: false,
               placeholder: "Add your thoughts, wins, or observations for today...\n\nTip: Use markdown formatting:\n- **bold text**\n- *italic text*\n- # Heading\n- - List item",
