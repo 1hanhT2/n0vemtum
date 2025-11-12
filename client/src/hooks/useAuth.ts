@@ -12,6 +12,11 @@ export function useAuth() {
   // If there's an unauthorized error, assume not authenticated
   const isUnauthorized = error && /401.*Unauthorized/.test(error.message);
 
+  // Redirect to login if unauthorized and we're on a protected route
+  if (isUnauthorized && window.location.pathname.startsWith('/app')) {
+    window.location.href = '/api/login';
+  }
+
   return {
     user,
     isLoading: isLoading && !isUnauthorized,

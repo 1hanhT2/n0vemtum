@@ -23,6 +23,8 @@ import { useToast } from "@/hooks/use-toast";
 import { X, Plus, Trash2, Sparkles, User, Mail, Calendar, Hash } from "lucide-react";
 import { getMockHabits } from "@/lib/mockData";
 import { usePendingProtection } from "@/hooks/use-debounce";
+import { useQueryClient } from "@tanstack/react-query";
+
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -42,6 +44,8 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
   const { data: aiSuggestions, isLoading: suggestionsLoading } = isGuestMode
     ? { data: ["Try morning journaling", "Practice gratitude daily", "Take evening walks"], isLoading: false }
     : useHabitSuggestions();
+  const queryClient = useQueryClient();
+
 
   const [habitSettings, setHabitSettings] = useState<Array<{ id: number; name: string; emoji: string; isNew?: boolean }>>([]);
   const [selectedTheme, setSelectedTheme] = useState('blue');
@@ -60,7 +64,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
         emoji: habit.emoji,
       })));
     }
-    
+
     // Load saved preferences
     const savedTheme = localStorage.getItem('theme') || 'blue';
     const savedMode = localStorage.getItem('darkMode') === 'true';
@@ -71,20 +75,20 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
 
   const applyTheme = (theme: string, darkMode: boolean) => {
     const root = document.documentElement;
-    
+
     // Apply dark/light mode
     if (darkMode) {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
-    
+
     // Remove existing theme classes
     root.classList.remove('theme-blue', 'theme-green', 'theme-purple', 'theme-orange', 'theme-red');
-    
+
     // Add new theme class
     root.classList.add(`theme-${theme}`);
-    
+
     // Smart contrast theme colors optimized for accessibility
     switch (theme) {
       case 'green':
@@ -121,7 +125,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
       localStorage.setItem('theme', selectedTheme);
       localStorage.setItem('darkMode', isDarkMode.toString());
       applyTheme(selectedTheme, isDarkMode);
-      
+
       toast({
         title: "Demo Mode",
         description: "Settings saved locally. Sign in to sync across devices.",
@@ -135,7 +139,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
     const invalidHabits = habitSettings.filter(habit => 
       !habit.name.trim() || habit.name.length > 50
     );
-    
+
     if (invalidHabits.length > 0) {
       toast({
         title: "Invalid habit names",
@@ -166,21 +170,21 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
       }
 
       // Save theme and mode to database for cross-device sync
-      await setSetting.mutateAsync({ key: 'theme', value: selectedTheme });
-      await setSetting.mutateAsync({ key: 'darkMode', value: isDarkMode.toString() });
-      
+      // await setSetting.mutateAsync({ key: 'theme', value: selectedTheme });
+      // await setSetting.mutateAsync({ key: 'darkMode', value: isDarkMode.toString() });
+
       // Also save to localStorage for immediate access
       localStorage.setItem('theme', selectedTheme);
       localStorage.setItem('darkMode', isDarkMode.toString());
-      
+
       // Apply theme
       applyTheme(selectedTheme, isDarkMode);
-      
+
       toast({
         title: "Settings saved successfully!",
         description: "Your preferences are synced across all devices.",
       });
-      
+
       onClose();
     } catch (error) {
       toast({
@@ -188,7 +192,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
         description: "Changes saved locally. Will sync when connection is restored.",
         variant: "default",
       });
-      
+
       // Fallback to localStorage
       localStorage.setItem('theme', selectedTheme);
       localStorage.setItem('darkMode', isDarkMode.toString());
@@ -205,7 +209,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
           localStorage.removeItem(key);
         }
       });
-      
+
       toast({
         title: "Demo Data Cleared",
         description: "Local demo data has been reset. Sign in to use cloud storage.",
@@ -215,7 +219,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
     }
 
     setShowResetDialog(false);
-    
+
     try {
       const response = await fetch('/api/reset-data', {
         method: 'POST',
@@ -224,26 +228,59 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
         },
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to reset data');
       }
-      
+
       toast({
         title: "Data Reset Complete",
         description: "All your data has been permanently deleted. You will be logged out.",
         variant: "default",
       });
-      
+
       // Log out user and redirect to landing page
       setTimeout(() => {
         window.location.href = '/';
       }, 2000);
-      
+
     } catch (error) {
       console.error('Reset data error:', error);
       toast({
         title: "Reset Failed",
+        description: "Failed to reset data. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const [isResettingData, setIsResettingData] = useState(false);
+  const handleResetData = async () => {
+    if (isResettingData) return;
+
+    setIsResettingData(true);
+    try {
+      const response = await fetch('/api/reset-data', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to reset data');
+      }
+
+      // Clear all local storage and cache immediately
+      localStorage.clear();
+      sessionStorage.clear();
+      queryClient.clear();
+
+      // Immediately redirect to logout - don't wait for state updates
+      window.location.href = '/api/logout';
+    } catch (error) {
+      console.error('Error resetting data:', error);
+      setIsResettingData(false);
+      toast({
+        title: "Error",
         description: "Failed to reset data. Please try again.",
         variant: "destructive",
       });
@@ -262,7 +299,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
       });
       return;
     }
-    
+
     if (field === 'emoji' && value.length > 4) {
       value = value.slice(0, 4); // Limit emoji length
     }
@@ -395,7 +432,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
               </Card>
             </div>
           )}
-          
+
           {/* Habit Names */}
           <div>
             <div className="flex items-center justify-between mb-4">
@@ -467,7 +504,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
           {/* Appearance Settings */}
           <div>
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">🎨 Appearance</h3>
-            
+
             {/* Dark/Light Mode Toggle */}
             <div className="mb-4">
               <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-xl transition-all duration-200 hover:dark:bg-gray-700">
