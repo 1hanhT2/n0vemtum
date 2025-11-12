@@ -53,50 +53,49 @@ export function SubtaskManager({
   const completedCount = activeSubtasks.filter(st => subtaskCompletions[st.id]).length;
 
   if (isLoading) return null;
-  
-  // Don't show anything if there are no subtasks
-  if (activeSubtasks.length === 0) return null;
 
   return (
     <div className="mt-3 space-y-2">
-      <AnimatePresence>
-        {activeSubtasks.map((subtask) => (
-          <motion.div
-            key={subtask.id}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="flex items-center gap-2 pl-6 group"
-          >
-            <Checkbox
-              data-testid={`checkbox-subtask-${subtask.id}`}
-              checked={subtaskCompletions[subtask.id] || false}
-              onCheckedChange={(checked) => onSubtaskToggle(subtask.id, checked as boolean, habitId, activeSubtasks.length, completedCount)}
-              disabled={isDayCompleted}
-              className="h-4 w-4"
-            />
-            <span className={`text-sm flex-1 ${subtaskCompletions[subtask.id] ? 'line-through text-muted-foreground' : ''}`}>
-              {subtask.name}
-            </span>
-            {!isDayCompleted && !isGuestMode && (
-              <Button
-                data-testid={`button-delete-subtask-${subtask.id}`}
-                variant="ghost"
-                size="sm"
-                onClick={() => handleDeleteSubtask(subtask.id)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            )}
-          </motion.div>
-        ))}
-      </AnimatePresence>
-
       {activeSubtasks.length > 0 && (
-        <div className="pl-6 text-xs text-muted-foreground">
-          {completedCount} / {activeSubtasks.length} completed
-        </div>
+        <>
+          <AnimatePresence>
+            {activeSubtasks.map((subtask) => (
+              <motion.div
+                key={subtask.id}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="flex items-center gap-2 pl-6 group"
+              >
+                <Checkbox
+                  data-testid={`checkbox-subtask-${subtask.id}`}
+                  checked={subtaskCompletions[subtask.id] || false}
+                  onCheckedChange={(checked) => onSubtaskToggle(subtask.id, checked as boolean, habitId, activeSubtasks.length, completedCount)}
+                  disabled={isDayCompleted}
+                  className="h-4 w-4"
+                />
+                <span className={`text-sm flex-1 ${subtaskCompletions[subtask.id] ? 'line-through text-muted-foreground' : ''}`}>
+                  {subtask.name}
+                </span>
+                {!isDayCompleted && !isGuestMode && (
+                  <Button
+                    data-testid={`button-delete-subtask-${subtask.id}`}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteSubtask(subtask.id)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          <div className="pl-6 text-xs text-muted-foreground">
+            {completedCount} / {activeSubtasks.length} completed
+          </div>
+        </>
       )}
 
       {!isDayCompleted && (
