@@ -254,39 +254,6 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
     }
   };
 
-  const [isResettingData, setIsResettingData] = useState(false);
-  const handleResetData = async () => {
-    if (isResettingData) return;
-
-    setIsResettingData(true);
-    try {
-      const response = await fetch('/api/reset-data', {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to reset data');
-      }
-
-      // Clear all local storage and cache immediately
-      localStorage.clear();
-      sessionStorage.clear();
-      queryClient.clear();
-
-      // Immediately redirect to logout - don't wait for state updates
-      window.location.href = '/api/logout';
-    } catch (error) {
-      console.error('Error resetting data:', error);
-      setIsResettingData(false);
-      toast({
-        title: "Error",
-        description: "Failed to reset data. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const [handleResetData, isResettingData] = usePendingProtection(handleResetDataInternal);
 
   const updateHabitSetting = (id: number, field: 'name' | 'emoji', value: string) => {
