@@ -67,12 +67,42 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     const existingEntry = dailyEntryRef.current;
     if (existingEntry) {
       console.log('Auto-save: Updating existing daily entry for', today, entryData);
-      updateDailyEntry.mutate({ date: today, ...entryData });
+      updateDailyEntry.mutate({ date: today, ...entryData }, {
+        onSuccess: () => {
+          console.log('Auto-save: Update successful');
+          setAutoSaveStatus('saved');
+          setTimeout(() => setAutoSaveStatus('idle'), 2000);
+        },
+        onError: (error) => {
+          console.error('Auto-save: Update failed', error);
+          setAutoSaveStatus('error');
+          toast({
+            title: "Auto-save Failed",
+            description: "Could not save your changes. Please try again.",
+            variant: "destructive",
+          });
+        }
+      });
     } else {
       console.log('Auto-save: Creating new daily entry for', today, entryData);
-      createDailyEntry.mutate(entryData);
+      createDailyEntry.mutate({ userId: 'current', date: today, ...entryData }, {
+        onSuccess: () => {
+          console.log('Auto-save: Create successful');
+          setAutoSaveStatus('saved');
+          setTimeout(() => setAutoSaveStatus('idle'), 2000);
+        },
+        onError: (error) => {
+          console.error('Auto-save: Create failed', error);
+          setAutoSaveStatus('error');
+          toast({
+            title: "Auto-save Failed",
+            description: "Could not save your changes. Please try again.",
+            variant: "destructive",
+          });
+        }
+      });
     }
-  }, [today, updateDailyEntry, createDailyEntry]); // Dependencies that are stable
+  }, [today, updateDailyEntry, createDailyEntry, toast]); // Dependencies that are stable
 
   const debouncedSave = useDebounce(debouncedSaveInternal, 1500);
   const { data: currentStreak } = isGuestMode

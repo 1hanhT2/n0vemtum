@@ -38,16 +38,28 @@ export function useCreateDailyEntry() {
   
   return useMutation({
     mutationFn: async (entry: InsertDailyEntry) => {
+      console.log('useCreateDailyEntry: Sending request with data:', entry);
       const response = await apiRequest("/api/daily-entries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(entry)
       });
-      return response.json();
+      if (!response.ok) {
+        const error = await response.text();
+        console.error('useCreateDailyEntry: API error:', error);
+        throw new Error(error);
+      }
+      const data = await response.json();
+      console.log('useCreateDailyEntry: Success response:', data);
+      return data;
     },
     onSuccess: (data) => {
+      console.log('useCreateDailyEntry: onSuccess callback with data:', data);
       queryClient.invalidateQueries({ queryKey: ["/api/daily-entries"] });
       queryClient.setQueryData(["/api/daily-entries", data.date], data);
+    },
+    onError: (error) => {
+      console.error('useCreateDailyEntry: Mutation error:', error);
     },
   });
 }
@@ -57,14 +69,23 @@ export function useUpdateDailyEntry() {
   
   return useMutation({
     mutationFn: async ({ date, ...entry }: Partial<InsertDailyEntry> & { date: string }) => {
+      console.log('useUpdateDailyEntry: Sending request for date:', date, 'with data:', entry);
       const response = await apiRequest(`/api/daily-entries/${date}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(entry)
       });
-      return response.json();
+      if (!response.ok) {
+        const error = await response.text();
+        console.error('useUpdateDailyEntry: API error:', error);
+        throw new Error(error);
+      }
+      const data = await response.json();
+      console.log('useUpdateDailyEntry: Success response:', data);
+      return data;
     },
     onMutate: async ({ date, ...entry }) => {
+      console.log('useUpdateDailyEntry: onMutate for date:', date);
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ["/api/daily-entries", date] });
       
@@ -81,12 +102,14 @@ export function useUpdateDailyEntry() {
       return { previousEntry, date };
     },
     onError: (err, variables, context: any) => {
+      console.error('useUpdateDailyEntry: Mutation error:', err);
       // Rollback on error
       if (context?.previousEntry) {
         queryClient.setQueryData(["/api/daily-entries", context.date], context.previousEntry);
       }
     },
     onSuccess: (data) => {
+      console.log('useUpdateDailyEntry: onSuccess callback with data:', data);
       queryClient.invalidateQueries({ queryKey: ["/api/daily-entries"] });
       queryClient.setQueryData(["/api/daily-entries", data.date], data);
     },
