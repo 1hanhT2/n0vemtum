@@ -21,6 +21,7 @@ import { useMotivationalMessage } from "@/hooks/use-ai";
 import { getCurrentDateKey, formatDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
@@ -45,6 +46,7 @@ interface TodayViewProps {
 export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const { toast } = useToast();
   const today = getCurrentDateKey();
+  const { user } = useAuth();
 
   const { data: habits, isLoading: habitsLoading, error: habitsError } = isGuestMode 
     ? { data: getMockHabits(), isLoading: false, error: null }
@@ -84,8 +86,12 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         }
       });
     } else {
-      console.log('Auto-save: Creating new daily entry for', today, entryData);
-      createDailyEntry.mutate({ userId: 'current', date: today, ...entryData }, {
+      if (!user?.id) {
+        console.error('Auto-save: Cannot create entry - user not authenticated');
+        return;
+      }
+      console.log('Auto-save: Creating new daily entry for', today, 'user:', user.id, entryData);
+      createDailyEntry.mutate({ userId: user.id, date: today, ...entryData }, {
         onSuccess: () => {
           console.log('Auto-save: Create successful');
           setAutoSaveStatus('saved');
@@ -102,7 +108,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         }
       });
     }
-  }, [today, updateDailyEntry, createDailyEntry, toast]); // Dependencies that are stable
+  }, [today, updateDailyEntry, createDailyEntry, toast, user]); // Dependencies that are stable
 
   const debouncedSave = useDebounce(debouncedSaveInternal, 1500);
   const { data: currentStreak } = isGuestMode
