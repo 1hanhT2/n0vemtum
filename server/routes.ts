@@ -428,29 +428,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Clear current month's data
-  app.post("/api/clear-month-data", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const { year, month } = req.body;
-      
-      // Validate inputs
-      if (typeof year !== 'number' || typeof month !== 'number') {
-        return res.status(400).json({ error: "Year and month must be numbers" });
-      }
-      
-      if (month < 1 || month > 12) {
-        return res.status(400).json({ error: "Month must be between 1 and 12" });
-      }
-      
-      await storage.clearMonthData(userId, year, month);
-      res.json({ message: `Data for ${year}-${month} cleared successfully` });
-    } catch (error) {
-      console.error("Failed to clear month data:", error);
-      res.status(500).json({ error: "Failed to clear month data" });
-    }
-  });
-
   // Data reset route
   app.post("/api/reset-data", isAuthenticated, async (req: any, res) => {
     try {

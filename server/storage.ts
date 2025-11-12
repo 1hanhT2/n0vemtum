@@ -84,7 +84,6 @@ export interface IStorage {
   // Data management
   resetAllData(): Promise<void>;
   resetUserData(userId: string): Promise<void>;
-  clearMonthData(userId: string, month: string): Promise<void>; // Added for clearing month data
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1177,33 +1176,6 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error(`Failed to reset data for user ${userId}:`, error);
       throw new Error('Failed to reset user data');
-    }
-  }
-
-  // New function to clear data for a specific month
-  async clearMonthData(userId: string, month: string): Promise<void> {
-    await this.ensureInitialized();
-    try {
-      // month is in 'YYYY-MM' format
-      const startDate = `${month}-01`;
-      const endDate = `${month}-${new Date(new Date(startDate).getFullYear(), new Date(startDate).getMonth() + 1, 0).getDate()}`;
-
-      // Delete entries within the specified month
-      await db.delete(dailyEntries).where(
-        and(
-          eq(dailyEntries.userId, userId),
-          gte(dailyEntries.date, startDate),
-          lte(dailyEntries.date, endDate)
-        )
-      );
-
-      // Optionally, you might want to clear weekly reviews or other data that spans months.
-      // For now, we'll focus on dailyEntries as per the request's implication.
-
-      console.log(`Cleared data for user ${userId} for the month of ${month}`);
-    } catch (error) {
-      console.error(`Failed to clear data for user ${userId} for month ${month}:`, error);
-      throw new Error('Failed to clear month data');
     }
   }
 }
