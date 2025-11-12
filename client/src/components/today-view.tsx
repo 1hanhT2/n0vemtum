@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,21 +56,25 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const createDailyEntry = useCreateDailyEntry();
   const updateDailyEntry = useUpdateDailyEntry();
 
+  // Use a ref to track the latest dailyEntry without causing re-renders
+  const dailyEntryRef = useRef(dailyEntry);
+  useEffect(() => {
+    dailyEntryRef.current = dailyEntry;
+  }, [dailyEntry]);
+
   // Debounced save function to prevent excessive API calls - memoized to prevent recreating
-  const debouncedSaveInternal = useCallback((entryData: any, existingEntry: typeof dailyEntry) => {
+  const debouncedSaveInternal = useCallback((entryData: any) => {
+    const existingEntry = dailyEntryRef.current;
     if (existingEntry) {
+      console.log('Auto-save: Updating existing daily entry for', today, entryData);
       updateDailyEntry.mutate({ date: today, ...entryData });
     } else {
+      console.log('Auto-save: Creating new daily entry for', today, entryData);
       createDailyEntry.mutate(entryData);
     }
   }, [today, updateDailyEntry, createDailyEntry]); // Dependencies that are stable
 
-  const debouncedSave = useDebounce(
-    useCallback((entryData: any) => {
-      debouncedSaveInternal(entryData, dailyEntry);
-    }, [debouncedSaveInternal, dailyEntry]), 
-    1500
-  );
+  const debouncedSave = useDebounce(debouncedSaveInternal, 1500);
   const { data: currentStreak } = isGuestMode
     ? { data: getMockStreak('daily_completion') }
     : useStreak('daily_completion');
