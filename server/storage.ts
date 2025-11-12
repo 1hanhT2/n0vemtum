@@ -1,13 +1,13 @@
-import { 
-  habits, 
-  dailyEntries, 
-  weeklyReviews, 
+import {
+  habits,
+  dailyEntries,
+  weeklyReviews,
   settings,
   achievements,
   streaks,
   users,
   subtasks,
-  type Habit, 
+  type Habit,
   type InsertHabit,
   type DailyEntry,
   type InsertDailyEntry,
@@ -31,7 +31,7 @@ export interface IStorage {
   // User operations (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
-  
+
   // Habits
   getHabits(userId: string): Promise<Habit[]>;
   getHabitById(id: number, userId: string): Promise<Habit | undefined>;
@@ -39,14 +39,14 @@ export interface IStorage {
   updateHabit(id: number, habit: Partial<InsertHabit>, userId: string): Promise<Habit>;
   updateHabitDifficulty(id: number, difficulty: number, analysis: string, userId: string): Promise<Habit>;
   deleteHabit(id: number, userId: string): Promise<void>;
-  
+
   // Subtasks
   getSubtasks(habitId: number, userId: string): Promise<Subtask[]>;
   getSubtaskById(id: number, userId: string): Promise<Subtask | undefined>;
   createSubtask(subtask: InsertSubtask): Promise<Subtask>;
   updateSubtask(id: number, subtask: Partial<InsertSubtask>, userId: string): Promise<Subtask>;
   deleteSubtask(id: number, userId: string): Promise<void>;
-  
+
   // Gamification
   updateHabitProgress(habitId: number, completed: boolean, date: string, userId?: string): Promise<Habit>;
   levelUpHabit(habitId: number, userId: string): Promise<Habit>;
@@ -114,11 +114,11 @@ export class DatabaseStorage implements IStorage {
         },
       })
       .returning();
-    
+
     // Initialize achievements for new or existing users
     console.log(`User upserted: ${user.id}, initializing achievements`);
     await this.initializeAchievements(user.id);
-    
+
     return user;
   }
 
@@ -155,11 +155,11 @@ export class DatabaseStorage implements IStorage {
   async getHabits(userId: string): Promise<Habit[]> {
     await this.ensureInitialized();
     const userHabits = await db.select().from(habits).where(eq(habits.userId, userId)).orderBy(habits.order);
-    
+
     // Check and reset streaks if habits haven't been completed recently
     const today = new Date().toISOString().split('T')[0];
     const yesterday = this.getPreviousDate(today);
-    
+
     const updatedHabits = await Promise.all(userHabits.map(async (habit) => {
       // If the habit wasn't completed yesterday or today, the streak should be reset
       if (habit.streak > 0 && habit.lastCompleted !== today && habit.lastCompleted !== yesterday) {
@@ -173,7 +173,7 @@ export class DatabaseStorage implements IStorage {
       }
       return habit;
     }));
-    
+
     return updatedHabits;
   }
 
@@ -181,11 +181,11 @@ export class DatabaseStorage implements IStorage {
     await this.ensureInitialized();
     const [habit] = await db.select().from(habits).where(and(eq(habits.id, id), eq(habits.userId, userId)));
     if (!habit) return undefined;
-    
+
     // Check and reset streak if habit hasn't been completed recently
     const today = new Date().toISOString().split('T')[0];
     const yesterday = this.getPreviousDate(today);
-    
+
     // If the habit wasn't completed yesterday or today, the streak should be reset
     if (habit.streak > 0 && habit.lastCompleted !== today && habit.lastCompleted !== yesterday) {
       // Reset the streak in the database
@@ -196,7 +196,7 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return updated;
     }
-    
+
     return habit;
   }
 
@@ -216,7 +216,7 @@ export class DatabaseStorage implements IStorage {
       .set(updateData)
       .where(and(eq(habits.id, id), eq(habits.userId, userId)))
       .returning();
-    
+
     if (!habit) {
       throw new Error(`Habit with id ${id} not found`);
     }
@@ -227,14 +227,14 @@ export class DatabaseStorage implements IStorage {
     await this.ensureInitialized();
     const [habit] = await db
       .update(habits)
-      .set({ 
-        difficultyRating: difficulty, 
+      .set({
+        difficultyRating: difficulty,
         aiAnalysis: analysis,
         lastAnalyzed: new Date()
       })
       .where(and(eq(habits.id, id), eq(habits.userId, userId)))
       .returning();
-    
+
     if (!habit) {
       throw new Error(`Habit with id ${id} not found`);
     }
@@ -243,14 +243,14 @@ export class DatabaseStorage implements IStorage {
 
   async deleteHabit(id: number, userId: string): Promise<void> {
     await this.ensureInitialized();
-    
+
     // Delete all subtasks associated with this habit first (with user verification)
     await db.delete(subtasks).where(and(eq(subtasks.habitId, id), eq(subtasks.userId, userId)));
-    
+
     const result = await db
       .delete(habits)
       .where(and(eq(habits.id, id), eq(habits.userId, userId)));
-    
+
     if (result.rowCount === 0) {
       throw new Error(`Habit with id ${id} not found`);
     }
@@ -259,7 +259,7 @@ export class DatabaseStorage implements IStorage {
   // Subtasks
   async getSubtasks(habitId: number, userId: string): Promise<Subtask[]> {
     await this.ensureInitialized();
-    
+
     // No need for extra habit ownership check - filtering by userId is sufficient
     return await db
       .select()
@@ -279,13 +279,13 @@ export class DatabaseStorage implements IStorage {
 
   async createSubtask(insertSubtask: InsertSubtask): Promise<Subtask> {
     await this.ensureInitialized();
-    
+
     // Verify habit ownership using existing method
     const habit = await this.getHabitById(insertSubtask.habitId, insertSubtask.userId);
     if (!habit) {
       throw new Error(`Habit with id ${insertSubtask.habitId} not found or access denied`);
     }
-    
+
     const [subtask] = await db
       .insert(subtasks)
       .values(insertSubtask)
@@ -295,16 +295,16 @@ export class DatabaseStorage implements IStorage {
 
   async updateSubtask(id: number, updateData: Partial<InsertSubtask>, userId: string): Promise<Subtask> {
     await this.ensureInitialized();
-    
+
     // Never allow changing userId - remove it from update data if present
     const { userId: _, ...safeUpdateData } = updateData;
-    
+
     const [subtask] = await db
       .update(subtasks)
       .set(safeUpdateData)
       .where(and(eq(subtasks.id, id), eq(subtasks.userId, userId)))
       .returning();
-    
+
     if (!subtask) {
       throw new Error(`Subtask with id ${id} not found or access denied`);
     }
@@ -316,7 +316,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(subtasks)
       .where(and(eq(subtasks.id, id), eq(subtasks.userId, userId)));
-    
+
     if (result.rowCount === 0) {
       throw new Error(`Subtask with id ${id} not found or access denied`);
     }
@@ -334,17 +334,17 @@ export class DatabaseStorage implements IStorage {
 
   async getDailyEntries(userId: string, startDate?: string, endDate?: string): Promise<DailyEntry[]> {
     await this.ensureInitialized();
-    
+
     let whereConditions = [eq(dailyEntries.userId, userId)];
-    
+
     if (startDate) {
       whereConditions.push(gte(dailyEntries.date, startDate));
     }
-    
+
     if (endDate) {
       whereConditions.push(lte(dailyEntries.date, endDate));
     }
-    
+
     return await db
       .select()
       .from(dailyEntries)
@@ -384,7 +384,7 @@ export class DatabaseStorage implements IStorage {
         .set({ ...updateData, updatedAt: new Date() })
         .where(and(eq(dailyEntries.date, date), eq(dailyEntries.userId, userId)))
         .returning();
-      
+
       if (!entry) {
         throw new Error(`Daily entry for date ${date} not found`);
       }
@@ -438,7 +438,7 @@ export class DatabaseStorage implements IStorage {
       .set(updateData)
       .where(and(eq(weeklyReviews.weekStartDate, weekStartDate), eq(weeklyReviews.userId, userId)))
       .returning();
-    
+
     if (!review) {
       throw new Error(`Weekly review for week ${weekStartDate} not found`);
     }
@@ -460,7 +460,7 @@ export class DatabaseStorage implements IStorage {
 
   async setSetting(insertSetting: InsertSetting): Promise<Setting> {
     const existing = await this.getSetting(insertSetting.key, insertSetting.userId);
-    
+
     if (existing) {
       const [setting] = await db
         .update(settings)
@@ -480,7 +480,7 @@ export class DatabaseStorage implements IStorage {
   // Achievements
   async getAchievements(userId: string): Promise<Achievement[]> {
     await this.ensureInitialized();
-    
+
     // Check if achievements exist for this user
     const existingAchievements = await db.select().from(achievements).where(eq(achievements.userId, userId));
     if (existingAchievements.length === 0) {
@@ -488,42 +488,42 @@ export class DatabaseStorage implements IStorage {
       await this.initializeAchievements(userId);
       return await db.select().from(achievements).where(eq(achievements.userId, userId)).orderBy(achievements.createdAt);
     }
-    
+
     return existingAchievements.sort((a, b) => (a.createdAt?.getTime() || 0) - (b.createdAt?.getTime() || 0));
   }
 
   async unlockAchievement(id: number, userId: string): Promise<Achievement> {
     await this.ensureInitialized();
-    
+
     // First check if the achievement exists for this user
     const existingAchievement = await db
       .select()
       .from(achievements)
       .where(and(eq(achievements.id, id), eq(achievements.userId, userId)))
       .limit(1);
-    
+
     if (existingAchievement.length === 0) {
       console.warn(`Achievement with id ${id} not found for user ${userId}, skipping unlock`);
       return null as any; // Return null instead of throwing error
     }
-    
+
     // If already unlocked, return it
     if (existingAchievement[0].isUnlocked) {
       return existingAchievement[0];
     }
-    
+
     const [achievement] = await db
       .update(achievements)
       .set({ isUnlocked: true, unlockedAt: new Date() })
       .where(and(eq(achievements.id, id), eq(achievements.userId, userId)))
       .returning();
-    
+
     return achievement;
   }
 
   async initializeAchievements(userId: string): Promise<void> {
     await this.ensureInitialized();
-    
+
     // Check if achievements already exist for this specific user
     const existingAchievements = await db.select().from(achievements).where(eq(achievements.userId, userId));
     if (existingAchievements.length > 0) {
@@ -584,7 +584,7 @@ export class DatabaseStorage implements IStorage {
             badge: '🌟',
             requirement: 100,
           },
-          
+
           // Completion Achievements
           {
             type: 'completion',
@@ -607,7 +607,7 @@ export class DatabaseStorage implements IStorage {
             badge: '✅',
             requirement: 75,
           },
-          
+
           // Consistency Achievements
           {
             type: 'consistency',
@@ -630,7 +630,7 @@ export class DatabaseStorage implements IStorage {
             badge: '🧠',
             requirement: 25,
           },
-          
+
           // Milestone Achievements
           {
             type: 'milestone',
@@ -674,7 +674,7 @@ export class DatabaseStorage implements IStorage {
             badge: '🌈',
             requirement: 365,
           },
-          
+
           // Special Achievements
           {
             type: 'special',
@@ -747,7 +747,7 @@ export class DatabaseStorage implements IStorage {
   async updateStreak(type: string, streakData: Partial<InsertStreak>, userId: string): Promise<Streak> {
     await this.ensureInitialized();
     const existing = await this.getStreak(type, userId);
-    
+
     if (existing) {
       const [streak] = await db
         .update(streaks)
@@ -758,10 +758,10 @@ export class DatabaseStorage implements IStorage {
     } else {
       const [streak] = await db
         .insert(streaks)
-        .values({ 
-          type, 
+        .values({
+          type,
           userId,
-          ...streakData 
+          ...streakData
         })
         .returning();
       return streak;
@@ -782,7 +782,7 @@ export class DatabaseStorage implements IStorage {
       const yesterdayStr = yesterday.toISOString().split('T')[0];
 
       let newCurrentStreak = 1;
-      
+
       if (dailyStreak && dailyStreak.lastActiveDate === yesterdayStr) {
         newCurrentStreak = dailyStreak.currentStreak + 1;
       }
@@ -800,7 +800,7 @@ export class DatabaseStorage implements IStorage {
 
       // Check for achievement unlocks
       await this.checkAchievements(newCurrentStreak, todayEntry);
-      
+
     } catch (error) {
       console.error('Failed to calculate streaks:', error);
     }
@@ -809,21 +809,21 @@ export class DatabaseStorage implements IStorage {
   // Add gamification methods before checkAchievements
   async updateHabitProgress(habitId: number, completed: boolean, date: string, userId?: string): Promise<Habit> {
     await this.ensureInitialized();
-    
+
     // Get habit with userId in single query if not provided
     let effectiveUserId: string;
-    const habit = userId 
+    const habit = userId
       ? await this.getHabitById(habitId, userId)
       : await db.select().from(habits).where(eq(habits.id, habitId)).then(([h]) => {
           if (!h) throw new Error(`Habit with id ${habitId} not found`);
           userId = h.userId;
           return h;
         });
-    
+
     if (!habit) {
       throw new Error(`Habit with id ${habitId} not found for user ${userId}`);
     }
-    
+
     // Now we're guaranteed to have a userId
     effectiveUserId = userId || habit.userId;
 
@@ -831,7 +831,7 @@ export class DatabaseStorage implements IStorage {
     const dailyEntry = await this.getDailyEntry(date, effectiveUserId);
     const habitCompletions = dailyEntry?.habitCompletions as Record<string, boolean> || {};
     const currentlyCompleted = habitCompletions[habitId.toString()] || false;
-    
+
     // Only process experience if state is actually changing
     const isStateChanging = currentlyCompleted !== completed;
 
@@ -848,7 +848,7 @@ export class DatabaseStorage implements IStorage {
       const difficultyMultiplier = (habit.difficultyRating || 3) * 0.3 + 0.4; // 0.7x to 1.9x
       const streakMultiplier = Math.min(1 + (habit.streak * 0.1), 2.0); // Up to 2x
       const earnedXP = Math.floor(baseXP * difficultyMultiplier * streakMultiplier);
-      
+
       newExperience += earnedXP;
       newMasteryPoints += Math.floor(earnedXP * 0.5);
       newTotalCompletions += 1;
@@ -865,7 +865,7 @@ export class DatabaseStorage implements IStorage {
         // Starting a new streak
         newStreak = 1;
       }
-      
+
       newLongestStreak = Math.max(newLongestStreak, newStreak);
 
       // Award badges
@@ -884,7 +884,7 @@ export class DatabaseStorage implements IStorage {
     } else if (!completed && isStateChanging) {
       // Only adjust totals if transitioning from complete to incomplete
       newTotalCompletions = Math.max(0, newTotalCompletions - 1);
-      
+
       // Reset streak if not completed today and yesterday
       if (habit.lastCompleted !== date && habit.lastCompleted !== this.getPreviousDate(date)) {
         newStreak = 0;
@@ -893,7 +893,7 @@ export class DatabaseStorage implements IStorage {
 
     // Calculate completion rate
     // If createdAt is null, use the current date as fallback
-    const habitStartDate = habit.createdAt 
+    const habitStartDate = habit.createdAt
       ? habit.createdAt.toISOString().split('T')[0]
       : date;
     const totalDays = this.getDaysBetween(habitStartDate, date) + 1;
@@ -924,13 +924,13 @@ export class DatabaseStorage implements IStorage {
     if (completed && newExperience % 100 < 20) {
       return await this.calculateTierPromotion(habitId, effectiveUserId);
     }
-    
+
     return updatedHabit;
   }
 
   async levelUpHabit(habitId: number, userId: string): Promise<Habit> {
     await this.ensureInitialized();
-    
+
     const habit = await this.getHabitById(habitId, userId);
     if (!habit) {
       throw new Error(`Habit with id ${habitId} not found`);
@@ -957,13 +957,13 @@ export class DatabaseStorage implements IStorage {
 
     // Check for tier promotion after leveling up
     const tierPromotedHabit = await this.calculateTierPromotion(habitId, userId);
-    
+
     return tierPromotedHabit;
   }
 
   async awardBadge(habitId: number, badge: string, userId: string): Promise<Habit> {
     await this.ensureInitialized();
-    
+
     const habit = await this.getHabitById(habitId, userId);
     if (!habit) {
       throw new Error(`Habit with id ${habitId} not found for user ${userId}`);
@@ -986,7 +986,7 @@ export class DatabaseStorage implements IStorage {
 
   async calculateTierPromotion(habitId: number, userId: string): Promise<Habit> {
     await this.ensureInitialized();
-    
+
     // Get the habit for the specific user
     const habit = await this.getHabitById(habitId, userId);
     if (!habit) {
@@ -995,45 +995,45 @@ export class DatabaseStorage implements IStorage {
 
     let newTier = habit.tier;
     const { level, completionRate, longestStreak, masteryPoints, difficultyRating, totalCompletions } = habit;
-    
+
     // Calculate consistency score (streak vs total completions ratio)
     const consistencyScore = totalCompletions > 0 ? Math.min((longestStreak / totalCompletions) * 100, 100) : 0;
-    
+
     // Difficulty-adjusted requirements
     const difficultyMultiplier = (difficultyRating || 3) / 3; // 1.0 for difficulty 3, scales with actual difficulty
-    
+
     // Balanced tier promotion logic - more achievable but still meaningful
     // Diamond Tier - Master level with challenging habits
-    if (level >= 15 && 
-        completionRate >= 70 && 
-        consistencyScore >= 50 && 
-        longestStreak >= 21 && 
+    if (level >= 15 &&
+        completionRate >= 70 &&
+        consistencyScore >= 50 &&
+        longestStreak >= 21 &&
         masteryPoints >= 800 &&
         (difficultyRating || 3) >= 4) {
       newTier = "diamond";
     }
     // Platinum Tier - Expert level with good performance
-    else if (level >= 10 && 
-             completionRate >= 60 && 
-             consistencyScore >= 40 && 
-             longestStreak >= 14 && 
+    else if (level >= 10 &&
+             completionRate >= 60 &&
+             consistencyScore >= 40 &&
+             longestStreak >= 14 &&
              masteryPoints >= 400 &&
              (difficultyRating || 3) >= 3) {
       newTier = "platinum";
     }
     // Gold Tier - Advanced level with solid progress
-    else if (level >= 6 && 
-             completionRate >= 50 && 
-             consistencyScore >= 30 && 
-             longestStreak >= 7 && 
+    else if (level >= 6 &&
+             completionRate >= 50 &&
+             consistencyScore >= 30 &&
+             longestStreak >= 7 &&
              masteryPoints >= 150) {
       newTier = "gold";
     }
     // Silver Tier - Developing consistency
-    else if (level >= 3 && 
-             completionRate >= 35 && 
-             consistencyScore >= 20 && 
-             longestStreak >= 3 && 
+    else if (level >= 3 &&
+             completionRate >= 35 &&
+             consistencyScore >= 20 &&
+             longestStreak >= 3 &&
              masteryPoints >= 50) {
       newTier = "silver";
     }
@@ -1048,7 +1048,7 @@ export class DatabaseStorage implements IStorage {
         .set({ tier: newTier })
         .where(and(eq(habits.id, habitId), eq(habits.userId, userId)))
         .returning();
-      
+
       return updatedHabit;
     }
 
@@ -1076,7 +1076,7 @@ export class DatabaseStorage implements IStorage {
 
   private async checkAchievements(currentStreak: number, dailyEntry: DailyEntry): Promise<void> {
     const allAchievements = await db.select().from(achievements);
-    
+
     for (const achievement of allAchievements) {
       if (achievement.isUnlocked) continue;
 
@@ -1117,29 +1117,29 @@ export class DatabaseStorage implements IStorage {
       await db.delete(dailyEntries);
       await db.delete(weeklyReviews);
       await db.delete(streaks);
-      
+
       // Reset achievements to unlocked state
-      await db.update(achievements).set({ 
-        isUnlocked: false, 
-        unlockedAt: null 
+      await db.update(achievements).set({
+        isUnlocked: false,
+        unlockedAt: null
       });
-      
+
       // Delete custom habits (keep default ones by checking if they exist in defaults)
       const defaultHabits = [
         "Wake up on time", "Exercise", "Healthy breakfast", "Drink water",
         "Read", "Meditate", "Work focus", "Limit screen time", "Sleep early", "Gratitude"
       ];
-      
+
       const allHabits = await db.select().from(habits);
       for (const habit of allHabits) {
         if (!defaultHabits.includes(habit.name)) {
           await db.delete(habits).where(eq(habits.id, habit.id));
         }
       }
-      
-      // Delete custom settings (keep system ones)  
+
+      // Delete custom settings (keep system ones)
       await db.delete(settings).where(not(eq(settings.key, 'theme')));
-      
+
       console.log('All data reset successfully');
     } catch (error) {
       console.error('Failed to reset data:', error);
@@ -1149,23 +1149,29 @@ export class DatabaseStorage implements IStorage {
 
   async resetUserData(userId: string): Promise<void> {
     await this.ensureInitialized();
-    
     try {
-      console.log(`Resetting all data for user: ${userId}`);
-      
-      // Delete all user-specific data in the correct order to avoid foreign key conflicts
-      await db.delete(achievements).where(eq(achievements.userId, userId));
-      await db.delete(streaks).where(eq(streaks.userId, userId));
-      await db.delete(weeklyReviews).where(eq(weeklyReviews.userId, userId));
+      // Delete user's subtasks first (foreign key constraint)
+      await db.delete(subtasks).where(eq(subtasks.userId, userId));
+
+      // Delete user's data from tables (in correct order due to foreign key constraints)
       await db.delete(dailyEntries).where(eq(dailyEntries.userId, userId));
+      await db.delete(weeklyReviews).where(eq(weeklyReviews.userId, userId));
+      await db.delete(streaks).where(eq(streaks.userId, userId));
+
+      // Reset user's achievements to unlocked state
+      await db.update(achievements)
+        .set({
+          isUnlocked: false,
+          unlockedAt: null
+        })
+        .where(eq(achievements.userId, userId));
+
+      // Delete ALL user's habits (not just custom ones)
       await db.delete(habits).where(eq(habits.userId, userId));
-      
-      // Settings table doesn't have user_id column in current schema - skip for now
-      // TODO: Add user_id column to settings table in future migration
-      
-      // Also delete the user record itself
-      await db.delete(users).where(eq(users.id, userId));
-      
+
+      // Delete user's settings
+      await db.delete(settings).where(eq(settings.userId, userId));
+
       console.log(`All data for user ${userId} has been permanently deleted`);
     } catch (error) {
       console.error(`Failed to reset data for user ${userId}:`, error);
