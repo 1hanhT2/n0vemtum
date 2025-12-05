@@ -206,6 +206,12 @@
   backdrop-filter: blur(18px);
 }
 
+.dark .glass-surface {
+  background: hsl(0, 0%, 12%, 0.7);
+  border: 1px solid hsl(0, 0%, 20%);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
 .glossy-border {
   position: relative;
 }
@@ -221,6 +227,10 @@
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
+}
+
+.dark .glossy-border::before {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(59, 130, 246, 0.15), rgba(45, 212, 191, 0.15));
 }
 
 .glow-orb {

@@ -41,7 +41,7 @@ export function Home({ isGuestMode = false }: HomeProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f7f9ff] via-white to-[#eef2ff]">
+    <div className="min-h-screen bg-gradient-to-b from-[#f7f9ff] via-white to-[#eef2ff] dark:bg-none dark:bg-background">
       <Header onSettingsClick={() => setIsSettingsOpen(true)} isGuestMode={isGuestMode} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
