@@ -24,6 +24,7 @@ import { X, Plus, Trash2, Sparkles, User, Mail, Calendar, Hash } from "lucide-re
 import { getMockHabits } from "@/lib/mockData";
 import { usePendingProtection } from "@/hooks/use-debounce";
 import { useQueryClient } from "@tanstack/react-query";
+import { HabitSubtasksEditor } from "./habit-subtasks-editor";
 
 
 interface SettingsModalProps {
@@ -414,28 +415,39 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
                 <span>Add</span>
               </Button>
             </div>
-            <div className="space-y-3 max-h-48 overflow-y-auto">
+            <div className="space-y-3 max-h-[26rem] overflow-y-auto pr-1">
               {habitSettings.map((habit) => (
-                <div key={habit.id} className="flex items-center space-x-3">
-                  <Input
-                    value={habit.emoji}
-                    onChange={(e) => updateHabitSetting(habit.id, 'emoji', e.target.value)}
-                    className="w-12 text-center text-lg"
-                    maxLength={2}
-                  />
-                  <Input
-                    value={habit.name}
-                    onChange={(e) => updateHabitSetting(habit.id, 'name', e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button
-                    onClick={() => removeHabit(habit.id)}
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-500 hover:text-red-700 px-2"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                <div
+                  key={habit.id}
+                  className="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900/40"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Input
+                      value={habit.emoji}
+                      onChange={(e) => updateHabitSetting(habit.id, 'emoji', e.target.value)}
+                      className="w-12 text-center text-lg"
+                      maxLength={2}
+                    />
+                    <Input
+                      value={habit.name}
+                      onChange={(e) => updateHabitSetting(habit.id, 'name', e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={() => removeHabit(habit.id)}
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-500 hover:text-red-700 px-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  {habit.isNew ? (
+                    <p className="text-sm text-muted-foreground">Save this habit to start adding subtasks.</p>
+                  ) : (
+                    <HabitSubtasksEditor habitId={habit.id} isGuestMode={isGuestMode} />
+                  )}
                 </div>
               ))}
             </div>
