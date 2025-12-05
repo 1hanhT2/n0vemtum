@@ -2,9 +2,10 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Subtask, InsertSubtask } from "@shared/schema";
 
-export function useSubtasks(habitId: number) {
+export function useSubtasks(habitId: number, options?: { enabled?: boolean }) {
   return useQuery<Subtask[]>({
     queryKey: [`/api/subtasks/${habitId}`],
+    enabled: options?.enabled ?? true,
   });
 }
 
