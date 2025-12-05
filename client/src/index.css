@@ -198,6 +198,37 @@
   --gradient-bg: linear-gradient(135deg, hsl(263, 70%, 50%) 0%, hsl(271, 70%, 50%) 100%);
 }
 
+/* Glossy surface helpers */
+.glass-surface {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 20px 60px rgba(79, 70, 229, 0.12), 0 10px 30px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.glossy-border {
+  position: relative;
+}
+
+.glossy-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(59, 130, 246, 0.2), rgba(45, 212, 191, 0.25));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.glow-orb {
+  background: radial-gradient(circle at 30% 30%, rgba(99, 102, 241, 0.16), transparent 55%),
+    radial-gradient(circle at 70% 40%, rgba(56, 189, 248, 0.18), transparent 50%),
+    radial-gradient(circle at 50% 70%, rgba(129, 140, 248, 0.14), transparent 45%);
+}
+
 .theme-orange {
   --gradient-bg: linear-gradient(135deg, hsl(24, 95%, 53%) 0%, hsl(34, 95%, 53%) 100%);
 }

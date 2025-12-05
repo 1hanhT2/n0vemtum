@@ -36,7 +36,7 @@ export function getSession() {
   });
   
   return session({
-    name: 'n0ventum.sid', // Custom session name
+    name: 'pushfoward.sid', // Custom session name
     secret: process.env.SESSION_SECRET || 'default-dev-secret-change-in-production-' + process.env.REPL_ID,
     store: sessionStore,
     resave: false,

@@ -10,11 +10,11 @@ interface SEOHeadProps {
 }
 
 export function SEOHead({
-  title = "n0ventum - Smart Habit Tracker",
-  description = "Transform your daily routine with n0ventum, the intelligent habit tracking app. Build lasting habits with AI insights, gamification, and comprehensive analytics.",
+  title = "PushFoward - Smart Habit Tracker",
+  description = "Transform your daily routine with PushFoward, the intelligent habit tracking app. Build lasting habits with AI insights, gamification, and comprehensive analytics.",
   keywords = "habit tracker, daily habits, productivity, self improvement, goal tracking, routine builder, habit analytics, AI insights, gamification",
-  url = "https://n0ventum.replit.app",
-  image = "https://n0ventum.replit.app/og-image.png",
+  url = "https://pushfoward.replit.app",
+  image = "https://pushfoward.replit.app/og-image.png",
   type = "website"
 }: SEOHeadProps) {
   
@@ -43,7 +43,7 @@ export function SEOHead({
     // Basic meta tags
     updateMetaTag('description', description);
     updateMetaTag('keywords', keywords);
-    updateMetaTag('author', 'n0ventum');
+    updateMetaTag('author', 'PushFoward');
     updateMetaTag('robots', 'index, follow');
     updateMetaTag('viewport', 'width=device-width, initial-scale=1.0');
     
@@ -53,7 +53,7 @@ export function SEOHead({
     updateMetaTag('og:url', url, true);
     updateMetaTag('og:type', type, true);
     updateMetaTag('og:image', image, true);
-    updateMetaTag('og:site_name', 'n0ventum', true);
+    updateMetaTag('og:site_name', 'PushFoward', true);
     updateMetaTag('og:locale', 'en_US', true);
     
     // Twitter Card tags
@@ -66,7 +66,7 @@ export function SEOHead({
     updateMetaTag('theme-color', '#6366f1');
     updateMetaTag('apple-mobile-web-app-capable', 'yes');
     updateMetaTag('apple-mobile-web-app-status-bar-style', 'default');
-    updateMetaTag('apple-mobile-web-app-title', 'n0ventum');
+    updateMetaTag('apple-mobile-web-app-title', 'PushFoward');
     
     // Canonical URL
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
@@ -81,7 +81,7 @@ export function SEOHead({
     const structuredData = {
       "@context": "https://schema.org",
       "@type": "WebApplication",
-      "name": "n0ventum",
+      "name": "PushFoward",
       "description": description,
       "url": url,
       "applicationCategory": "LifestyleApplication",
@@ -93,7 +93,7 @@ export function SEOHead({
       },
       "author": {
         "@type": "Organization",
-        "name": "n0ventum"
+        "name": "PushFoward"
       },
       "aggregateRating": {
         "@type": "AggregateRating",
