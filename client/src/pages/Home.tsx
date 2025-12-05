@@ -41,13 +41,13 @@ export function Home({ isGuestMode = false }: HomeProps) {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950">
+    <div className="min-h-screen bg-gradient-to-b from-[#f7f9ff] via-white to-[#eef2ff]">
       <Header onSettingsClick={() => setIsSettingsOpen(true)} isGuestMode={isGuestMode} />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
         {isGuestMode && (
           <div className="mb-8">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-6">
+            <div className="glass-surface glossy-border rounded-2xl p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
@@ -88,15 +88,15 @@ export function Home({ isGuestMode = false }: HomeProps) {
         <Navigation currentView={currentView} onViewChange={setCurrentView} />
         
         <div className="mt-8">
-          <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-6">
+          <div className="glass-surface glossy-border rounded-3xl p-6">
             {renderCurrentView()}
           </div>
         </div>
       </div>
 
-      <SettingsModal 
-        isOpen={isSettingsOpen} 
-        onClose={() => setIsSettingsOpen(false)} 
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
         isGuestMode={isGuestMode}
       />
     </div>

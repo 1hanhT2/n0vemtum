@@ -441,7 +441,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
       
-      res.clearCookie('n0ventum.sid');
+      res.clearCookie('pushfoward.sid');
       res.clearCookie('connect.sid'); // Clear both possible cookie names
       res.json({ message: "Data reset successfully and user logged out" });
     } catch (error) {
