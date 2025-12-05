@@ -22,6 +22,7 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { X, Plus, Trash2, Sparkles, User, Mail, Calendar, Hash } from "lucide-react";
 import { getMockHabits } from "@/lib/mockData";
+import { ThemeKey, applyTheme, getStoredDarkMode, getStoredTheme } from "@/lib/theme";
 import { usePendingProtection } from "@/hooks/use-debounce";
 import { useQueryClient } from "@tanstack/react-query";
 import { HabitSubtasksEditor } from "./habit-subtasks-editor";
@@ -49,7 +50,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
 
 
   const [habitSettings, setHabitSettings] = useState<Array<{ id: number; name: string; emoji: string; isNew?: boolean }>>([]);
-  const [selectedTheme, setSelectedTheme] = useState('blue');
+  const [selectedTheme, setSelectedTheme] = useState<ThemeKey>('blue');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [notifications, setNotifications] = useState({
     dailyReminder: false,
@@ -67,58 +68,12 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
     }
 
     // Load saved preferences
-    const savedTheme = localStorage.getItem('theme') || 'blue';
-    const savedMode = localStorage.getItem('darkMode') === 'true';
+    const savedTheme = getStoredTheme();
+    const savedMode = getStoredDarkMode();
     setSelectedTheme(savedTheme);
     setIsDarkMode(savedMode);
     applyTheme(savedTheme, savedMode);
   }, [habits]);
-
-  const applyTheme = (theme: string, darkMode: boolean) => {
-    const root = document.documentElement;
-
-    // Apply dark/light mode
-    if (darkMode) {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-
-    // Remove existing theme classes
-    root.classList.remove('theme-blue', 'theme-green', 'theme-purple', 'theme-orange', 'theme-red');
-
-    // Add new theme class
-    root.classList.add(`theme-${theme}`);
-
-    // Smart contrast theme colors optimized for accessibility
-    switch (theme) {
-      case 'green':
-        root.style.setProperty('--primary', darkMode ? 'hsl(134, 61%, 41%)' : 'hsl(134, 61%, 41%)');
-        root.style.setProperty('--primary-foreground', darkMode ? 'hsl(0, 0%, 100%)' : 'hsl(0, 0%, 100%)');
-        root.style.setProperty('--ring', darkMode ? 'hsl(134, 61%, 41%)' : 'hsl(134, 61%, 41%)');
-        break;
-      case 'purple':
-        root.style.setProperty('--primary', darkMode ? 'hsl(263, 70%, 50%)' : 'hsl(263, 70%, 50%)');
-        root.style.setProperty('--primary-foreground', 'hsl(0, 0%, 100%)');
-        root.style.setProperty('--ring', darkMode ? 'hsl(263, 70%, 50%)' : 'hsl(263, 70%, 50%)');
-        break;
-      case 'orange':
-        root.style.setProperty('--primary', darkMode ? 'hsl(25, 95%, 53%)' : 'hsl(25, 95%, 53%)');
-        root.style.setProperty('--primary-foreground', 'hsl(0, 0%, 100%)');
-        root.style.setProperty('--ring', darkMode ? 'hsl(25, 95%, 53%)' : 'hsl(25, 95%, 53%)');
-        break;
-      case 'red':
-        root.style.setProperty('--primary', darkMode ? 'hsl(0, 72%, 51%)' : 'hsl(0, 84%, 60%)');
-        root.style.setProperty('--primary-foreground', 'hsl(0, 0%, 100%)');
-        root.style.setProperty('--ring', darkMode ? 'hsl(0, 72%, 51%)' : 'hsl(0, 84%, 60%)');
-        break;
-      default: // blue
-        root.style.setProperty('--primary', darkMode ? 'hsl(217, 91%, 60%)' : 'hsl(221, 83%, 53%)');
-        root.style.setProperty('--primary-foreground', 'hsl(0, 0%, 100%)');
-        root.style.setProperty('--ring', darkMode ? 'hsl(217, 91%, 60%)' : 'hsl(221, 83%, 53%)');
-        break;
-    }
-  };
 
   const handleSaveSettings = async () => {
     if (isGuestMode) {

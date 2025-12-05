@@ -6,4 +6,4 @@ Allow: /demo
 Disallow: /settings
 Disallow: /api/
 
-Sitemap: https://n0ventum.replit.app/sitemap.xml
+Sitemap: https://pushfoward.replit.app/sitemap.xml
