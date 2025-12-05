@@ -11,7 +11,7 @@ export function Header({ onSettingsClick, isGuestMode = false }: HeaderProps) {
   return (
     <header className="fixed top-0 w-full z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-3">
-        <div className="rounded-2xl border border-white/70 bg-white/80 backdrop-blur-2xl shadow-lg shadow-blue-100/40 px-4 py-3 flex items-center justify-between">
+        <div className="rounded-2xl border border-white/70 bg-white/80 dark:bg-gray-900/80 dark:border-gray-800 backdrop-blur-2xl shadow-lg shadow-blue-100/40 dark:shadow-none px-4 py-3 flex items-center justify-between">
           {/* Logo */}
           <Link href="/app">
             <div className="flex items-center gap-3 cursor-pointer group">
@@ -27,7 +27,7 @@ export function Header({ onSettingsClick, isGuestMode = false }: HeaderProps) {
             onClick={onSettingsClick}
             variant="ghost"
             size="icon"
-            className="w-10 h-10 hover:bg-white/70 dark:hover:bg-gray-800 rounded-lg transition-colors border border-white/70"
+            className="w-10 h-10 hover:bg-white/70 dark:hover:bg-gray-800 rounded-lg transition-colors border border-white/70 dark:border-gray-700"
           >
             <Settings className="h-5 w-5 text-gray-600 dark:text-gray-300" />
           </Button>
