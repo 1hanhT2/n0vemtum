@@ -424,6 +424,15 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     // Save to temporary storage with updated scores
     saveTemporaryCompletions(habitCompletions, subtaskCompletions, newPunctuality[0], newAdherence[0]);
 
+    if (isGuestMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Sign in to save your score changes",
+        variant: "default",
+      });
+      return;
+    }
+
     // Trigger auto-save
     setAutoSaveStatus('saving');
     debouncedSave({
@@ -453,6 +462,15 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
 
   const handleNotesBlur = () => {
     if (isDayCompleted) return;
+    if (isGuestMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Sign in to save your notes",
+        variant: "default",
+      });
+      return;
+    }
+    setAutoSaveStatus('saving');
     // Only save when user stops typing (loses focus)
     debouncedSave({
       habitCompletions,
