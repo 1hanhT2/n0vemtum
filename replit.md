@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project is **PushFoward**, a modern habit tracking web application built with a full-stack TypeScript architecture. The application combines gamification elements, AI-powered insights, and comprehensive analytics to help users build and maintain healthy habits. It features a React frontend with shadcn/ui components, an Express.js backend, and PostgreSQL database with Drizzle ORM.
+This project is **PushForward**, a modern habit tracking web application built with a full-stack TypeScript architecture. The application combines gamification elements, AI-powered insights, and comprehensive analytics to help users build and maintain healthy habits. It features a React frontend with shadcn/ui components, an Express.js backend, and PostgreSQL database with Drizzle ORM.
 
 ## System Architecture
 

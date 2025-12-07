@@ -1,6 +1,6 @@
 {
-  "name": "PushFoward - Smart Habit Tracker",
-  "short_name": "PushFoward",
+  "name": "PushForward - Smart Habit Tracker",
+  "short_name": "PushForward",
   "description": "Transform your daily routine with intelligent habit tracking, AI insights, and gamification",
   "start_url": "/",
   "display": "standalone",

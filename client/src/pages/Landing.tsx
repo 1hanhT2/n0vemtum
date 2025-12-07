@@ -1,17 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Target, Trophy, TrendingUp, Users, Eye, LogIn, Brain, BarChart3, Shield, Sparkles, ArrowRight, CheckCircle2, Star } from "lucide-react";
+import { Target, Trophy, TrendingUp, Eye, Brain, BarChart3, Shield, Sparkles, ArrowRight, CheckCircle2, Star } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { SiNike, SiAirbnb, SiDropbox, SiUber, SiShopify, SiFigma } from "react-icons/si";
 
 export function Landing() {
   const { isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [activeScrollFeature, setActiveScrollFeature] = useState(0);
-  const scrollSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -28,7 +26,7 @@ export function Landing() {
       name: "Sarah Johnson",
       role: "Product Manager",
       company: "Tech Startup",
-      quote: "PushFoward transformed how I approach my daily habits. The gamification keeps me engaged and the AI insights are spot-on.",
+      quote: "PushForward transformed how I approach my daily habits. The gamification keeps me engaged and the AI insights are spot-on.",
       avatar: "SJ"
     },
     {
@@ -47,60 +45,12 @@ export function Landing() {
     }
   ];
 
-  const scrollFeatures = [
-    {
-      title: "Guided habit journeys",
-      description: "Swipe through curated pathways that adapt as you complete check-ins, streaks, and unlock achievements.",
-      icon: Sparkles,
-      accent: "from-blue-500/20 via-cyan-400/10 to-indigo-500/20",
-    },
-    {
-      title: "Crystal clear analytics",
-      description: "Watch momentum bars fill as completion rates rise, with AI surfacing the exact levers to improve.",
-      icon: BarChart3,
-      accent: "from-emerald-400/15 via-teal-300/10 to-sky-400/15",
-    },
-    {
-      title: "Motivation with receipts",
-      description: "Earn shimmering badges, level up tiers, and collect proof of progress you can actually feel proud of.",
-      icon: Trophy,
-      accent: "from-amber-400/20 via-orange-300/10 to-pink-400/15",
-    },
-    {
-      title: "Privacy-first by design",
-      description: "Session security, encrypted records, and private-by-default sharing keep your growth yours alone.",
-      icon: Shield,
-      accent: "from-purple-500/15 via-fuchsia-400/10 to-slate-500/15",
-    },
-  ];
-
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
     }, 5000);
     return () => clearInterval(interval);
   }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const section = scrollSectionRef.current;
-      if (!section) return;
-
-      const rect = section.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const startOffset = rect.top - viewportHeight * 0.35;
-      const progress = Math.min(Math.max((window.scrollY + viewportHeight - (section.offsetTop + startOffset)) / rect.height, 0), 1);
-      const nextIndex = Math.min(
-        scrollFeatures.length - 1,
-        Math.max(0, Math.floor(progress * scrollFeatures.length))
-      );
-      setActiveScrollFeature(nextIndex);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [scrollFeatures.length]);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#f6f9ff] via-white to-[#eef2ff] dark:bg-gradient-to-b dark:from-[#0b1021] dark:via-[#0f172a] dark:to-[#0b1021] text-gray-900 dark:text-gray-100">
@@ -115,10 +65,8 @@ export function Landing() {
       <header className="fixed top-0 w-full z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between rounded-full border border-white/60 bg-white/70 backdrop-blur-2xl shadow-lg shadow-blue-100/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-black/30">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-md shadow-blue-500/30">
-              <Sparkles className="h-5 w-5 text-white" />
-            </div>
-            <span className="font-['Lexend_Giga'] text-xl font-semibold text-gray-900 dark:text-white">PushFoward</span>
+            <img src="/favicon.png" alt="PushForward logo" className="h-10 w-10" />
+            <span className="font-['Lexend_Giga'] text-xl font-semibold text-gray-900 dark:text-white">PushForward</span>
           </div>
           <nav className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-gray-700 hover:text-gray-900 transition-colors dark:text-gray-300 dark:hover:text-white">
@@ -148,15 +96,15 @@ export function Landing() {
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">We’re still growing—these numbers are aspirational while in beta.</p>
 
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-              A glossy new PushFoward to
+              PushForward helps you
               <br />
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                make your habits shine.
+                build habits that stick.
               </span>
             </h1>
 
             <p className="text-xl text-gray-700 dark:text-gray-300 max-w-2xl mb-10">
-              Track 23 habits, unlock 50+ achievements, and get AI-powered insights with a luminous workspace designed to keep you moving forward.
+              Track up to 23 habits, unlock achievements, and get AI-powered insights to keep your momentum going.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-10">
@@ -178,12 +126,12 @@ export function Landing() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl">
-              {[
-                { label: "Avg. streak", value: "26 days" },
-                { label: "Achievements unlocked", value: "52" },
-                { label: "AI nudges", value: "14 / week" }
-              ].map((item) => (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 max-w-2xl">
+            {[
+              { label: "Avg. streak", value: "26 days" },
+              { label: "Achievements unlocked", value: "52" },
+              { label: "AI nudges", value: "14 / week" }
+            ].map((item) => (
                 <div key={item.label} className="glass-surface glossy-border rounded-2xl p-4">
                   <p className="text-xs text-gray-500 dark:text-gray-400">{item.label}</p>
                   <p className="text-xl font-semibold text-gray-900 dark:text-white">{item.value}</p>
@@ -196,14 +144,14 @@ export function Landing() {
             <div className="absolute inset-0 -left-6 rounded-[32px] bg-gradient-to-br from-blue-500/15 via-indigo-500/10 to-purple-500/15 blur-3xl" />
             <div className="relative glass-surface glossy-border rounded-[32px] p-6 overflow-hidden">
               <div className="absolute right-4 top-4 h-20 w-20 rounded-full bg-white/60 blur-3xl dark:bg-slate-800/60" />
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white shadow-md">
                     <Sparkles className="h-5 w-5" />
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Live overview</p>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">PushFoward workspace</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white">PushForward workspace</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -212,7 +160,7 @@ export function Landing() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="rounded-2xl bg-white/70 border border-white/60 backdrop-blur-xl p-4 dark:bg-slate-900/70 dark:border-slate-800">
                   <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Today</p>
                   <div className="space-y-3">
@@ -246,7 +194,7 @@ export function Landing() {
                       ))}
                     </div>
                   </div>
-                  <div className="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-300">
+                  <div className="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-300 flex-wrap gap-3">
                     <div className="flex items-center gap-2">
                       <Sparkles className="h-4 w-4 text-blue-500" />
                       AI coach online
@@ -263,7 +211,7 @@ export function Landing() {
 
         <div className="container mx-auto max-w-6xl">
           <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-12">Trusted by teams at</p>
-          <div className="flex items-center justify-center gap-12 mt-6 opacity-70 grayscale">
+          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 md:gap-12 mt-6 opacity-70 grayscale">
             <SiUber className="h-8 w-auto" />
             <SiAirbnb className="h-8 w-auto" />
             <SiDropbox className="h-10 w-auto" />
@@ -284,20 +232,20 @@ export function Landing() {
               <br />
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">habit builders</span>
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300">Signals that PushFoward keeps your momentum glowing.</p>
+            <p className="text-lg text-gray-600 dark:text-gray-300">Signals that PushForward keeps your momentum glowing.</p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {[ 
               { label: "Active Users", value: "500+", accent: "from-blue-500 to-indigo-500", footnote: "Reality: friends & early adopters." },
               { label: "Habits Tracked", value: "12,000+", accent: "from-emerald-400 to-teal-400", footnote: "We’re not there yet—working on it." },
               { label: "Success Rate", value: "95%", accent: "from-amber-400 to-orange-400", footnote: "A goal, not a guarantee." },
               { label: "User Rating", value: "4.9/5", accent: "from-purple-500 to-pink-500", footnote: "Aspirational score, still in beta." }
             ].map((item) => (
-              <div key={item.label} className="glass-surface glossy-border rounded-2xl p-6 text-center">
-                <div className={`mx-auto mb-3 h-12 w-12 rounded-2xl bg-gradient-to-br ${item.accent} text-white font-semibold flex items-center justify-center shadow-md`}>{item.value}</div>
-                <div className="text-gray-600 dark:text-gray-300">{item.label}</div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 italic">{item.footnote}</p>
+              <div key={item.label} className="glass-surface glossy-border rounded-2xl p-6 text-center space-y-1">
+                <div className={`mx-auto mb-2 h-12 w-12 rounded-2xl bg-gradient-to-br ${item.accent} text-white font-semibold flex items-center justify-center shadow-md`}>{item.value}</div>
+                <div className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">{item.label}</div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic text-pretty leading-snug">{item.footnote}</p>
               </div>
             ))}
           </div>
@@ -415,61 +363,6 @@ export function Landing() {
         </div>
       </section>
 
-      {/* Scroll Story */}
-      <section ref={scrollSectionRef} className="relative py-24 px-4 overflow-hidden">
-        <div className="container mx-auto max-w-6xl grid lg:grid-cols-5 gap-10 items-start">
-          <div className="lg:col-span-2 sticky top-28 self-start space-y-4">
-            <p className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-gray-500 bg-white/70 border border-white/60 backdrop-blur-xl rounded-full px-4 py-2 w-fit dark:text-gray-400 dark:bg-slate-900/70 dark:border-slate-800">
-              <Sparkles className="h-4 w-4 text-blue-600" /> Live scroll story
-            </p>
-            <h3 className="text-4xl font-bold text-gray-900 dark:text-white">See PushFoward react as you scroll.</h3>
-            <p className="text-lg text-gray-600 dark:text-gray-300">
-              Each panel lights up to show the guided journey from day one to unstoppable consistency.
-            </p>
-            <div className="w-full h-2 rounded-full bg-white/70 border border-white/60 backdrop-blur-xl overflow-hidden dark:bg-slate-900/70 dark:border-slate-800">
-              <div className="h-full bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 transition-all duration-500" style={{ width: `${((activeScrollFeature + 1) / scrollFeatures.length) * 100}%` }} />
-            </div>
-          </div>
-
-          <div className="lg:col-span-3 space-y-6">
-            {scrollFeatures.map((feature, index) => {
-              const Icon = feature.icon;
-              const isActive = index === activeScrollFeature;
-              return (
-                <div
-                  key={feature.title}
-                  className={`relative rounded-3xl border border-white/60 bg-white/70 backdrop-blur-2xl p-6 lg:p-8 shadow-lg transition-all duration-500 ${
-                    isActive ? 'shadow-blue-200/70 scale-[1.01]' : 'opacity-80'
-                  } dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-black/30`}
-                >
-                  <div className={`absolute inset-0 rounded-3xl bg-gradient-to-r ${feature.accent} opacity-40 pointer-events-none`} />
-                  <div className="relative flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-white/80 border border-white/60 backdrop-blur-xl flex items-center justify-center shadow-md dark:bg-slate-900/80 dark:border-slate-800">
-                      <Icon className="h-6 w-6 text-gray-900 dark:text-white" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm font-semibold text-gray-900 dark:text-white">Step {index + 1}</span>
-                        <span className={`text-xs px-2 py-1 rounded-full border ${isActive ? 'border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-500/10' : 'border-gray-200 text-gray-500 dark:border-slate-700 dark:text-gray-400'}`}>
-                          {isActive ? 'Now viewing' : 'Upcoming'}
-                        </span>
-                      </div>
-                      <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{feature.title}</h4>
-                      <p className="text-gray-600 dark:text-gray-300 text-lg">{feature.description}</p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute top-10 right-20 h-48 w-48 rounded-full bg-blue-200/50 blur-3xl" />
-          <div className="absolute bottom-0 left-10 h-64 w-64 rounded-full bg-purple-200/40 blur-3xl" />
-        </div>
-      </section>
-
       {/* Testimonials */}
       <section id="testimonials" className="py-20 px-4">
         <div className="container mx-auto max-w-4xl">
@@ -574,13 +467,11 @@ export function Landing() {
         <div className="container mx-auto max-w-6xl">
           <div className="glass-surface glossy-border rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
-              <span className="font-['Lexend_Giga'] text-xl font-semibold text-gray-900 dark:text-white">PushFoward</span>
+              <img src="/favicon.png" alt="PushForward logo" className="h-8 w-8" />
+              <span className="font-['Lexend_Giga'] text-xl font-semibold text-gray-900 dark:text-white">PushForward</span>
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-300">
-              © 2025 PushFoward. Building better habits, one day at a time.
+              © 2025 PushForward. Building better habits, one day at a time.
             </div>
           </div>
         </div>

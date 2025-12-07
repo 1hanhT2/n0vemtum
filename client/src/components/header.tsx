@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Settings, Sparkles } from "lucide-react";
+import { Settings } from "lucide-react";
 import { Link } from "wouter";
 
 interface HeaderProps {
@@ -15,10 +15,8 @@ export function Header({ onSettingsClick, isGuestMode = false }: HeaderProps) {
           {/* Logo */}
           <Link href="/app">
             <div className="flex items-center gap-3 cursor-pointer group">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-md shadow-blue-500/20">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
-              <span className="font-['Lexend_Giga'] text-xl font-semibold text-gray-900 dark:text-white">PushFoward</span>
+              <img src="/favicon.png" alt="PushForward logo" className="h-10 w-10 group-hover:scale-110 transition-transform" />
+              <span className="font-['Lexend_Giga'] text-xl font-semibold text-gray-900 dark:text-white">PushForward</span>
             </div>
           </Link>
 
