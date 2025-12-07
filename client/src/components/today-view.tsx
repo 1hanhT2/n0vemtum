@@ -23,7 +23,7 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sparkles } from "lucide-react";
+import { Sparkles, RefreshCw, CheckCircle2, Target, PartyPopper, Settings } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 import { useStreak } from "@/hooks/use-streaks";
 import { useLevelUpHabit, useUpdateHabitProgress } from "@/hooks/use-gamification";
@@ -34,7 +34,6 @@ import { LevelUpNotification } from "@/components/level-up-notification";
 import { HabitHealthRadar } from "@/components/habit-health-radar";
 import { TierPromotionNotification } from "@/components/tier-promotion-notification";
 import { TierExplanation } from "@/components/tier-explanation";
-import { RefreshCw } from "lucide-react";
 import { getMockHabits, getMockDailyEntry, getMockStreak } from "@/lib/mockData";
 import { useDebounce, usePendingProtection } from '@/hooks/use-debounce';
 import { SubtaskManager } from "@/components/subtask-manager";
@@ -563,7 +562,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         <CardHeader className="border-b border-gray-100 dark:border-gray-800 pb-4">
           <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-              <span className="text-base">✅</span>
+              <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
             Today's Habits
           </CardTitle>
@@ -643,7 +642,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
           <CardHeader className="border-b border-gray-100 dark:border-gray-800 pb-4">
             <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                <span className="text-base">🎯</span>
+                <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
               Performance
             </CardTitle>
@@ -683,7 +682,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         <Card className="rounded-2xl shadow-lg bg-card dark:bg-gray-800 border-border dark:border-gray-700">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
-              <span className="mr-2">⚙️</span>
+              <Settings className="mr-2 h-5 w-5" />
               Manual Adjustment
             </CardTitle>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Override if needed for special circumstances</p>
@@ -740,7 +739,9 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
           <Card className="rounded-2xl shadow-lg bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="text-center">
-                <div className="text-4xl mb-2">🎉</div>
+                <div className="flex justify-center mb-2">
+                  <PartyPopper className="h-10 w-10 text-green-600 dark:text-green-400" />
+                </div>
                 <h3 className="text-lg font-semibold text-green-800 dark:text-green-300 mb-2">Day Completed!</h3>
                 <p className="text-green-700 dark:text-green-400">Your progress has been saved and locked successfully.</p>
               </div>
@@ -759,7 +760,12 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                 >
                   {createDailyEntry.isPending || updateDailyEntry.isPending || isCompletingDay
                     ? "Saving..."
-                    : "Complete Day ✨"
+                    : (
+                      <span className="inline-flex items-center gap-2">
+                        Complete Day
+                        <Sparkles className="h-5 w-5" />
+                      </span>
+                    )
                   }
                 </Button>
               </motion.div>

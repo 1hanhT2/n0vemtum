@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAchievements } from "@/hooks/use-achievements";
 import { motion } from "framer-motion";
+import { resolveBadgeIcon } from "@/lib/badgeIcons";
+import { PartyPopper } from "lucide-react";
 
 export function AchievementToast() {
   const { data: achievements } = useAchievements();
@@ -21,16 +23,24 @@ export function AchievementToast() {
 
       recentlyUnlocked.forEach(achievement => {
         toast({
-          title: `🎉 Achievement Unlocked!`,
+          title: "Achievement Unlocked!",
           description: (
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="flex items-center space-x-3"
             >
-              <div className="text-2xl">{achievement.badge}</div>
+              <div className="w-10 h-10 rounded-lg bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center">
+                {(() => {
+                  const Icon = resolveBadgeIcon(achievement.badge);
+                  return <Icon className="h-5 w-5 text-amber-600 dark:text-amber-400" />;
+                })()}
+              </div>
               <div>
-                <div className="font-semibold">{achievement.name}</div>
+                <div className="font-semibold flex items-center gap-2">
+                  <PartyPopper className="h-4 w-4 text-amber-500" />
+                  {achievement.name}
+                </div>
                 <div className="text-sm text-gray-600 dark:text-gray-300">
                   {achievement.description}
                 </div>

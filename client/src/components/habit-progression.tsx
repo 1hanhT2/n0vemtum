@@ -3,19 +3,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { 
-  Trophy, 
-  Star, 
-  Flame, 
-  Target, 
-  Award, 
+import {
+  Trophy,
+  Star,
+  Flame,
+  Target,
+  Award,
   TrendingUp,
   Crown,
   Zap,
   Shield,
-  Gem
+  Gem,
+  PartyPopper,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { resolveBadgeIcon } from "@/lib/badgeIcons";
 
 interface HabitProgressionProps {
   habit: {
@@ -88,17 +90,6 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
 
   const experiencePercentage = experienceToNext > 0 ? (experience / experienceToNext) * 100 : 0;
 
-  const badgeEmojis: { [key: string]: string } = {
-    "first_completion": "🎯",
-    "week_warrior": "⚔️",
-    "month_master": "👑",
-    "streak_starter": "🔥",
-    "consistency_king": "💎",
-    "habit_hero": "🦸",
-    "dedication_demon": "😈",
-    "persistence_pro": "💪"
-  };
-
   const handleCelebration = () => {
     setCelebrating(true);
     setTimeout(() => setCelebrating(false), 2000);
@@ -106,7 +97,7 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
 
   return (
     <Card className="relative overflow-hidden">
-      <div className={`absolute inset-0 bg-gradient-to-r ${getTierColor(habit.tier)} opacity-10`} />
+      <div className={`absolute inset-0 bg-gradient-to-r ${getTierColor(tier)} opacity-10`} />
       
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
@@ -219,10 +210,13 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: index * 0.1 }}
-                  className="text-lg"
+                  className="p-1 rounded-md bg-amber-50 dark:bg-amber-900/20"
                   title={badge.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 >
-                  {badgeEmojis[badge] || "🏆"}
+                  {(() => {
+                    const Icon = resolveBadgeIcon(badge);
+                    return <Icon className="h-5 w-5 text-amber-500" />;
+                  })()}
                 </motion.div>
               ))}
             </div>
@@ -293,9 +287,9 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
               initial={{ scale: 0, rotate: 0 }}
               animate={{ scale: 1.2, rotate: 360 }}
               transition={{ duration: 0.6 }}
-              className="text-6xl"
+              className="text-6xl text-orange-400"
             >
-              🎉
+              <PartyPopper className="w-16 h-16" />
             </motion.div>
           </motion.div>
         )}

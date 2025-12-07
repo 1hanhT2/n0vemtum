@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, Sparkles, Star } from "lucide-react";
+import { Trophy, Sparkles, Star, PartyPopper } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface LevelUpNotificationProps {
@@ -62,7 +62,7 @@ export function LevelUpNotification({ habit, onLevelUp, show, onClose }: LevelUp
                   transition={{ duration: 0.6 }}
                   className="text-6xl mb-2"
                 >
-                  {celebrating ? "🎉" : habit.emoji}
+                  {celebrating ? <PartyPopper className="w-14 h-14 text-orange-500" /> : habit.emoji}
                 </motion.div>
                 
                 {/* Sparkle effects */}

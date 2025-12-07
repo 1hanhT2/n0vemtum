@@ -10,7 +10,7 @@ import { useWeeklyInsights } from "@/hooks/use-ai";
 import { getWeekDates, getWeekStartDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles } from "lucide-react";
+import { BarChart3, CalendarRange, CheckCircle2, Sparkles, Star } from "lucide-react";
 import { getMockHabits } from "@/lib/mockData";
 import {
   ResponsiveContainer,
@@ -196,7 +196,10 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
       className="space-y-6"
     >
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">📊 Weekly Review</h2>
+        <div className="flex items-center gap-2 mb-2">
+          <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Weekly Review</h2>
+        </div>
         <p className="text-gray-600 dark:text-gray-300">Reflect on your progress and plan ahead</p>
       </div>
 
@@ -204,7 +207,9 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
       <div className="grid md:grid-cols-3 gap-6">
         <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
           <CardContent className="pt-4 sm:pt-6">
-            <div className="text-2xl sm:text-3xl mb-2">📅</div>
+            <div className="flex justify-center mb-2">
+              <CalendarRange className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+            </div>
             <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
               {weeklyStats.completedDays}/7
             </div>
@@ -217,7 +222,9 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
         
         <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
           <CardContent className="pt-4 sm:pt-6">
-            <div className="text-2xl sm:text-3xl mb-2">✅</div>
+            <div className="flex justify-center mb-2">
+              <CheckCircle2 className="h-7 w-7 text-green-600 dark:text-green-400" />
+            </div>
             <div className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
               {weeklyStats.completionRate.toFixed(0)}%
             </div>
@@ -230,7 +237,9 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
         
         <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
           <CardContent className="pt-4 sm:pt-6">
-            <div className="text-2xl sm:text-3xl mb-2">⭐</div>
+            <div className="flex justify-center mb-2">
+              <Star className="h-7 w-7 text-purple-600 dark:text-purple-400 fill-purple-600/20 dark:fill-purple-400/20" />
+            </div>
             <div className="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400">
               {weeklyStats.avgScore.toFixed(1)}
             </div>

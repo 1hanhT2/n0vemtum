@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Trophy, Crown, Star, Zap, Target, Flame } from "lucide-react";
+import { Trophy, Crown, Star, Zap, Target, Flame, Medal } from "lucide-react";
 import { motion } from "framer-motion";
+import { resolveBadgeIcon } from "@/lib/badgeIcons";
 
 interface GamificationDashboardProps {
   habits: Array<{
@@ -152,7 +153,15 @@ export function GamificationDashboard({ habits }: GamificationDashboardProps) {
                     className="flex items-center space-x-3 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg"
                   >
                     <div className="text-lg">
-                      {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}
+                      <Medal
+                        className={`h-5 w-5 ${
+                          index === 0
+                            ? "text-yellow-500"
+                            : index === 1
+                              ? "text-gray-400"
+                              : "text-amber-700"
+                        }`}
+                      />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
@@ -193,15 +202,11 @@ export function GamificationDashboard({ habits }: GamificationDashboardProps) {
                   className="text-center p-2 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg"
                   title={`${habit.name}: ${badge.replace(/_/g, ' ')}`}
                 >
-                  <div className="text-2xl mb-1">
-                    {badge === "first_completion" ? "🎯" :
-                     badge === "week_warrior" ? "⚔️" :
-                     badge === "month_master" ? "👑" :
-                     badge === "streak_starter" ? "🔥" :
-                     badge === "consistency_king" ? "💎" :
-                     badge === "habit_hero" ? "🦸" :
-                     badge === "dedication_demon" ? "😈" :
-                     badge === "persistence_pro" ? "💪" : "🏆"}
+                  <div className="flex justify-center mb-1">
+                    {(() => {
+                      const Icon = resolveBadgeIcon(badge);
+                      return <Icon className="h-6 w-6 text-amber-500" />;
+                    })()}
                   </div>
                   <div className="text-xs text-gray-600 dark:text-gray-400 leading-tight">
                     {badge.replace(/_/g, ' ').slice(0, 8)}

@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
-import { Trophy, Flame, Target, TrendingUp } from "lucide-react";
 import { useThrottle } from '@/hooks/use-debounce';
+import { Flame } from "lucide-react";
+import { resolveTierIcon } from "@/lib/badgeIcons";
 
 interface Habit {
   id: number;
@@ -40,14 +39,6 @@ const tierColors = {
   diamond: 'from-purple-400 to-purple-600',
 };
 
-const tierEmojis = {
-  bronze: '🥉',
-  silver: '🥈',
-  gold: '🥇',
-  platinum: '💎',
-  diamond: '💍',
-};
-
 export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitCardProps) {
   const [checked, setChecked] = useState(isCompleted);
 
@@ -63,7 +54,7 @@ export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitC
     : 0;
 
   const tierColor = tierColors[habit.tier as keyof typeof tierColors] || tierColors.bronze;
-  const tierEmoji = tierEmojis[habit.tier as keyof typeof tierEmojis] || tierEmojis.bronze;
+  const TierIcon = resolveTierIcon(habit.tier);
 
   return (
     <motion.div
@@ -114,7 +105,8 @@ export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitC
             <div className="flex flex-wrap items-center gap-2 mb-2">
               {habit.tier && (
                 <Badge className={`text-xs px-2 py-1 bg-gradient-to-r ${tierColor} text-white`}>
-                  {tierEmoji} <span className="hidden sm:inline">{habit.tier}</span>
+                  <TierIcon className="mr-1 h-4 w-4 text-white" />
+                  <span className="hidden sm:inline capitalize">{habit.tier}</span>
                 </Badge>
               )}
               {habit.level && (
@@ -125,7 +117,8 @@ export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitC
               )}
               {habit.streak && habit.streak > 0 && (
                 <Badge className="text-xs px-2 py-1 bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200">
-                  🔥 <span className="sm:hidden">{habit.streak}</span>
+                  <Flame className="h-4 w-4 mr-1" />
+                  <span className="sm:hidden">{habit.streak}</span>
                   <span className="hidden sm:inline">{habit.streak} day streak</span>
                 </Badge>
               )}

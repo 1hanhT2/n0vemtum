@@ -20,7 +20,7 @@ import { useHabitSuggestions } from "@/hooks/use-ai";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { X, Plus, Trash2, Sparkles, User, Mail, Calendar, Hash } from "lucide-react";
+import { X, Plus, Trash2, Sparkles, User, Mail, Calendar, Hash, Moon, Palette, Settings } from "lucide-react";
 import { getMockHabits } from "@/lib/mockData";
 import { ThemeKey, applyTheme, getStoredDarkMode, getStoredTheme } from "@/lib/theme";
 import { usePendingProtection } from "@/hooks/use-debounce";
@@ -291,7 +291,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" aria-describedby="settings-description">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-800 dark:text-white flex items-center">
-            <span className="mr-2">⚙️</span>
+            <Settings className="w-5 h-5 mr-2" />
             Settings
           </DialogTitle>
         </DialogHeader>
@@ -437,13 +437,19 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
 
           {/* Appearance Settings */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">🎨 Appearance</h3>
+            <div className="flex items-center gap-2 text-lg font-semibold text-gray-800 dark:text-white mb-4">
+              <Palette className="h-5 w-5 text-purple-500" />
+              <span>Appearance</span>
+            </div>
 
             {/* Dark/Light Mode Toggle */}
             <div className="mb-4">
               <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-xl transition-all duration-200 hover:dark:bg-gray-700">
                 <div className="flex items-center space-x-3">
-                  <span className="text-sm font-medium text-gray-700 dark:text-white">🌙 Dark Mode</span>
+                  <span className="inline-flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-white">
+                    <Moon className="h-4 w-4" />
+                    Dark Mode
+                  </span>
                 </div>
                 <button
                   onClick={() => setIsDarkMode(!isDarkMode)}

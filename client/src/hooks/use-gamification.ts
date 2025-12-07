@@ -19,7 +19,7 @@ export function useLevelUpHabit() {
     onSuccess: (habit) => {
       queryClient.invalidateQueries({ queryKey: ['/api/habits'] });
       toast({
-        title: "Level Up! 🎉",
+        title: "Level Up!",
         description: `${habit.emoji} ${habit.name} reached level ${habit.level}!`,
       });
     },
@@ -98,7 +98,7 @@ export function useAwardBadge() {
     onSuccess: (habit, { badge }) => {
       queryClient.invalidateQueries({ queryKey: ['/api/habits'] });
       toast({
-        title: "Badge Awarded! 🏆",
+        title: "Badge Awarded!",
         description: `${habit.emoji} ${habit.name} earned the ${badge.replace(/_/g, ' ')} badge!`,
       });
     },

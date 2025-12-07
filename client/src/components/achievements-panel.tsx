@@ -5,6 +5,8 @@ import { useStreaks } from "@/hooks/use-streaks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { getMockAchievements, getMockStreaks } from "@/lib/mockData";
+import { Flame, Medal, Trophy } from "lucide-react";
+import { resolveBadgeIcon } from "@/lib/badgeIcons";
 
 interface AchievementsPanelProps {
   isGuestMode?: boolean;
@@ -43,7 +45,10 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
       className="space-y-6"
     >
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">🏆 Achievements & Streaks</h2>
+        <div className="flex items-center gap-2 mb-2">
+          <Trophy className="h-5 w-5 text-amber-500" />
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Achievements & Streaks</h2>
+        </div>
         <p className="text-gray-600 dark:text-gray-300">Track your progress and unlock badges as you build healthy habits</p>
         
         {/* Quick Stats */}
@@ -68,7 +73,7 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
         <Card className="rounded-2xl shadow-lg bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border-orange-200 dark:border-orange-800">
           <CardHeader>
             <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
-              <span className="mr-2">🔥</span>
+              <Flame className="mr-2 h-5 w-5 text-orange-500" />
               Current Streak
             </CardTitle>
           </CardHeader>
@@ -85,7 +90,7 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
         <Card className="rounded-2xl shadow-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-purple-200 dark:border-purple-800">
           <CardHeader>
             <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
-              <span className="mr-2">🏅</span>
+              <Medal className="mr-2 h-5 w-5 text-purple-500" />
               Longest Streak
             </CardTitle>
           </CardHeader>
@@ -117,7 +122,12 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
                   animate={{ scale: 1, opacity: 1 }}
                   className="text-center p-4 rounded-xl bg-gradient-to-b from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border border-yellow-200 dark:border-yellow-800"
                 >
-                  <div className="text-4xl mb-2">{achievement.badge}</div>
+                  <div className="flex justify-center mb-2">
+                    {(() => {
+                      const Icon = resolveBadgeIcon(achievement.badge);
+                      return <Icon className="h-7 w-7 text-amber-500" />;
+                    })()}
+                  </div>
                   <h3 className="font-semibold text-gray-800 dark:text-white text-sm mb-1">
                     {achievement.name}
                   </h3>
@@ -150,7 +160,12 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
                 animate={{ scale: 1, opacity: 1 }}
                 className="text-center p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 opacity-75"
               >
-                <div className="text-4xl mb-2 grayscale">{achievement.badge}</div>
+                <div className="flex justify-center mb-2 grayscale">
+                  {(() => {
+                    const Icon = resolveBadgeIcon(achievement.badge);
+                    return <Icon className="h-7 w-7 text-gray-500 dark:text-gray-400" />;
+                  })()}
+                </div>
                 <h3 className="font-semibold text-gray-800 dark:text-white text-sm mb-1">
                   {achievement.name}
                 </h3>
