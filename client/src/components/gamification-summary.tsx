@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Trophy, Star, Zap, Target } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface GamificationSummaryProps {
   habits: Array<{
@@ -53,7 +54,18 @@ export function GamificationSummary({ habits }: GamificationSummaryProps) {
   const averageCompletionRate = Math.floor(
     gamifiedHabits.reduce((sum, habit) => sum + (habit.completionRate || 0), 0) / gamifiedHabits.length
   );
-  const longestStreakOverall = Math.max(...gamifiedHabits.map(h => h.longestStreak || 0));
+  const bestStreakOverall = Math.max(...gamifiedHabits.map(h => h.longestStreak || 0), 0);
+  const currentStreaks = gamifiedHabits.map(h => h.streak || 0);
+  const currentStreakOverall = Math.max(...currentStreaks, 0);
+  const medianCurrentStreak = currentStreaks.length
+    ? (() => {
+        const sorted = [...currentStreaks].sort((a, b) => a - b);
+        const mid = Math.floor(sorted.length / 2);
+        return sorted.length % 2 !== 0
+          ? sorted[mid]
+          : Math.floor((sorted[mid - 1] + sorted[mid]) / 2);
+      })()
+    : 0;
 
   return (
     <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
@@ -90,11 +102,19 @@ export function GamificationSummary({ habits }: GamificationSummaryProps) {
           </div>
           
           <div className="text-center space-y-1">
-            <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
-              <Trophy className="w-5 h-5 text-orange-500 mx-auto mb-1" />
-              <div className="text-lg font-bold">{longestStreakOverall}</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">Best Streak</div>
-            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="p-2 bg-white dark:bg-gray-800 rounded-lg cursor-default">
+                  <Trophy className="w-5 h-5 text-orange-500 mx-auto mb-1" />
+                  <div className="text-lg font-bold">{currentStreakOverall}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Current Streak</div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" align="center" className="text-center">
+                <div className="text-sm font-semibold">Best streak: {bestStreakOverall} days</div>
+                <div className="text-xs text-gray-600 dark:text-gray-300">Median current: {medianCurrentStreak} days</div>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </CardContent>
