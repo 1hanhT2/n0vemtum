@@ -50,7 +50,9 @@ export function validateNumericParam(paramName: string) {
 // Sanitize request body
 export function sanitizeBody(req: Request, res: Response, next: NextFunction) {
   if (req.body && typeof req.body === 'object') {
-    for (const key in req.body) {
+    const keys = Object.keys(req.body);
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
       if (typeof req.body[key] === 'string') {
         req.body[key] = sanitizeString(req.body[key]);
       }
