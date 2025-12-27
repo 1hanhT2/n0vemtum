@@ -5,12 +5,21 @@ export default {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        serif: ['"Libre Baskerville"', "serif"],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        cream: "#F3F3EE",
+        teal: {
+          DEFAULT: "#1B8185",
+          dark: "#146164",
+          light: "#E0F2F1"
+        },
         background: "var(--background)",
         foreground: "var(--foreground)",
         card: {
