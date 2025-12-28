@@ -58,7 +58,7 @@ export function HabitDifficultyDisplay({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Brain className="w-4 h-4 text-purple-500" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <span className="text-sm font-medium text-gray-800 font-serif">
             AI Difficulty Analysis
           </span>
         </div>
@@ -69,7 +69,7 @@ export function HabitDifficultyDisplay({
             disabled={isAnalyzing}
             size="sm"
             variant="outline"
-            className="text-xs"
+            className="text-xs border-stone-200"
           >
             {isAnalyzing ? (
               <>
@@ -84,7 +84,7 @@ export function HabitDifficultyDisplay({
             )}
           </Button>
         ) : (
-          <Badge variant="outline" className="text-xs text-gray-500">
+          <Badge variant="outline" className="text-xs text-stone-500 border-stone-200">
             Last analyzed {new Date(habit.lastAnalyzed!).toLocaleDateString()}
           </Badge>
         )}
@@ -102,9 +102,9 @@ export function HabitDifficultyDisplay({
             </Badge>
           </div>
           
-          <Card className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <Card className="bg-stone-50 border-stone-200">
             <CardContent className="p-3">
-              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+              <p className="text-sm text-stone-600 leading-relaxed font-serif">
                 {habit.aiAnalysis}
               </p>
             </CardContent>
@@ -113,9 +113,9 @@ export function HabitDifficultyDisplay({
       )}
 
       {!hasAnalysis && !isAnalyzing && (
-        <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+        <div className="text-center py-4 text-stone-400">
           <Brain className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">Click "Analyze" to get AI-powered difficulty insights</p>
+          <p className="text-sm font-serif">Click "Analyze" to get AI-powered difficulty insights</p>
         </div>
       )}
     </div>

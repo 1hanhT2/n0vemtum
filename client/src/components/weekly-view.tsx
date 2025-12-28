@@ -197,53 +197,53 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
     >
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-2">
-          <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Weekly Review</h2>
+          <BarChart3 className="h-5 w-5 text-teal-600" />
+          <h2 className="text-2xl font-serif font-bold text-gray-800">Weekly Review</h2>
         </div>
-        <p className="text-gray-600 dark:text-gray-300">Reflect on your progress and plan ahead</p>
+        <p className="text-stone-500 font-serif">Reflect on your progress and plan ahead</p>
       </div>
 
       {/* Statistics Cards */}
       <div className="grid md:grid-cols-3 gap-6">
-        <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
+        <Card className="rounded-2xl shadow-sm text-center bg-white/80 backdrop-blur-sm border-stone-200 transition-all duration-200 hover:shadow-md">
           <CardContent className="pt-4 sm:pt-6">
             <div className="flex justify-center mb-2">
-              <CalendarRange className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+              <CalendarRange className="h-7 w-7 text-teal-600" />
             </div>
-            <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
+            <div className="text-xl sm:text-2xl font-bold text-teal-600">
               {weeklyStats.completedDays}/7
             </div>
-            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+            <div className="text-xs sm:text-sm text-stone-500 font-serif">
               <span className="sm:hidden">Days</span>
               <span className="hidden sm:inline">Days Completed</span>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
+        <Card className="rounded-2xl shadow-sm text-center bg-white/80 backdrop-blur-sm border-stone-200 transition-all duration-200 hover:shadow-md">
           <CardContent className="pt-4 sm:pt-6">
             <div className="flex justify-center mb-2">
-              <CheckCircle2 className="h-7 w-7 text-green-600 dark:text-green-400" />
+              <CheckCircle2 className="h-7 w-7 text-teal-600" />
             </div>
-            <div className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
+            <div className="text-xl sm:text-2xl font-bold text-teal-600">
               {weeklyStats.completionRate.toFixed(0)}%
             </div>
-            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+            <div className="text-xs sm:text-sm text-stone-500 font-serif">
               <span className="sm:hidden">Rate</span>
               <span className="hidden sm:inline">Habit Completion</span>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
+        <Card className="rounded-2xl shadow-sm text-center bg-white/80 backdrop-blur-sm border-stone-200 transition-all duration-200 hover:shadow-md">
           <CardContent className="pt-4 sm:pt-6">
             <div className="flex justify-center mb-2">
-              <Star className="h-7 w-7 text-purple-600 dark:text-purple-400 fill-purple-600/20 dark:fill-purple-400/20" />
+              <Star className="h-7 w-7 text-teal-600 fill-teal-100" />
             </div>
-            <div className="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400">
+            <div className="text-xl sm:text-2xl font-bold text-teal-600">
               {weeklyStats.avgScore.toFixed(1)}
             </div>
-            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+            <div className="text-xs sm:text-sm text-stone-500 font-serif">
               <span className="sm:hidden">Score</span>
               <span className="hidden sm:inline">Average Score</span>
             </div>
@@ -253,9 +253,9 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
 
       {/* Charts Section */}
       <div className="grid md:grid-cols-2 gap-6">
-        <Card className="rounded-2xl shadow-lg">
+        <Card className="rounded-2xl shadow-sm bg-white/90 border-stone-200">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">Daily Scores</CardTitle>
+            <CardTitle className="text-lg font-semibold font-serif text-gray-800">Daily Scores</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
@@ -267,18 +267,18 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
                 <Line 
                   type="monotone" 
                   dataKey="score" 
-                  stroke="#6366F1" 
+                  stroke="#0d9488"
                   strokeWidth={3}
-                  dot={{ fill: '#6366F1', strokeWidth: 2 }}
+                  dot={{ fill: '#0d9488', strokeWidth: 2 }}
                 />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl shadow-lg">
+        <Card className="rounded-2xl shadow-sm bg-white/90 border-stone-200">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">Habit Completion</CardTitle>
+            <CardTitle className="text-lg font-semibold font-serif text-gray-800">Habit Completion</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
@@ -314,10 +314,10 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
       </div>
 
       {/* AI Insights Section */}
-      <Card>
+      <Card className="bg-white/90 border-stone-200 shadow-sm">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Sparkles className="w-5 h-5 text-purple-500" />
+          <CardTitle className="flex items-center space-x-2 font-serif text-gray-800">
+            <Sparkles className="w-5 h-5 text-teal-600" />
             <span>AI Weekly Insights</span>
           </CardTitle>
         </CardHeader>
@@ -325,27 +325,27 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
           {aiInsights ? (
             <div className="space-y-4">
               {aiInsights.patterns && (
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Patterns</h4>
-                  <p className="text-blue-700 dark:text-blue-300 text-sm">{aiInsights.patterns}</p>
+                <div className="p-4 bg-teal-50 rounded-lg border border-teal-100">
+                  <h4 className="font-semibold text-teal-800 mb-2 font-serif">Patterns</h4>
+                  <p className="text-teal-700 text-sm">{aiInsights.patterns}</p>
                 </div>
               )}
               {aiInsights.strengths && (
-                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                  <h4 className="font-semibold text-green-800 dark:text-green-200 mb-2">Strengths</h4>
-                  <p className="text-green-700 dark:text-green-300 text-sm">{aiInsights.strengths}</p>
+                <div className="p-4 bg-green-50 rounded-lg border border-green-100">
+                  <h4 className="font-semibold text-green-800 mb-2 font-serif">Strengths</h4>
+                  <p className="text-green-700 text-sm">{aiInsights.strengths}</p>
                 </div>
               )}
               {aiInsights.improvements && (
-                <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                  <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-2">Areas for Improvement</h4>
-                  <p className="text-orange-700 dark:text-orange-300 text-sm">{aiInsights.improvements}</p>
+                <div className="p-4 bg-amber-50 rounded-lg border border-amber-100">
+                  <h4 className="font-semibold text-amber-800 mb-2 font-serif">Areas for Improvement</h4>
+                  <p className="text-amber-700 text-sm">{aiInsights.improvements}</p>
                 </div>
               )}
               {aiInsights.motivation && (
-                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                  <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">Motivation</h4>
-                  <p className="text-purple-700 dark:text-purple-300 text-sm">{aiInsights.motivation}</p>
+                <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                  <h4 className="font-semibold text-indigo-800 mb-2 font-serif">Motivation</h4>
+                  <p className="text-indigo-700 text-sm">{aiInsights.motivation}</p>
                 </div>
               )}
             </div>
@@ -354,7 +354,7 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
               <Button
                 onClick={() => weeklyInsightsMutation.mutate()}
                 disabled={weeklyInsightsMutation.isPending}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
+                className="bg-teal-600 hover:bg-teal-700 text-white font-serif"
               >
                 {weeklyInsightsMutation.isPending ? (
                   <>
@@ -374,9 +374,9 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
       </Card>
 
       {/* Reflection Questions */}
-      <Card className="rounded-2xl shadow-lg">
+      <Card className="rounded-2xl shadow-sm bg-white/90 border-stone-200">
         <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
+          <CardTitle className="text-xl font-semibold font-serif text-gray-800 flex items-center">
             <span className="mr-2">🤔</span>
             Guided Reflection
           </CardTitle>
@@ -384,37 +384,37 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
         <CardContent>
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-stone-600 mb-2 font-serif">
                 What was my biggest accomplishment this week?
               </label>
               <Textarea
                 value={accomplishment}
                 onChange={(e) => setAccomplishment(e.target.value)}
-                className="w-full h-24 resize-none"
+                className="w-full h-24 resize-none bg-stone-50 border-stone-200"
                 placeholder="Reflect on your wins..."
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-stone-600 mb-2 font-serif">
                 Where did my schedule break down and why?
               </label>
               <Textarea
                 value={breakdown}
                 onChange={(e) => setBreakdown(e.target.value)}
-                className="w-full h-24 resize-none"
+                className="w-full h-24 resize-none bg-stone-50 border-stone-200"
                 placeholder="Identify challenges..."
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-stone-600 mb-2 font-serif">
                 What is one adjustment I will make for next week?
               </label>
               <Textarea
                 value={adjustment}
                 onChange={(e) => setAdjustment(e.target.value)}
-                className="w-full h-24 resize-none"
+                className="w-full h-24 resize-none bg-stone-50 border-stone-200"
                 placeholder="Plan your improvement..."
               />
             </div>
@@ -428,7 +428,7 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
               <Button
                 onClick={handleSaveReview}
                 disabled={createWeeklyReview.isPending || updateWeeklyReview.isPending}
-                className="gradient-bg text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl"
+                className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl font-serif"
               >
                 {createWeeklyReview.isPending || updateWeeklyReview.isPending 
                   ? "Saving..." 

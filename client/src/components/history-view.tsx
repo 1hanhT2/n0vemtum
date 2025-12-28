@@ -118,18 +118,18 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
       days.push(
         <motion.div
           key={day}
-          className={`h-16 p-2 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer transition-all ${
+          className={`h-16 p-2 border rounded-lg cursor-pointer transition-all ${
             isToday 
-              ? 'bg-blue-100 dark:bg-blue-900 border-blue-300 dark:border-blue-700' 
+              ? 'bg-teal-50 border-teal-300'
               : hasData 
-                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/30' 
-                : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
+                ? 'bg-teal-light/30 border-teal-light hover:bg-teal-light/50'
+                : 'bg-stone-50 border-stone-200 hover:bg-stone-100'
           }`}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => hasData && openDetailsModal(dateKey)}
         >
-          <div className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">
+          <div className="text-sm font-medium text-gray-800 mb-1 font-serif">
             {day}
           </div>
           {stats && (
@@ -172,7 +172,7 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
     <div className="space-y-6">
       {/* Header with Month Navigation */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+        <h2 className="text-2xl font-serif font-bold text-gray-800">
           {new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(currentDate)}
         </h2>
         <div className="flex space-x-2">
@@ -180,6 +180,7 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
             variant="outline"
             size="sm"
             onClick={() => navigateMonth('prev')}
+            className="border-stone-200 hover:bg-stone-100 text-stone-700"
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
@@ -187,6 +188,7 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
             variant="outline"
             size="sm"
             onClick={() => navigateMonth('next')}
+            className="border-stone-200 hover:bg-stone-100 text-stone-700"
           >
             <ChevronRight className="w-4 h-4" />
           </Button>
@@ -195,45 +197,45 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
 
       {/* Month Summary Stats */}
       <div className="grid grid-cols-3 gap-4">
-        <Card>
+        <Card className="bg-white/80 border-stone-200 shadow-sm backdrop-blur-sm">
           <CardContent className="pt-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              <div className="text-2xl font-bold text-teal-600">
                 {monthStats.daysTracked}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Days Tracked</div>
+              <div className="text-sm text-stone-500 font-serif">Days Tracked</div>
             </div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="bg-white/80 border-stone-200 shadow-sm backdrop-blur-sm">
           <CardContent className="pt-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+              <div className="text-2xl font-bold text-teal-600">
                 {monthStats.daysCompleted}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Days Completed</div>
+              <div className="text-sm text-stone-500 font-serif">Days Completed</div>
             </div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="bg-white/80 border-stone-200 shadow-sm backdrop-blur-sm">
           <CardContent className="pt-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+              <div className="text-2xl font-bold text-teal-600">
                 {monthStats.avgCompletion}%
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Avg Completion</div>
+              <div className="text-sm text-stone-500 font-serif">Avg Completion</div>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Calendar Grid */}
-      <Card>
+      <Card className="bg-white/90 border-stone-200 shadow-sm">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <CalendarIcon className="w-5 h-5" />
+          <CardTitle className="flex items-center space-x-2 font-serif text-gray-800">
+            <CalendarIcon className="w-5 h-5 text-teal-600" />
             <span>Monthly Overview</span>
           </CardTitle>
         </CardHeader>
@@ -241,7 +243,7 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
           {/* Day Labels */}
           <div className="grid grid-cols-7 gap-2 mb-2">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="text-center text-sm font-medium text-gray-600 dark:text-gray-400 py-2">
+              <div key={day} className="text-center text-sm font-medium text-stone-500 font-serif py-2">
                 {day}
               </div>
             ))}
@@ -253,28 +255,28 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
           </div>
 
           {/* Legend */}
-          <div className="flex items-center justify-center space-x-6 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-center space-x-6 mt-4 pt-4 border-t border-stone-100">
             <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 bg-blue-100 dark:bg-blue-900 border border-blue-300 dark:border-blue-700 rounded"></div>
-              <span className="text-sm text-gray-600 dark:text-gray-400">Today</span>
+              <div className="w-4 h-4 bg-teal-50 border border-teal-200 rounded"></div>
+              <span className="text-sm text-stone-500 font-serif">Today</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded"></div>
-              <span className="text-sm text-gray-600 dark:text-gray-400">Has Data</span>
+              <div className="w-4 h-4 bg-teal-light/50 border border-teal-light rounded"></div>
+              <span className="text-sm text-stone-500 font-serif">Has Data</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded"></div>
-              <span className="text-sm text-gray-600 dark:text-gray-400">No Data</span>
+              <div className="w-4 h-4 bg-stone-50 border border-stone-200 rounded"></div>
+              <span className="text-sm text-stone-500 font-serif">No Data</span>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Recent Entries List */}
-      <Card>
+      <Card className="bg-white/90 border-stone-200 shadow-sm">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <TrendingUp className="w-5 h-5" />
+          <CardTitle className="flex items-center space-x-2 font-serif text-gray-800">
+            <TrendingUp className="w-5 h-5 text-teal-600" />
             <span>Recent Entries</span>
           </CardTitle>
         </CardHeader>
@@ -287,18 +289,18 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
                 return (
                   <motion.div 
                     key={entry.date} 
-                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                    className="flex items-center justify-between p-4 bg-stone-50/50 rounded-lg hover:bg-teal-50/30 border border-transparent hover:border-teal-100 transition-colors cursor-pointer"
                     onClick={() => openDetailsModal(entry.date)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <div className="flex items-center space-x-4">
-                      <CalendarIcon className="w-5 h-5 text-gray-400" />
+                      <CalendarIcon className="w-5 h-5 text-teal-500/70" />
                       <div className="flex flex-col">
-                        <span className="font-medium text-gray-800 dark:text-gray-200">
+                        <span className="font-medium text-gray-800 font-serif">
                           {formatDate(entry.date)}
                         </span>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                        <span className="text-sm text-stone-500">
                           {stats.completed}/{stats.total} habits completed
                         </span>
                       </div>
@@ -315,7 +317,7 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
                       <Badge variant={stats.percentage >= 80 ? "default" : stats.percentage >= 50 ? "secondary" : "destructive"}>
                         {stats.percentage}%
                       </Badge>
-                      <Eye className="w-4 h-4 text-gray-400" />
+                      <Eye className="w-4 h-4 text-stone-400" />
                     </div>
                   </motion.div>
                 );
@@ -323,11 +325,11 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
             </div>
           ) : (
             <div className="text-center py-8">
-              <CalendarIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <CalendarIcon className="w-12 h-12 mx-auto text-stone-300 mb-4" />
+              <h3 className="text-lg font-medium text-gray-700 mb-2 font-serif">
                 No Tracking Data
               </h3>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-stone-500">
                 Start tracking your habits to see historical data here.
               </p>
             </div>
@@ -354,45 +356,45 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
                 <>
                   {/* Overview Stats */}
                   <div className="grid grid-cols-3 gap-4">
-                    <Card>
+                    <Card className="bg-stone-50 border-stone-200">
                       <CardContent className="pt-4">
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                          <div className="text-2xl font-bold text-teal-600">
                             {getCompletionStats(selectedEntry).percentage}%
                           </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">Completion Rate</div>
+                          <div className="text-sm text-stone-500">Completion Rate</div>
                         </div>
                       </CardContent>
                     </Card>
                     
-                    <Card>
+                    <Card className="bg-stone-50 border-stone-200">
                       <CardContent className="pt-4">
                         <div className="text-center">
                           <div className={`text-2xl font-bold ${getScoreColor(selectedEntry.punctualityScore)}`}>
                             {selectedEntry.punctualityScore}/5
                           </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">Punctuality Score</div>
+                          <div className="text-sm text-stone-500">Punctuality Score</div>
                         </div>
                       </CardContent>
                     </Card>
                     
-                    <Card>
+                    <Card className="bg-stone-50 border-stone-200">
                       <CardContent className="pt-4">
                         <div className="text-center">
                           <div className={`text-2xl font-bold ${getScoreColor(selectedEntry.adherenceScore)}`}>
                             {selectedEntry.adherenceScore}/5
                           </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">Adherence Score</div>
+                          <div className="text-sm text-stone-500">Adherence Score</div>
                         </div>
                       </CardContent>
                     </Card>
                   </div>
 
                   {/* Habit Completion Details */}
-                  <Card>
+                  <Card className="bg-white border-stone-200">
                     <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <CheckCircle className="w-5 h-5" />
+                      <CardTitle className="flex items-center space-x-2 font-serif text-gray-800">
+                        <CheckCircle className="w-5 h-5 text-teal-600" />
                         <span>Habit Completions</span>
                       </CardTitle>
                     </CardHeader>
@@ -405,8 +407,8 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
                               key={habit.id} 
                               className={`flex items-center justify-between p-3 rounded-lg border ${
                                 isCompleted 
-                                  ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
-                                  : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                                  ? 'bg-teal-50 border-teal-200'
+                                  : 'bg-stone-50 border-stone-200'
                               }`}
                               initial={{ opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
@@ -414,15 +416,15 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
                             >
                               <div className="flex items-center space-x-3">
                                 <span className="text-xl">{habit.emoji}</span>
-                                <span className={`font-medium ${isCompleted ? 'text-green-800 dark:text-green-200' : 'text-gray-700 dark:text-gray-300'}`}>
+                                <span className={`font-medium ${isCompleted ? 'text-teal-800' : 'text-stone-600'}`}>
                                   {habit.name}
                                 </span>
                               </div>
                               <div className="flex items-center space-x-2">
                                 {isCompleted ? (
-                                  <CheckCircle className="w-5 h-5 text-green-600" />
+                                  <CheckCircle className="w-5 h-5 text-teal-600" />
                                 ) : (
-                                  <XCircle className="w-5 h-5 text-gray-400" />
+                                  <XCircle className="w-5 h-5 text-stone-400" />
                                 )}
                                 <Badge variant={isCompleted ? "default" : "secondary"}>
                                   {isCompleted ? "Completed" : "Skipped"}
@@ -437,16 +439,16 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
 
                   {/* Daily Reflection & Notes */}
                   {selectedEntry.notes && (
-                    <Card>
+                    <Card className="bg-white border-stone-200">
                       <CardHeader>
-                        <CardTitle className="flex items-center space-x-2">
-                          <Clock className="w-5 h-5" />
+                        <CardTitle className="flex items-center space-x-2 font-serif text-gray-800">
+                          <Clock className="w-5 h-5 text-teal-600" />
                           <span>Daily Reflection</span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                          <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                        <div className="bg-stone-50 p-4 rounded-lg border border-stone-100">
+                          <p className="text-stone-700 leading-relaxed whitespace-pre-wrap font-serif">
                             {selectedEntry.notes}
                           </p>
                         </div>
@@ -456,15 +458,15 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
 
                   {/* Completion Timeline */}
                   {selectedEntry.completedAt && (
-                    <Card>
+                    <Card className="bg-white border-stone-200">
                       <CardHeader>
-                        <CardTitle className="flex items-center space-x-2">
-                          <Clock className="w-5 h-5" />
+                        <CardTitle className="flex items-center space-x-2 font-serif text-gray-800">
+                          <Clock className="w-5 h-5 text-teal-600" />
                           <span>Completion Details</span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center space-x-4 text-sm text-stone-500">
                           <div className="flex items-center space-x-2">
                             <Clock className="w-4 h-4" />
                             <span>Completed at: {new Date(selectedEntry.completedAt).toLocaleString()}</span>
@@ -476,13 +478,13 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
                 </>
               ) : (
                 <div className="text-center py-12">
-                  <div className="text-gray-400 mb-4">
+                  <div className="text-stone-300 mb-4">
                     <CalendarIcon className="w-12 h-12 mx-auto" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <h3 className="text-lg font-medium text-gray-700 mb-2 font-serif">
                     No Data Available
                   </h3>
-                  <p className="text-gray-500 dark:text-gray-400">
+                  <p className="text-stone-500">
                     No habit tracking data found for {selectedDate ? formatDate(selectedDate) : 'this date'}.
                   </p>
                 </div>

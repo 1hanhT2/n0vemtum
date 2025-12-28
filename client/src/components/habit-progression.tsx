@@ -119,7 +119,7 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
                   Level {level}
                 </Badge>
               </CardTitle>
-              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center space-x-2 text-sm text-stone-600 font-serif">
                 <span className="capitalize">{tier} Tier</span>
                 <span>•</span>
                 <span>{completionRate}% Success Rate</span>
@@ -132,7 +132,7 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
             size="sm"
             onClick={() => setShowDetails(!showDetails)}
           >
-            <TrendingUp className="w-4 h-4" />
+            <TrendingUp className="w-4 h-4 text-stone-600" />
           </Button>
         </div>
       </CardHeader>
@@ -141,10 +141,10 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
         {/* Experience Progress */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600 dark:text-gray-400">Experience</span>
-            <span className="font-medium">{experience} / {experienceToNext} XP</span>
+            <span className="text-stone-600 font-serif">Experience</span>
+            <span className="font-medium text-gray-800">{experience} / {experienceToNext} XP</span>
           </div>
-          <Progress value={experiencePercentage} className="h-2" />
+          <Progress value={experiencePercentage} className="h-2 bg-stone-200" indicatorClassName="bg-teal-600" />
           {experiencePercentage >= 100 && (
             <motion.div
               initial={{ scale: 0 }}
@@ -156,7 +156,7 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
                   onLevelUp?.(habit.id);
                   handleCelebration();
                 }}
-                className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600"
+                className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600 font-serif"
               >
                 <Trophy className="w-4 h-4 mr-2" />
                 Level Up!
@@ -200,7 +200,7 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
         {/* Badges */}
         {badges.length > 0 && (
           <div className="space-y-2">
-            <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <div className="text-sm font-medium text-gray-800 font-serif">
               Earned Badges
             </div>
             <div className="flex flex-wrap gap-1">
@@ -210,7 +210,7 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: index * 0.1 }}
-                  className="p-1 rounded-md bg-amber-50 dark:bg-amber-900/20"
+                  className="p-1 rounded-md bg-amber-50 border border-amber-100"
                   title={badge.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 >
                   {(() => {
@@ -230,41 +230,41 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="space-y-3 border-t pt-3"
+              className="space-y-3 border-t border-stone-100 pt-3"
             >
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="space-y-2">
-                  <div className="font-medium text-gray-700 dark:text-gray-300">Progress Metrics</div>
+                  <div className="font-medium text-gray-800 font-serif">Progress Metrics</div>
                   <div className="space-y-1">
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Completion Rate</span>
-                      <span>{completionRate}%</span>
+                      <span className="text-stone-500">Completion Rate</span>
+                      <span className="text-gray-700">{completionRate}%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Total Completions</span>
-                      <span>{totalCompletions}</span>
+                      <span className="text-stone-500">Total Completions</span>
+                      <span className="text-gray-700">{totalCompletions}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Mastery Points</span>
-                      <span>{masteryPoints}</span>
+                      <span className="text-stone-500">Mastery Points</span>
+                      <span className="text-gray-700">{masteryPoints}</span>
                     </div>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <div className="font-medium text-gray-700 dark:text-gray-300">Streak Stats</div>
+                  <div className="font-medium text-gray-800 font-serif">Streak Stats</div>
                   <div className="space-y-1">
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Current Streak</span>
-                      <span>{streak} days</span>
+                      <span className="text-stone-500">Current Streak</span>
+                      <span className="text-gray-700">{streak} days</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Longest Streak</span>
-                      <span>{longestStreak} days</span>
+                      <span className="text-stone-500">Longest Streak</span>
+                      <span className="text-gray-700">{longestStreak} days</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Current Tier</span>
-                      <span className="capitalize">{tier}</span>
+                      <span className="text-stone-500">Current Tier</span>
+                      <span className="capitalize text-gray-700">{tier}</span>
                     </div>
                   </div>
                 </div>
