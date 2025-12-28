@@ -6,6 +6,8 @@ import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { SiNike, SiAirbnb, SiDropbox, SiUber, SiShopify, SiFigma } from "react-icons/si";
 
+import logoUrl from "@assets/Logos and identity/pushfowardlogo.png";
+
 export function Landing() {
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
@@ -58,7 +60,7 @@ export function Landing() {
       <header className="fixed top-0 w-full z-50 bg-cream/90 backdrop-blur-md border-b border-gray-200">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/favicon.png" alt="PushForward logo" className="h-8 w-8" />
+            <img src={logoUrl} alt="PushForward logo" className="h-8 w-8" />
             <span className="font-serif text-xl font-bold tracking-tight text-gray-900">PushForward</span>
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium">

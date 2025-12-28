@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 import { Link } from "wouter";
 
+import logoUrl from "@assets/Logos and identity/pushfowardlogo.png";
+
 interface HeaderProps {
   onSettingsClick: () => void;
   isGuestMode?: boolean;
@@ -15,7 +17,7 @@ export function Header({ onSettingsClick, isGuestMode = false }: HeaderProps) {
           {/* Logo */}
           <Link href="/app">
             <div className="flex items-center gap-3 cursor-pointer group">
-              <img src="/favicon.png" alt="PushForward logo" className="h-8 w-8 opacity-80 group-hover:opacity-100 transition-opacity" />
+              <img src={logoUrl} alt="PushForward logo" className="h-8 w-8 opacity-80 group-hover:opacity-100 transition-opacity" />
               <span className="font-serif text-lg font-bold text-gray-900 tracking-tight">PushForward</span>
             </div>
           </Link>
