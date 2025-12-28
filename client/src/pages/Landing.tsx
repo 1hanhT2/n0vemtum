@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { SiNike, SiAirbnb, SiDropbox, SiUber, SiShopify, SiFigma } from "react-icons/si";
 
 export function Landing() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
@@ -53,32 +53,29 @@ export function Landing() {
   }, []);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#f6f9ff] via-white to-[#eef2ff] dark:bg-gradient-to-b dark:from-[#0b1021] dark:via-[#0f172a] dark:to-[#0b1021] text-gray-900 dark:text-gray-100">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-blue-200/40 blur-3xl dark:bg-blue-900/30" />
-        <div className="absolute right-10 top-32 h-80 w-80 rounded-full bg-purple-200/35 blur-3xl dark:bg-purple-900/30" />
-        <div className="absolute left-1/3 bottom-0 h-96 w-96 rounded-full bg-cyan-200/40 blur-3xl dark:bg-indigo-900/25" />
-        <div className="absolute inset-0 opacity-40 glow-orb dark:opacity-20" />
-      </div>
-
+    <div className="relative min-h-screen bg-cream text-gray-900 font-sans selection:bg-teal-light selection:text-teal-dark">
       {/* Header */}
-      <header className="fixed top-0 w-full z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between rounded-full border border-white/60 bg-white/70 backdrop-blur-2xl shadow-lg shadow-blue-100/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-black/30">
+      <header className="fixed top-0 w-full z-50 bg-cream/90 backdrop-blur-md border-b border-gray-200">
+        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/favicon.png" alt="PushForward logo" className="h-10 w-10" />
-            <span className="font-['Lexend_Giga'] text-xl font-semibold text-gray-900 dark:text-white">PushForward</span>
+            <img src="/favicon.png" alt="PushForward logo" className="h-8 w-8" />
+            <span className="font-serif text-xl font-bold tracking-tight text-gray-900">PushForward</span>
           </div>
-          <nav className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-gray-700 hover:text-gray-900 transition-colors dark:text-gray-300 dark:hover:text-white">
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
+            <a href="#features" className="text-gray-600 hover:text-teal-dark transition-colors">
               Features
             </a>
-            <a href="#stats" className="text-gray-700 hover:text-gray-900 transition-colors dark:text-gray-300 dark:hover:text-white">
+            <a href="#stats" className="text-gray-600 hover:text-teal-dark transition-colors">
               Stats
             </a>
-            <a href="#testimonials" className="text-gray-700 hover:text-gray-900 transition-colors dark:text-gray-300 dark:hover:text-white">
+            <a href="#testimonials" className="text-gray-600 hover:text-teal-dark transition-colors">
               Reviews
             </a>
-            <Button onClick={handleLogin} variant="default" className="bg-gradient-to-r from-gray-900 to-gray-800 text-white shadow-md shadow-gray-500/30">
+            <Button
+              onClick={handleLogin}
+              variant="default"
+              className="bg-teal text-white hover:bg-teal-dark rounded-full px-6 shadow-none transition-all"
+            >
               Log in
             </Button>
           </nav>
@@ -86,166 +83,132 @@ export function Landing() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative pt-36 pb-24 px-4">
-        <div className="container mx-auto max-w-6xl grid lg:grid-cols-2 gap-12 items-center">
-          <div className="relative">
-            <div className="inline-flex items-center gap-3 bg-white/70 border border-white/60 backdrop-blur-xl rounded-full px-4 py-2 mb-2 shadow-sm shadow-blue-100/50 dark:bg-slate-900/70 dark:border-slate-800">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-gray-700 dark:text-gray-300">500+ users building better habits daily</span>
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">We’re still growing—these numbers are aspirational while in beta.</p>
-
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-              PushForward helps you
-              <br />
-              <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                build habits that stick.
-              </span>
-            </h1>
-
-            <p className="text-xl text-gray-700 dark:text-gray-300 max-w-2xl mb-10">
-              Track up to 23 habits, unlock achievements, and get AI-powered insights to keep your momentum going.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 mb-10">
-              <Button
-                onClick={handleLogin}
-                size="lg"
-                className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 text-white hover:scale-[1.01] transition-transform px-8 py-6 text-lg font-medium shadow-lg shadow-gray-400/40 dark:from-white dark:via-gray-200 dark:to-gray-100 dark:text-gray-900 dark:shadow-black/30"
-              >
-                Start for free
-              </Button>
-              <Button
-                onClick={() => setLocation("/demo")}
-                variant="outline"
-                size="lg"
-                className="border-gray-200 bg-white/70 backdrop-blur-xl text-gray-900 hover:border-gray-300 px-8 py-6 text-lg font-medium group shadow-sm dark:border-slate-700 dark:bg-slate-900/70 dark:text-gray-100 dark:hover:border-slate-600"
-              >
-                See how it works
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 max-w-2xl">
-            {[
-              { label: "Avg. streak", value: "26 days" },
-              { label: "Achievements unlocked", value: "52" },
-              { label: "AI nudges", value: "14 / week" }
-            ].map((item) => (
-                <div key={item.label} className="glass-surface glossy-border rounded-2xl p-4">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{item.label}</p>
-                  <p className="text-xl font-semibold text-gray-900 dark:text-white">{item.value}</p>
-                </div>
-              ))}
-            </div>
+      <section className="pt-40 pb-24 px-6">
+        <div className="container mx-auto max-w-5xl text-center">
+          <div className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-1.5 mb-8 shadow-sm">
+            <div className="w-1.5 h-1.5 bg-teal rounded-full animate-pulse"></div>
+            <span className="text-xs font-medium text-gray-600 tracking-wide uppercase">Private Beta Access</span>
           </div>
 
-          <div className="relative">
-            <div className="absolute inset-0 -left-6 rounded-[32px] bg-gradient-to-br from-blue-500/15 via-indigo-500/10 to-purple-500/15 blur-3xl" />
-            <div className="relative glass-surface glossy-border rounded-[32px] p-6 overflow-hidden">
-              <div className="absolute right-4 top-4 h-20 w-20 rounded-full bg-white/60 blur-3xl dark:bg-slate-800/60" />
-              <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white shadow-md">
-                    <Sparkles className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Live overview</p>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">PushForward workspace</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <Eye className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-                  Live preview
-                </div>
-              </div>
+          <h1 className="text-5xl md:text-7xl font-serif font-medium text-gray-900 mb-8 leading-[1.1] tracking-tight">
+            Cultivate habits that <br className="hidden md:block"/>
+            <span className="text-teal italic">actually stick.</span>
+          </h1>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="rounded-2xl bg-white/70 border border-white/60 backdrop-blur-xl p-4 dark:bg-slate-900/70 dark:border-slate-800">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Today</p>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-12 leading-relaxed font-light">
+            Track your daily progress, unlock meaningful achievements, and receive AI-curated insights to maintain your momentum.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20">
+            <Button
+              onClick={handleLogin}
+              size="lg"
+              className="bg-teal hover:bg-teal-dark text-white rounded-full px-8 py-6 text-lg shadow-sm transition-all hover:shadow-md"
+            >
+              Start building free
+            </Button>
+            <Button
+              onClick={() => setLocation("/demo")}
+              variant="outline"
+              size="lg"
+              className="border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 rounded-full px-8 py-6 text-lg bg-transparent"
+            >
+              See how it works
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Hero Visual */}
+          <div className="relative max-w-4xl mx-auto">
+            <div className="absolute inset-0 bg-teal/5 blur-3xl rounded-full transform scale-90"></div>
+            <div className="relative bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden p-2">
+              <div className="bg-gray-50 rounded-lg border border-gray-100 p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                {/* Left Column: Daily View */}
+                <div className="space-y-6 text-left">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="font-serif text-lg font-medium text-gray-900">Today's Focus</h3>
+                      <p className="text-xs text-gray-500">Wednesday, October 24</p>
+                    </div>
+                    <Sparkles className="h-5 w-5 text-teal" />
+                  </div>
+
                   <div className="space-y-3">
-                    {["Morning routine", "Deep work", "Movement"].map((item, idx) => (
-                      <div key={item} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${idx === 0 ? 'from-blue-500/90 to-indigo-500/90' : idx === 1 ? 'from-emerald-400/80 to-teal-400/80' : 'from-amber-400/90 to-orange-400/90'} flex items-center justify-center text-white shadow`}>
-                            <CheckCircle2 className="h-4 w-4" />
+                    {[
+                      { name: "Deep Work Session", streak: 12, done: true },
+                      { name: "Morning Run (5k)", streak: 5, done: true },
+                      { name: "Read 30 Pages", streak: 26, done: false }
+                    ].map((habit, i) => (
+                      <div key={i} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center border ${habit.done ? 'bg-teal border-teal text-white' : 'border-gray-300'}`}>
+                            {habit.done && <CheckCircle2 className="h-3.5 w-3.5" />}
                           </div>
-                          <span className="text-sm text-gray-900 dark:text-gray-100">{item}</span>
+                          <span className={`text-sm ${habit.done ? 'text-gray-900' : 'text-gray-600'}`}>{habit.name}</span>
                         </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">+1 streak</span>
+                        <span className="text-xs font-mono text-gray-400">Streak: {habit.streak}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="rounded-2xl bg-white/70 border border-white/60 backdrop-blur-xl p-4 flex flex-col justify-between dark:bg-slate-900/70 dark:border-slate-800">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Momentum</p>
-                    <div className="space-y-3">
-                      {[80, 65, 92].map((value, idx) => (
-                        <div key={idx}>
-                          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-                            <span>{['Consistency', 'Focus', 'Energy'][idx]}</span>
-                            <span>{value}%</span>
-                          </div>
-                          <div className="h-2 rounded-full bg-gray-100 overflow-hidden dark:bg-slate-800">
-                            <div className={`h-full rounded-full bg-gradient-to-r ${idx === 0 ? 'from-blue-500 to-indigo-500' : idx === 1 ? 'from-emerald-400 to-teal-400' : 'from-amber-400 to-orange-400'}`} style={{ width: `${value}%` }}></div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-300 flex-wrap gap-3">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-blue-500" />
-                      AI coach online
-                    </div>
-                    <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 shadow-sm shadow-blue-500/30 dark:from-blue-500 dark:to-purple-500">
-                      Boost me
-                    </Button>
-                  </div>
+
+                {/* Right Column: Insights */}
+                <div className="space-y-6 text-left border-l border-gray-200 pl-8 hidden md:block">
+                   <h3 className="font-serif text-lg font-medium text-gray-900">Weekly Insight</h3>
+                   <div className="p-4 bg-teal-light/30 rounded-lg border border-teal-light">
+                      <p className="text-sm text-teal-dark leading-relaxed">
+                        "You're most consistent with <strong>Deep Work</strong> when you start before 9 AM. Try scheduling your block earlier to maintain this 12-day streak."
+                      </p>
+                      <div className="mt-3 flex items-center gap-2 text-xs text-teal font-medium">
+                        <Brain className="h-3 w-3" />
+                        AI Analysis
+                      </div>
+                   </div>
+
+                   <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Completion Rate</span>
+                        <span>87%</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-teal w-[87%] rounded-full"></div>
+                      </div>
+                   </div>
                 </div>
+
               </div>
             </div>
           </div>
         </div>
 
-        <div className="container mx-auto max-w-6xl">
-          <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-12">Trusted by teams at</p>
-          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 md:gap-12 mt-6 opacity-70 grayscale">
-            <SiUber className="h-8 w-auto" />
-            <SiAirbnb className="h-8 w-auto" />
-            <SiDropbox className="h-10 w-auto" />
-            <SiShopify className="h-8 w-auto" />
-            <SiFigma className="h-8 w-auto" />
-            <SiNike className="h-8 w-auto" />
+        <div className="container mx-auto max-w-6xl mt-24 border-t border-gray-200 pt-12">
+          <p className="text-xs font-medium text-gray-400 text-center uppercase tracking-widest mb-8">Trusted by teams at</p>
+          <div className="flex flex-wrap items-center justify-center gap-10 md:gap-16 opacity-40 grayscale transition-all hover:opacity-60 hover:grayscale-0">
+            <SiUber className="h-6 w-auto" />
+            <SiAirbnb className="h-6 w-auto" />
+            <SiDropbox className="h-8 w-auto" />
+            <SiShopify className="h-6 w-auto" />
+            <SiFigma className="h-6 w-auto" />
+            <SiNike className="h-6 w-auto" />
           </div>
-          <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-3">These logos are just vibes for now—we’re not actually partnered (yet).</p>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section id="stats" className="py-20 px-4">
+      <section id="stats" className="py-24 px-6 bg-white border-y border-gray-100">
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              A growing platform for
-              <br />
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">habit builders</span>
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300">Signals that PushForward keeps your momentum glowing.</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[ 
-              { label: "Active Users", value: "500+", accent: "from-blue-500 to-indigo-500", footnote: "Reality: friends & early adopters." },
-              { label: "Habits Tracked", value: "12,000+", accent: "from-emerald-400 to-teal-400", footnote: "We’re not there yet—working on it." },
-              { label: "Success Rate", value: "95%", accent: "from-amber-400 to-orange-400", footnote: "A goal, not a guarantee." },
-              { label: "User Rating", value: "4.9/5", accent: "from-purple-500 to-pink-500", footnote: "Aspirational score, still in beta." }
+              { label: "Active Users", value: "500+", desc: "Growing community" },
+              { label: "Habits Tracked", value: "12k+", desc: "Daily commitments" },
+              { label: "Success Rate", value: "95%", desc: "Goal completion" },
+              { label: "User Rating", value: "4.9", desc: "Average score" }
             ].map((item) => (
-              <div key={item.label} className="glass-surface glossy-border rounded-2xl p-6 text-center space-y-1">
-                <div className={`mx-auto mb-2 h-12 w-12 rounded-2xl bg-gradient-to-br ${item.accent} text-white font-semibold flex items-center justify-center shadow-md`}>{item.value}</div>
-                <div className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">{item.label}</div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic text-pretty leading-snug">{item.footnote}</p>
+              <div key={item.label} className="text-center md:text-left p-6 border-r last:border-r-0 border-gray-100">
+                <div className="text-4xl font-serif font-medium text-teal mb-2">{item.value}</div>
+                <div className="text-sm font-bold text-gray-900 uppercase tracking-wide">{item.label}</div>
+                <div className="text-sm text-gray-500 mt-1">{item.desc}</div>
               </div>
             ))}
           </div>
@@ -253,159 +216,100 @@ export function Landing() {
       </section>
 
       {/* Features Grid */}
-      <section id="features" className="py-20 px-4">
+      <section id="features" className="py-32 px-6">
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Track habits in seconds.
+          <div className="text-center mb-20">
+            <h2 className="text-4xl font-serif text-gray-900 mb-6">
+              Everything you need to <br/> maintain momentum.
             </h2>
-            <div className="flex justify-center gap-4 mt-8">
-              <button className="px-4 py-2 bg-gray-900 dark:bg-white dark:text-gray-900 text-white rounded-full text-sm font-medium">
-                Habits
-              </button>
-              <button className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-sm">
-                Achievements
-              </button>
-              <button className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-sm">
-                Analytics
-              </button>
-              <button className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-sm">
-                AI Insights
-              </button>
-            </div>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              A complete toolkit designed to help you understand your behavior and achieve your goals.
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="glass-surface glossy-border hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
-              <CardHeader>
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Target className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: Target,
+                title: "Smart Goal Setting",
+                desc: "Set up to 23 habits with custom difficulty levels and track your daily progress with visual streaks."
+              },
+              {
+                icon: Trophy,
+                title: "Achievement System",
+                desc: "Unlock 50+ achievements, level up through 10 tiers, and earn mastery points for consistency."
+              },
+              {
+                icon: Brain,
+                title: "AI-Powered Insights",
+                desc: "Get personalized weekly insights and habit suggestions powered by advanced AI analysis."
+              },
+              {
+                icon: BarChart3,
+                title: "Advanced Analytics",
+                desc: "Track completion rates, habit health scores, and long-term trends with beautiful visualizations."
+              },
+              {
+                icon: TrendingUp,
+                title: "Progress Tracking",
+                desc: "Monitor daily, weekly, and monthly progress with streak counters and completion badges."
+              },
+              {
+                icon: Shield,
+                title: "Secure & Private",
+                desc: "Your data is encrypted and secure. We never share your personal information with third parties."
+              }
+            ].map((feature, idx) => (
+              <div key={idx} className="group p-8 rounded-2xl bg-white border border-gray-100 hover:border-teal/30 hover:shadow-lg hover:shadow-teal/5 transition-all duration-300">
+                <div className="w-12 h-12 bg-cream rounded-lg flex items-center justify-center mb-6 group-hover:bg-teal group-hover:text-white transition-colors">
+                  <feature.icon className="h-6 w-6 text-gray-700 group-hover:text-white transition-colors" />
                 </div>
-                <CardTitle className="text-xl text-gray-900 dark:text-white">Smart Goal Setting</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-gray-600 dark:text-gray-400">
-                  Set up to 23 habits with custom difficulty levels and track your daily progress with visual streaks.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="glass-surface glossy-border hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
-              <CardHeader>
-                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Trophy className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                </div>
-                <CardTitle className="text-xl text-gray-900 dark:text-white">Achievement System</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-gray-600 dark:text-gray-400">
-                  Unlock 50+ achievements, level up through 10 tiers, and earn mastery points for consistency.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="glass-surface glossy-border hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
-              <CardHeader>
-                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Brain className="h-6 w-6 text-green-600 dark:text-green-400" />
-                </div>
-                <CardTitle className="text-xl text-gray-900 dark:text-white">AI-Powered Insights</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-gray-600 dark:text-gray-400">
-                  Get personalized weekly insights and habit suggestions powered by advanced AI analysis.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="glass-surface glossy-border hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
-              <CardHeader>
-                <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <BarChart3 className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-                </div>
-                <CardTitle className="text-xl text-gray-900 dark:text-white">Advanced Analytics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-gray-600 dark:text-gray-400">
-                  Track completion rates, habit health scores, and long-term trends with beautiful visualizations.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="glass-surface glossy-border hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
-              <CardHeader>
-                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <TrendingUp className="h-6 w-6 text-red-600 dark:text-red-400" />
-                </div>
-                <CardTitle className="text-xl text-gray-900 dark:text-white">Progress Tracking</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-gray-600 dark:text-gray-400">
-                  Monitor daily, weekly, and monthly progress with streak counters and completion badges.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="glass-surface glossy-border hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
-              <CardHeader>
-                <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Shield className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <CardTitle className="text-xl text-gray-900 dark:text-white">Secure & Private</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-gray-600 dark:text-gray-400">
-                  Your data is encrypted and secure. We never share your personal information with third parties.
-                </CardDescription>
-              </CardContent>
-            </Card>
+                <h3 className="text-xl font-serif font-medium text-gray-900 mb-3">{feature.title}</h3>
+                <p className="text-gray-600 leading-relaxed text-sm">
+                  {feature.desc}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="py-20 px-4">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              What our users are saying.
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300">Glossy feedback from teams already moving faster.</p>
-          </div>
+      <section id="testimonials" className="py-24 px-6 bg-teal-light/20 border-y border-teal/10">
+        <div className="container mx-auto max-w-4xl text-center">
+          <h2 className="text-3xl font-serif text-gray-900 mb-16">
+            Reflections from our community.
+          </h2>
 
-          <div className="relative">
-            <Card className="glass-surface glossy-border p-8">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                  {testimonials[currentTestimonial].avatar}
+          <div className="relative bg-white p-10 md:p-14 rounded-2xl shadow-sm border border-gray-100">
+            <div className="absolute top-0 left-0 transform -translate-x-1/2 -translate-y-1/2 bg-teal text-white w-12 h-12 flex items-center justify-center rounded-full text-2xl font-serif">"</div>
+
+            <blockquote className="text-2xl font-serif text-gray-800 leading-relaxed mb-8">
+              {testimonials[currentTestimonial].quote}
+            </blockquote>
+
+            <div className="flex items-center justify-center gap-4">
+              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 font-bold text-sm">
+                {testimonials[currentTestimonial].avatar}
+              </div>
+              <div className="text-left">
+                <div className="font-bold text-gray-900 text-sm">
+                  {testimonials[currentTestimonial].name}
                 </div>
-                <div>
-                  <div className="font-semibold text-gray-900 dark:text-white">
-                    {testimonials[currentTestimonial].name}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">
-                    {testimonials[currentTestimonial].role} at {testimonials[currentTestimonial].company}
-                  </div>
+                <div className="text-xs text-gray-500 uppercase tracking-wide">
+                  {testimonials[currentTestimonial].role}, {testimonials[currentTestimonial].company}
                 </div>
               </div>
-              <blockquote className="text-lg text-gray-700 dark:text-gray-200 italic">
-                "{testimonials[currentTestimonial].quote}"
-              </blockquote>
-              <div className="flex gap-1 mt-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-            </Card>
+            </div>
 
-            <div className="flex justify-center gap-2 mt-6">
+            <div className="flex justify-center gap-2 mt-10">
               {testimonials.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentTestimonial(index)}
                   className={`w-2 h-2 rounded-full transition-all ${
                     index === currentTestimonial
-                      ? 'bg-gray-900 w-8'
+                      ? 'bg-teal w-6'
                       : 'bg-gray-300'
                   }`}
                 />
@@ -416,63 +320,43 @@ export function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-4xl">
-          <div className="glass-surface glossy-border rounded-3xl p-12 text-center">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
-              Start building better habits today.
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-              Join 500+ users who are transforming their lives one habit at a time.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                onClick={handleLogin}
-                size="lg"
-                className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white hover:scale-[1.01] transition-transform px-8 py-6 text-lg font-medium shadow-lg shadow-blue-200/70"
-              >
-                Get started free
-              </Button>
-              <Button
-                onClick={() => setLocation("/demo")}
-                variant="ghost"
-                size="lg"
-                className="px-8 py-6 text-lg font-medium group border border-gray-200 bg-white/80 backdrop-blur-xl text-gray-900 hover:border-gray-300 dark:border-slate-700 dark:bg-slate-900/70 dark:text-gray-100 dark:hover:border-slate-600"
-              >
-                View demo
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mt-8 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                <span>Free to start</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                <span>No credit card required</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                <span>Cancel anytime</span>
-              </div>
-            </div>
+      <section className="py-32 px-6">
+        <div className="container mx-auto max-w-4xl text-center">
+          <h2 className="text-4xl md:text-5xl font-serif text-gray-900 mb-6">
+            Start building better habits today.
+          </h2>
+          <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto font-light">
+            Join the community of mindful achievers who are transforming their lives one habit at a time.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              onClick={handleLogin}
+              size="lg"
+              className="bg-teal hover:bg-teal-dark text-white rounded-full px-10 py-7 text-lg shadow-lg hover:shadow-xl transition-all"
+            >
+              Get started for free
+            </Button>
           </div>
+          <p className="mt-6 text-sm text-gray-500">
+            No credit card required. Cancel anytime.
+          </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="glass-surface glossy-border rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
-              <img src="/favicon.png" alt="PushForward logo" className="h-8 w-8" />
-              <span className="font-['Lexend_Giga'] text-xl font-semibold text-gray-900 dark:text-white">PushForward</span>
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-300">
-              © 2025 PushForward. Building better habits, one day at a time.
-            </div>
+      <footer className="py-12 px-6 border-t border-gray-200 bg-white">
+        <div className="container mx-auto max-w-6xl flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-3">
+            <img src="/favicon.png" alt="PushForward logo" className="h-6 w-6 grayscale opacity-80" />
+            <span className="font-serif text-lg font-bold text-gray-900">PushForward</span>
+          </div>
+          <div className="text-sm text-gray-500 font-medium">
+            © 2025 PushForward. All rights reserved.
+          </div>
+          <div className="flex gap-6 text-sm text-gray-500">
+            <a href="#" className="hover:text-teal transition-colors">Privacy</a>
+            <a href="#" className="hover:text-teal transition-colors">Terms</a>
+            <a href="#" className="hover:text-teal transition-colors">Contact</a>
           </div>
         </div>
       </footer>
