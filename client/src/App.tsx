@@ -77,7 +77,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="relative min-h-screen bg-cream text-gray-900 selection:bg-teal-light selection:text-teal-dark font-sans">
+        <div className="relative min-h-screen bg-background text-foreground selection:bg-teal-light selection:text-teal-dark font-sans">
           <div className="relative z-10">
             <Toaster />
             <Router />

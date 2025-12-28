@@ -42,21 +42,21 @@ export function Home({ isGuestMode = false }: HomeProps) {
   };
 
   return (
-    <div className="min-h-screen bg-cream selection:bg-teal-light selection:text-teal-dark">
+    <div className="min-h-screen bg-background selection:bg-teal-light selection:text-teal-dark">
       <Header onSettingsClick={() => setIsSettingsOpen(true)} isGuestMode={isGuestMode} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
         {isGuestMode && (
           <div className="mb-8">
-            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div className="bg-card border border-border rounded-lg p-4 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-teal-light rounded-md flex items-center justify-center">
                     <Eye className="h-5 w-5 text-teal-dark" />
                   </div>
                   <div>
-                    <p className="text-sm font-serif font-medium text-gray-900">Demo Mode Active</p>
-                    <p className="text-sm text-gray-600">Sign in to save your progress and unlock all features</p>
+                    <p className="text-sm font-serif font-medium text-foreground">Demo Mode Active</p>
+                    <p className="text-sm text-muted-foreground">Sign in to save your progress and unlock all features</p>
                   </div>
                 </div>
                 <Button 
@@ -73,11 +73,11 @@ export function Home({ isGuestMode = false }: HomeProps) {
         
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-4xl font-serif font-bold text-gray-900">
+            <h1 className="text-4xl font-serif font-bold text-foreground">
               {isGuestMode ? "Demo Dashboard" : `Welcome back, ${(user as any)?.firstName || (user as any)?.email || 'Hunter'}`}
             </h1>
           </div>
-          <p className="text-lg text-gray-600 font-light">
+          <p className="text-lg text-muted-foreground font-light">
             {isGuestMode 
               ? "Explore the full habit tracking experience with sample data" 
               : "The system awaits your growth. Keep up the momentum."
@@ -100,8 +100,8 @@ export function Home({ isGuestMode = false }: HomeProps) {
              <PlayerStatus />
 
              {/* Placeholder for future Quest Log */}
-             <div className="p-6 rounded-xl border border-dashed border-gray-300 bg-white/50 text-center">
-                <p className="text-sm text-gray-500 font-mono">Daily Quest: Coming Soon</p>
+             <div className="p-6 rounded-xl border border-dashed border-border bg-card/50 text-center">
+                <p className="text-sm text-muted-foreground font-mono">Daily Quest: Coming Soon</p>
              </div>
           </div>
         </div>

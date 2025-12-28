@@ -66,7 +66,7 @@ export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitC
       <Card className={`p-4 transition-all duration-200 hover:shadow-lg border-2 ${
         checked 
           ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800 shadow-lg' 
-          : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+          : 'bg-card border-border hover:border-gray-300 dark:hover:border-gray-600'
       }`}>
         <div className="flex items-center space-x-4">
           {/* Large touch-friendly checkbox */}
@@ -96,7 +96,7 @@ export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitC
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-3 mb-2">
               <span className="text-2xl flex-shrink-0">{habit.emoji}</span>
-              <h3 className="font-semibold text-base text-gray-900 dark:text-white truncate">
+              <h3 className="font-semibold text-base text-foreground truncate">
                 {habit.name}
               </h3>
             </div>

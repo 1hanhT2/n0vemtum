@@ -34,10 +34,10 @@ export function AnalyticsView({ isGuestMode = false }: AnalyticsViewProps) {
       <Card>
         <CardContent className="p-8 text-center">
           <Activity className="w-12 h-12 mx-auto mb-4 text-red-500" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-lg font-semibold text-foreground mb-2">
             Error Loading Analytics
           </h3>
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-muted-foreground">
             Unable to load habit data. Please try again later.
           </p>
         </CardContent>
@@ -48,10 +48,10 @@ export function AnalyticsView({ isGuestMode = false }: AnalyticsViewProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <h2 className="text-2xl font-bold text-foreground mb-2">
           Habit Health Analytics
         </h2>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-muted-foreground">
           Comprehensive overview of your habit performance and progress
         </p>
       </div>

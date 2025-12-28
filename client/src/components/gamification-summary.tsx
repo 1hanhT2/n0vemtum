@@ -40,7 +40,7 @@ export function GamificationSummary({ habits }: GamificationSummaryProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-muted-foreground">
             Complete habits to unlock progression features, experience points, and achievements!
           </p>
         </CardContent>
@@ -78,41 +78,41 @@ export function GamificationSummary({ habits }: GamificationSummaryProps) {
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center space-y-1">
-            <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
+            <div className="p-2 bg-card rounded-lg">
               <Star className="w-5 h-5 text-yellow-500 mx-auto mb-1" />
               <div className="text-lg font-bold">{totalLevel}</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">Total Levels</div>
+              <div className="text-xs text-muted-foreground">Total Levels</div>
             </div>
           </div>
           
           <div className="text-center space-y-1">
-            <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
+            <div className="p-2 bg-card rounded-lg">
               <Zap className="w-5 h-5 text-purple-500 mx-auto mb-1" />
               <div className="text-lg font-bold">{totalMasteryPoints}</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">Mastery Points</div>
+              <div className="text-xs text-muted-foreground">Mastery Points</div>
             </div>
           </div>
           
           <div className="text-center space-y-1">
-            <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
+            <div className="p-2 bg-card rounded-lg">
               <Target className="w-5 h-5 text-green-500 mx-auto mb-1" />
               <div className="text-lg font-bold">{averageCompletionRate}%</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">Avg Success</div>
+              <div className="text-xs text-muted-foreground">Avg Success</div>
             </div>
           </div>
           
           <div className="text-center space-y-1">
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="p-2 bg-white dark:bg-gray-800 rounded-lg cursor-default">
+                <div className="p-2 bg-card rounded-lg cursor-default">
                   <Trophy className="w-5 h-5 text-orange-500 mx-auto mb-1" />
                   <div className="text-lg font-bold">{currentStreakOverall}</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Current Streak</div>
+                  <div className="text-xs text-muted-foreground">Current Streak</div>
                 </div>
               </TooltipTrigger>
               <TooltipContent side="top" align="center" className="text-center">
                 <div className="text-sm font-semibold">Best streak: {bestStreakOverall} days</div>
-                <div className="text-xs text-gray-600 dark:text-gray-300">Median current: {medianCurrentStreak} days</div>
+                <div className="text-xs text-muted-foreground">Median current: {medianCurrentStreak} days</div>
               </TooltipContent>
             </Tooltip>
           </div>

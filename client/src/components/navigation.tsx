@@ -19,7 +19,7 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
 
   return (
     <nav className="flex justify-center gap-2 mb-6">
-      <div className="inline-flex bg-white border border-gray-200 rounded-full p-1 shadow-sm">
+      <div className="inline-flex bg-card border border-border rounded-full p-1 shadow-sm">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -29,7 +29,7 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
               className={`flex items-center gap-2 px-5 py-2 rounded-full font-medium text-sm transition-all duration-200 ${
                 currentView === item.value
                   ? 'bg-teal text-white shadow-sm'
-                  : 'text-gray-500 hover:text-teal-dark hover:bg-teal-light/30'
+                  : 'text-muted-foreground hover:text-teal-dark hover:bg-teal-light/30'
               }`}
             >
               <Icon className="h-4 w-4" />
