@@ -77,12 +77,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#f8fbff] via-white to-[#edf2ff] text-foreground dark:from-[#0b1021] dark:via-[#0f172a] dark:to-[#0b1021]">
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute -left-10 top-10 h-64 w-64 rounded-full bg-purple-300/40 blur-3xl dark:bg-purple-800/30" />
-            <div className="absolute right-0 top-32 h-72 w-72 rounded-full bg-blue-200/50 blur-3xl dark:bg-blue-800/30" />
-            <div className="absolute left-1/3 bottom-0 h-80 w-80 rounded-full bg-cyan-200/50 blur-3xl dark:bg-indigo-800/20" />
-          </div>
+        <div className="relative min-h-screen bg-cream text-gray-900 selection:bg-teal-light selection:text-teal-dark font-sans">
           <div className="relative z-10">
             <Toaster />
             <Router />

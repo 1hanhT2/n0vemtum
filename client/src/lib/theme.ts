@@ -56,7 +56,9 @@ export const getStoredTheme = (): ThemeKey => {
 export const getStoredDarkMode = (): boolean => {
   const storedMode = localStorage.getItem("darkMode");
   if (storedMode === null) {
-    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+    // Default to false (Light Mode) instead of system preference
+    // to ensure the specific hybrid design (Cream Dashboard / Dark Sidebar) works as intended.
+    return false;
   }
   return storedMode === "true";
 };

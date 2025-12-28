@@ -4,6 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { Trophy, Crown, Star, Zap, Target, Flame, Medal } from "lucide-react";
 import { motion } from "framer-motion";
 import { resolveBadgeIcon } from "@/lib/badgeIcons";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface GamificationDashboardProps {
   habits: Array<{
@@ -34,7 +35,16 @@ export function GamificationDashboard({ habits }: GamificationDashboardProps) {
   const averageCompletionRate = Math.floor(
     habits.reduce((sum, habit) => sum + habit.completionRate, 0) / habits.length
   );
-  const longestStreakOverall = Math.max(...habits.map(h => h.longestStreak));
+  const longestStreakOverall = Math.max(...habits.map(h => h.longestStreak), 0);
+  const currentStreaks = habits.map(h => h.streak);
+  const currentStreakOverall = Math.max(...currentStreaks, 0);
+  const medianCurrentStreak = (() => {
+    const sorted = [...currentStreaks].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 !== 0
+      ? sorted[mid]
+      : Math.floor((sorted[mid - 1] + sorted[mid]) / 2);
+  })();
   const totalBadges = habits.reduce((sum, habit) => sum + habit.badges.length, 0);
 
   // Calculate tier distribution
@@ -87,18 +97,26 @@ export function GamificationDashboard({ habits }: GamificationDashboardProps) {
                 <div className="text-lg font-bold">{averageCompletionRate}%</div>
                 <div className="text-xs text-gray-600 dark:text-gray-400">Avg Success</div>
               </div>
-            </div>
-            
-            <div className="text-center space-y-2">
-              <div className="p-3 bg-white dark:bg-gray-800 rounded-lg">
-                <Flame className="w-6 h-6 text-orange-500 mx-auto mb-1" />
-                <div className="text-lg font-bold">{longestStreakOverall}</div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Best Streak</div>
-              </div>
-            </div>
           </div>
-        </CardContent>
-      </Card>
+          
+          <div className="text-center space-y-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="p-3 bg-white dark:bg-gray-800 rounded-lg cursor-default">
+                  <Flame className="w-6 h-6 text-orange-500 mx-auto mb-1" />
+                  <div className="text-lg font-bold">{currentStreakOverall}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Current Streak</div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" align="center" className="text-center">
+                <div className="text-sm font-semibold">Best streak: {longestStreakOverall} days</div>
+                <div className="text-xs text-gray-600 dark:text-gray-300">Median current: {medianCurrentStreak} days</div>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Tier Distribution */}

@@ -20,6 +20,17 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  // RPG System Fields
+  level: integer("level").notNull().default(1),
+  xp: integer("xp").notNull().default(0),
+  class: varchar("class").default("Novice"),
+  stats: jsonb("stats").notNull().default({
+    strength: 10,
+    agility: 10,
+    intelligence: 10,
+    vitality: 10,
+    perception: 10
+  }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
