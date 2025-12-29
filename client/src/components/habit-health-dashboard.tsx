@@ -80,8 +80,8 @@ export function HabitHealthDashboard({ habits }: HabitHealthDashboardProps) {
                 <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full mx-auto mb-2">
                   <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{analytics.activeHabits}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Active Habits</div>
+                <div className="text-2xl font-bold text-foreground">{analytics.activeHabits}</div>
+                <div className="text-sm text-muted-foreground">Active Habits</div>
               </CardContent>
             </Card>
 
@@ -90,8 +90,8 @@ export function HabitHealthDashboard({ habits }: HabitHealthDashboardProps) {
                 <div className="flex items-center justify-center w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full mx-auto mb-2">
                   <BarChart3 className="w-5 h-5 text-green-600 dark:text-green-400" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{analytics.averageLevel}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Avg Level</div>
+                <div className="text-2xl font-bold text-foreground">{analytics.averageLevel}</div>
+                <div className="text-sm text-muted-foreground">Avg Level</div>
               </CardContent>
             </Card>
 
@@ -100,8 +100,8 @@ export function HabitHealthDashboard({ habits }: HabitHealthDashboardProps) {
                 <div className="flex items-center justify-center w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-full mx-auto mb-2">
                   <Flame className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{analytics.longestStreak}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Best Streak</div>
+                <div className="text-2xl font-bold text-foreground">{analytics.longestStreak}</div>
+                <div className="text-sm text-muted-foreground">Best Streak</div>
               </CardContent>
             </Card>
 
@@ -110,8 +110,8 @@ export function HabitHealthDashboard({ habits }: HabitHealthDashboardProps) {
                 <div className="flex items-center justify-center w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-full mx-auto mb-2">
                   <Award className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{analytics.totalBadges}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Total Badges</div>
+                <div className="text-2xl font-bold text-foreground">{analytics.totalBadges}</div>
+                <div className="text-sm text-muted-foreground">Total Badges</div>
               </CardContent>
             </Card>
           </div>

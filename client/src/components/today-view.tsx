@@ -508,19 +508,19 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
 
         <GamificationSummary habits={habits || []} />
         {habits && (
-          <Card className="border border-gray-200 rounded-xl bg-white p-6 shadow-sm">
+          <Card className="border border-border rounded-xl bg-card p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className={`w-2 h-2 rounded-full ${autoSaveStatus === 'saving' ? 'bg-yellow-500 animate-pulse' : autoSaveStatus === 'saved' ? 'bg-teal' : 'bg-gray-300'}`}></div>
-                <span className="text-sm font-medium text-gray-500">
+                <span className="text-sm font-medium text-muted-foreground">
                   {autoSaveStatus === 'saving' ? 'Saving...' : autoSaveStatus === 'saved' ? 'Saved' : 'Today\'s Progress'}
                 </span>
               </div>
-              <span className="text-2xl font-serif font-bold text-gray-900">
+              <span className="text-2xl font-serif font-bold text-foreground">
                 {Object.values(habitCompletions).filter(Boolean).length}/{habits.length}
               </span>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
               <div 
                 className="bg-teal h-2 rounded-full transition-all duration-500 ease-out"
                 style={{ 
@@ -529,10 +529,10 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
               ></div>
             </div>
             <div className="mt-3 flex justify-between text-sm">
-              <span className="text-gray-600">
+              <span className="text-muted-foreground">
                 {Math.round((Object.values(habitCompletions).filter(Boolean).length / habits.length) * 100)}% Complete
               </span>
-              <span className="text-gray-500">
+              <span className="text-muted-foreground">
                 {habits.length - Object.values(habitCompletions).filter(Boolean).length} remaining
               </span>
             </div>
@@ -549,7 +549,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                 <Sparkles className="w-5 h-5 text-teal-dark" />
               </div>
               <div>
-                <h3 className="font-serif font-semibold text-gray-900 mb-1">AI Coach</h3>
+                <h3 className="font-serif font-semibold text-foreground mb-1">AI Coach</h3>
                 <p className="text-teal-dark">{motivationalMessage}</p>
               </div>
             </div>
@@ -558,9 +558,9 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       )}
 
       {/* Core Routines Checklist */}
-      <Card className="border border-gray-200 rounded-xl bg-white shadow-sm">
-        <CardHeader className="border-b border-gray-100 pb-4">
-          <CardTitle className="text-lg font-serif font-semibold text-gray-900 flex items-center gap-2">
+      <Card className="border border-border rounded-xl bg-card shadow-sm">
+        <CardHeader className="border-b border-border pb-4">
+          <CardTitle className="text-lg font-serif font-semibold text-foreground flex items-center gap-2">
             <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
               <CheckCircle2 className="w-5 h-5 text-green-600" />
             </div>
@@ -574,7 +574,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                 key={habit.id}
                 initial={{ scale: 1 }}
                 whileHover={{ scale: 1.005 }}
-                className="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:bg-white hover:shadow-sm hover:border-teal/30 transition-all space-y-4"
+                className="p-4 rounded-lg border border-border bg-muted/50 hover:bg-card hover:shadow-sm hover:border-teal/30 transition-all space-y-4"
               >
                 <div className="flex items-center space-x-4">
                   <Checkbox
@@ -592,8 +592,8 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                     }`}
                   >
                     <span className="text-xl">{habit.emoji}</span>
-                    <span className={`text-base font-medium text-gray-900 transition-all ${
-                      habitCompletions[habit.id] ? 'line-through text-gray-500' : ''
+                    <span className={`text-base font-medium text-foreground transition-all ${
+                      habitCompletions[habit.id] ? 'line-through text-muted-foreground' : ''
                     }`}>{habit.name}</span>
                   </label>
                 </div>
@@ -638,54 +638,54 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       {/* Scoring Section */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Auto-Calculated Score */}
-        <Card className="border border-gray-200 rounded-xl bg-white shadow-sm">
-          <CardHeader className="border-b border-gray-100 pb-4">
-            <CardTitle className="text-lg font-serif font-semibold text-gray-900 flex items-center gap-2">
+        <Card className="border border-border rounded-xl bg-card shadow-sm">
+          <CardHeader className="border-b border-border pb-4">
+            <CardTitle className="text-lg font-serif font-semibold text-foreground flex items-center gap-2">
               <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
                 <Target className="w-5 h-5 text-blue-600" />
               </div>
               Performance
             </CardTitle>
-            <p className="text-sm text-gray-500 mt-1 ml-10">Auto-calculated score</p>
+            <p className="text-sm text-muted-foreground mt-1 ml-10">Auto-calculated score</p>
           </CardHeader>
           <CardContent>
             <div className="text-center mb-4">
               <span className="text-4xl font-serif font-bold text-teal">{punctualityScore[0]}</span>
-              <span className="text-lg text-gray-400 ml-2">/ 5</span>
+              <span className="text-lg text-muted-foreground ml-2">/ 5</span>
             </div>
-            <div className="space-y-2 text-sm text-gray-600">
+            <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex justify-between">
                 <span>100% completion:</span>
-                <span className="font-medium text-gray-900">5 points</span>
+                <span className="font-medium text-foreground">5 points</span>
               </div>
               <div className="flex justify-between">
                 <span>80-99% completion:</span>
-                <span className="font-medium text-gray-900">4 points</span>
+                <span className="font-medium text-foreground">4 points</span>
               </div>
               <div className="flex justify-between">
                 <span>60-79% completion:</span>
-                <span className="font-medium text-gray-900">3 points</span>
+                <span className="font-medium text-foreground">3 points</span>
               </div>
               <div className="flex justify-between">
                 <span>40-59% completion:</span>
-                <span className="font-medium text-gray-900">2 points</span>
+                <span className="font-medium text-foreground">2 points</span>
               </div>
               <div className="flex justify-between">
                 <span>Below 40%:</span>
-                <span className="font-medium text-gray-900">1 point</span>
+                <span className="font-medium text-foreground">1 point</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Manual Override (Optional) */}
-        <Card className="rounded-xl shadow-sm bg-white border border-gray-200">
+        <Card className="rounded-xl shadow-sm bg-card border border-border">
           <CardHeader>
-            <CardTitle className="text-lg font-serif font-semibold text-gray-900 flex items-center">
-              <Settings className="mr-2 h-5 w-5 text-gray-500" />
+            <CardTitle className="text-lg font-serif font-semibold text-foreground flex items-center">
+              <Settings className="mr-2 h-5 w-5 text-muted-foreground" />
               Manual Adjustment
             </CardTitle>
-            <p className="text-sm text-gray-500 mt-1">Override if needed for special circumstances</p>
+            <p className="text-sm text-muted-foreground mt-1">Override if needed for special circumstances</p>
           </CardHeader>
           <CardContent>
             <div className="mb-4">
@@ -698,7 +698,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                 disabled={isDayCompleted}
                 className="w-full"
               />
-              <div className="flex justify-between text-sm text-gray-500 mt-2">
+              <div className="flex justify-between text-sm text-muted-foreground mt-2">
                 <span>Poor (1)</span>
                 <span>Perfect (5)</span>
               </div>
@@ -711,13 +711,13 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       </div>
 
       {/* Daily Notes */}
-      <Card className="rounded-xl shadow-sm bg-white border border-gray-200">
+      <Card className="rounded-xl shadow-sm bg-card border border-border">
         <CardHeader>
-          <CardTitle className="text-lg font-serif font-semibold text-gray-900 flex items-center">
+          <CardTitle className="text-lg font-serif font-semibold text-foreground flex items-center">
             <span className="mr-2">📝</span>
             Daily Log & Notes
           </CardTitle>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Add your thoughts, wins, or observations for today
           </p>
         </CardHeader>
@@ -728,7 +728,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
             onBlur={handleNotesBlur}
             placeholder="Add your thoughts, wins, or observations for today..."
             disabled={isDayCompleted}
-            className="min-h-[200px] resize-y border-gray-200 focus:border-teal focus:ring-teal"
+            className="min-h-[200px] resize-y border-border focus:border-teal focus:ring-teal bg-background"
           />
         </CardContent>
       </Card>

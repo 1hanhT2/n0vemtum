@@ -76,36 +76,36 @@ export function GamificationDashboard({ habits }: GamificationDashboardProps) {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center space-y-2">
-              <div className="p-3 bg-white dark:bg-gray-800 rounded-lg">
+              <div className="p-3 bg-card rounded-lg">
                 <Crown className="w-6 h-6 text-yellow-500 mx-auto mb-1" />
                 <div className="text-lg font-bold">{totalLevel}</div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Total Levels</div>
+                <div className="text-xs text-muted-foreground">Total Levels</div>
               </div>
             </div>
             
             <div className="text-center space-y-2">
-              <div className="p-3 bg-white dark:bg-gray-800 rounded-lg">
+              <div className="p-3 bg-card rounded-lg">
                 <Zap className="w-6 h-6 text-purple-500 mx-auto mb-1" />
                 <div className="text-lg font-bold">{totalMasteryPoints}</div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Mastery Points</div>
+                <div className="text-xs text-muted-foreground">Mastery Points</div>
               </div>
             </div>
             
             <div className="text-center space-y-2">
-              <div className="p-3 bg-white dark:bg-gray-800 rounded-lg">
+              <div className="p-3 bg-card rounded-lg">
                 <Target className="w-6 h-6 text-green-500 mx-auto mb-1" />
                 <div className="text-lg font-bold">{averageCompletionRate}%</div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Avg Success</div>
+                <div className="text-xs text-muted-foreground">Avg Success</div>
               </div>
           </div>
           
           <div className="text-center space-y-2">
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="p-3 bg-white dark:bg-gray-800 rounded-lg cursor-default">
+                <div className="p-3 bg-card rounded-lg cursor-default">
                   <Flame className="w-6 h-6 text-orange-500 mx-auto mb-1" />
                   <div className="text-lg font-bold">{currentStreakOverall}</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Current Streak</div>
+                  <div className="text-xs text-muted-foreground">Current Streak</div>
                 </div>
               </TooltipTrigger>
               <TooltipContent side="top" align="center" className="text-center">
