@@ -119,7 +119,7 @@ export function Landing() {
             <span className="text-xs font-medium text-gray-600 dark:text-primary tracking-wide uppercase">System v2.0 Online</span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-serif dark:font-sans font-medium dark:font-extrabold text-gray-900 dark:text-white mb-8 leading-[1.1] tracking-tight">
+          <h1 className="text-5xl md:text-7xl font-serif font-medium dark:font-extrabold text-gray-900 dark:text-white mb-8 leading-[1.1] tracking-tight">
             Optimize your existence <br className="hidden md:block"/>
             <span className="text-teal dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-teal-400 dark:to-blue-500 italic dark:not-italic">within The System.</span>
           </h1>
@@ -212,8 +212,8 @@ export function Landing() {
         </div>
 
         <div className="container mx-auto max-w-6xl mt-24 border-t border-gray-200 dark:border-white/10 pt-12">
-          <p className="text-xs font-medium text-gray-400 dark:text-white/30 text-center uppercase tracking-widest mb-8">Utilized by operatives at</p>
-          <div className="flex flex-wrap items-center justify-center gap-10 md:gap-16 opacity-40 grayscale transition-all hover:opacity-60 hover:grayscale-0 dark:invert">
+          <p className="text-xs font-medium text-gray-400 dark:text-white/70 text-center uppercase tracking-widest mb-8">Utilized by operatives at</p>
+          <div className="flex flex-wrap items-center justify-center gap-10 md:gap-16 opacity-40 grayscale dark:opacity-100 dark:grayscale-0 transition-all hover:opacity-60 hover:grayscale-0 dark:invert">
             <SiUber className="h-6 w-auto" />
             <SiAirbnb className="h-6 w-auto" />
             <SiDropbox className="h-8 w-auto" />
@@ -237,7 +237,7 @@ export function Landing() {
               <div key={item.label} className="text-center md:text-left p-6 border-r last:border-r-0 border-gray-100 dark:border-white/10">
                 <div className="text-4xl font-serif dark:font-mono font-medium text-teal dark:text-primary mb-2">{item.value}</div>
                 <div className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide">{item.label}</div>
-                <div className="text-sm text-gray-500 dark:text-white/40 mt-1">{item.desc}</div>
+                <div className="text-sm text-gray-500 dark:text-white/70 mt-1">{item.desc}</div>
               </div>
             ))}
           </div>
@@ -251,7 +251,7 @@ export function Landing() {
 
         <div className="container mx-auto max-w-6xl relative z-10">
           <div className="text-center mb-20">
-            <h2 className="text-4xl font-serif dark:font-sans dark:font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className="text-4xl font-serif dark:font-bold text-gray-900 dark:text-white mb-6">
               Everything required to <br/> maintain momentum.
             </h2>
             <p className="text-lg text-gray-600 dark:text-white/60 max-w-2xl mx-auto">
@@ -355,7 +355,7 @@ export function Landing() {
       {/* CTA Section */}
       <section className="py-32 px-6 bg-white dark:bg-[#0b0d12]">
         <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-4xl md:text-5xl font-serif dark:font-sans dark:font-bold text-gray-900 dark:text-white mb-6">
+          <h2 className="text-4xl md:text-5xl font-serif dark:font-bold text-gray-900 dark:text-white mb-6">
             Start building better habits today.
           </h2>
           <p className="text-xl text-gray-600 dark:text-white/60 mb-10 max-w-2xl mx-auto font-light">

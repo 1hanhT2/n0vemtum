@@ -57,14 +57,16 @@ export function SystemLogo({ variant = 'default', className, showTag = false }: 
 
   // Default / Wordmark variant
   return (
-    <div className={cn("flex flex-col gap-1", className)}>
-      <div className="flex items-end gap-3.5">
-        <div className="font-mono font-semibold text-sm tracking-[0.18em] uppercase text-gray-500 dark:text-white/65 relative -top-1.5">The</div>
-        <div className="relative inline-block">
-          <div className="text-4xl sm:text-5xl font-extrabold tracking-[-0.065em] leading-none text-gray-900 dark:text-white relative z-10">
-            System
-          </div>
-          <div className="absolute left-0 right-0 -bottom-2.5 h-0.5 bg-gradient-to-r from-teal-400/0 via-teal-400/90 to-blue-400/0 rounded-full opacity-85 block" />
+    <div className={cn("group flex flex-col gap-1 cursor-default", className)}>
+      <div className="relative inline-block">
+        <div className={cn(
+          "text-4xl sm:text-5xl font-extrabold tracking-[-0.065em] leading-none transition-all duration-300",
+          "text-gray-900 dark:text-white",
+          "group-hover:text-transparent",
+          "group-hover:[-webkit-text-stroke:1px_rgba(0,0,0,0.38)]",
+          "dark:group-hover:[-webkit-text-stroke:1px_rgba(255,255,255,0.38)]"
+        )}>
+          System
         </div>
       </div>
     </div>
