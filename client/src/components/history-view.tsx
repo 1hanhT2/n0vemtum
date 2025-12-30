@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useDailyEntries } from "@/hooks/use-daily-entries";
 import { useHabits } from "@/hooks/use-habits";
 import { formatDate } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Eye, CheckCircle, XCircle, Clock, BarChart3, TrendingUp } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Eye, CheckCircle, XCircle, Clock, BarChart3, TrendingUp, History as HistoryIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { getMockHabits } from "@/lib/mockData";
@@ -172,9 +172,12 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
     <div className="space-y-6">
       {/* Header with Month Navigation */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-          {new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(currentDate)}
-        </h2>
+        <div className="flex items-center gap-2">
+          <HistoryIcon className="h-5 w-5 text-primary" />
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+            {new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(currentDate)}
+          </h2>
+        </div>
         <div className="flex space-x-2">
           <Button
             variant="outline"

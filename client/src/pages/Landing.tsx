@@ -2,16 +2,48 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Brain, CheckCircle2, Moon, Sun, Target, Trophy, TrendingUp, Shield, BarChart3, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
-import { useEffect, useState } from "react";
+import { useEffect, useState, KeyboardEvent } from "react";
 import { SiNike, SiAirbnb, SiDropbox, SiUber, SiShopify, SiFigma } from "react-icons/si";
 import { SystemLogo } from "@/components/SystemLogo";
 import { applyTheme, getStoredDarkMode, getStoredTheme } from "@/lib/theme";
+
+type Habit = {
+  name: string;
+  streak: number;
+  done: boolean;
+  insight: string;
+  compliance: number;
+};
 
 export function Landing() {
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [habits, setHabits] = useState<Habit[]>([
+    {
+      name: "Deep Work Protocol",
+      streak: 12,
+      done: true,
+      compliance: 87,
+      insight: "Subject performs best with Deep Work when initiated before 0900. Keep the first 90 minutes interruption-free to maintain streak efficiency."
+    },
+    {
+      name: "Physical Conditioning",
+      streak: 5,
+      done: true,
+      compliance: 73,
+      insight: "Recovery windows are improving. Slot conditioning after your longest meeting block to preserve consistency."
+    },
+    {
+      name: "Knowledge Acquisition",
+      streak: 26,
+      done: false,
+      compliance: 64,
+      insight: "Reading velocity dips after 21:00. Move this block to early afternoon to retain recall quality."
+    }
+  ]);
+  const [activeHabitIndex, setActiveHabitIndex] = useState(0);
 
   useEffect(() => {
     // Initialize theme
@@ -68,13 +100,46 @@ export function Landing() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleHabitSelect = (index: number) => {
+    setActiveHabitIndex(index);
+  };
+
+  const handleHabitToggle = (index: number) => {
+    setHabits((prev) =>
+      prev.map((habit, i) =>
+        i === index ? { ...habit, done: !habit.done } : habit
+      )
+    );
+  };
+
+  const handleComplianceChange = (value: number) => {
+    setHabits((prev) =>
+      prev.map((habit, i) =>
+        i === activeHabitIndex ? { ...habit, compliance: value } : habit
+      )
+    );
+  };
+
+  const handleKeySelect = (event: KeyboardEvent<HTMLDivElement>, index: number) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleHabitSelect(index);
+    }
+  };
+
+  const activeHabit = habits[activeHabitIndex];
+
   return (
-    <div className="relative min-h-screen bg-cream dark:bg-[#0b0d12] text-gray-900 dark:text-white/90 font-sans selection:bg-teal-light selection:text-teal-dark dark:selection:bg-primary/20 dark:selection:text-primary transition-colors duration-300">
+    <div className="relative min-h-screen overflow-hidden bg-cream dark:bg-[#0b0d12] text-gray-900 dark:text-white font-sans selection:bg-teal-light selection:text-teal-dark dark:selection:bg-primary/20 dark:selection:text-primary transition-colors duration-300">
       {/* Background Gradients for Dark Mode */}
-      <div className="fixed inset-0 pointer-events-none opacity-0 dark:opacity-100 transition-opacity duration-500">
-         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-[#0b0d12] to-[#0b0d12]"></div>
-         <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px]"></div>
-         <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px]"></div>
+      <div
+        className="fixed inset-0 -z-10 pointer-events-none opacity-0 dark:opacity-100 transition-opacity duration-500"
+        aria-hidden
+      >
+         <div className="absolute inset-0 bg-gradient-to-b from-[#0d1118] via-[#0b0d12] to-[#080b11]"></div>
+         <div className="absolute inset-0 bg-[radial-gradient(1200px_700px_at_50%_15%,rgba(137,247,216,0.08),transparent_55%)]"></div>
+         <div className="absolute top-[-10%] right-[-5%] w-[520px] h-[520px] bg-primary/14 rounded-full blur-[120px]"></div>
+         <div className="absolute bottom-[-12%] left-[-8%] w-[520px] h-[520px] bg-blue-600/12 rounded-full blur-[120px]"></div>
       </div>
 
       {/* Header */}
@@ -164,21 +229,43 @@ export function Landing() {
                   </div>
 
                   <div className="space-y-3">
-                    {[
-                      { name: "Deep Work Protocol", streak: 12, done: true },
-                      { name: "Physical Conditioning", streak: 5, done: true },
-                      { name: "Knowledge Acquisition", streak: 26, done: false }
-                    ].map((habit, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-lg border border-gray-100 dark:border-white/5 shadow-sm">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center border ${habit.done ? 'bg-teal dark:bg-primary border-teal dark:border-primary text-white dark:text-[#0b0d12]' : 'border-gray-300 dark:border-white/20'}`}>
-                            {habit.done && <CheckCircle2 className="h-3.5 w-3.5" />}
+                    {habits.map((habit, i) => {
+                      const isActive = i === activeHabitIndex;
+                      return (
+                        <div
+                          key={habit.name}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => handleHabitSelect(i)}
+                          onKeyDown={(event) => handleKeySelect(event, i)}
+                          className={`flex items-center justify-between p-3 rounded-lg border shadow-sm cursor-pointer transition-all ${isActive ? 'border-primary/60 ring-2 ring-primary/30 dark:border-primary/60 bg-white/70 dark:bg-white/10' : 'border-gray-100 dark:border-white/5 bg-white dark:bg-white/5 hover:border-primary/40 dark:hover:border-primary/40'}`}
+                          aria-pressed={isActive}
+                        >
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleHabitToggle(i);
+                              }}
+                              className={`w-7 h-7 rounded-full flex items-center justify-center border focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors ${habit.done ? 'bg-teal dark:bg-primary border-teal dark:border-primary text-white dark:text-[#0b0d12]' : 'border-gray-300 dark:border-white/30 text-gray-400 dark:text-white/50'}`}
+                              aria-pressed={habit.done}
+                              aria-label={`Mark ${habit.name} as ${habit.done ? "not done" : "done"}`}
+                            >
+                              {habit.done && <CheckCircle2 className="h-3.5 w-3.5" />}
+                              {!habit.done && <div className="h-2 w-2 rounded-full bg-gray-300 dark:bg-white/40" />}
+                            </button>
+                            <div className="flex flex-col">
+                              <span className={`text-sm ${habit.done ? 'text-gray-900 dark:text-white/90' : 'text-gray-700 dark:text-white/80'}`}>{habit.name}</span>
+                              <span className="text-[11px] uppercase tracking-wide text-gray-400 dark:text-white/40">Streak: {habit.streak}</span>
+                            </div>
                           </div>
-                          <span className={`text-sm ${habit.done ? 'text-gray-900 dark:text-white/90' : 'text-gray-600 dark:text-white/60'}`}>{habit.name}</span>
+                          {isActive && (
+                            <span className="text-[11px] font-semibold text-primary uppercase tracking-wide">Selected</span>
+                          )}
                         </div>
-                        <span className="text-xs font-mono text-gray-400 dark:text-primary/70">Streak: {habit.streak}</span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -186,8 +273,8 @@ export function Landing() {
                 <div className="space-y-6 text-left border-l border-gray-200 dark:border-white/10 pl-8 hidden md:block">
                    <h3 className="font-serif dark:font-mono text-lg font-medium text-gray-900 dark:text-white">System Analysis</h3>
                    <div className="p-4 bg-teal-light/30 dark:bg-primary/10 rounded-lg border border-teal-light dark:border-primary/20">
-                      <p className="text-sm text-teal-dark dark:text-primary leading-relaxed">
-                        "Subject performs best with <strong>Deep Work</strong> when initiated before 0900. Schedule adjustment recommended to maintain streak efficiency."
+                      <p className="text-sm text-gray-800 dark:text-foreground leading-relaxed">
+                        &ldquo;{activeHabit.insight}&rdquo;
                       </p>
                       <div className="mt-3 flex items-center gap-2 text-xs text-teal dark:text-primary font-medium uppercase tracking-wider">
                         <Brain className="h-3 w-3" />
@@ -198,11 +285,23 @@ export function Landing() {
                    <div className="space-y-2">
                       <div className="flex justify-between text-xs text-gray-500 dark:text-white/40">
                         <span>Compliance Rate</span>
-                        <span>87%</span>
+                        <span>{activeHabit.compliance}%</span>
                       </div>
                       <div className="h-1.5 w-full bg-gray-100 dark:bg-white/10 rounded-full overflow-hidden">
-                        <div className="h-full bg-teal dark:bg-primary w-[87%] rounded-full shadow-[0_0_10px_rgba(137,247,216,0.5)]"></div>
+                        <div
+                          className="h-full bg-primary rounded-full shadow-[0_0_10px_rgba(137,247,216,0.5)] transition-all"
+                          style={{ width: `${activeHabit.compliance}%` }}
+                        ></div>
                       </div>
+                      <input
+                        type="range"
+                        min={50}
+                        max={100}
+                        value={activeHabit.compliance}
+                        onChange={(event) => handleComplianceChange(Number(event.target.value))}
+                        className="mt-3 w-full accent-primary cursor-pointer compliance-slider"
+                        aria-label="Adjust compliance rate"
+                      />
                    </div>
                 </div>
 

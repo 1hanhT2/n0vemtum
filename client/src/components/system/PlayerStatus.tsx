@@ -36,24 +36,24 @@ export function PlayerStatus() {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="panel bg-white/50 dark:bg-card/0 text-slate-900 dark:text-foreground shadow-sm">
+      <div className="panel bg-card text-foreground shadow-sm">
         <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
            <Crown className="w-32 h-32" />
         </div>
 
-        <div className="p-6 pb-2 border-b border-gray-200 dark:border-white/10 relative z-10">
+        <div className="p-6 pb-2 border-b border-border relative z-10">
           <div className="flex justify-between items-end">
             <div>
                <div className="text-xs font-mono text-teal-600 dark:text-[#89f7d8] tracking-widest uppercase mb-1">Status Window</div>
-               <div className="font-serif dark:font-inter font-bold text-2xl text-gray-900 dark:text-white tracking-wide flex items-center gap-2">
+               <div className="font-serif dark:font-inter font-bold text-2xl tracking-wide flex items-center gap-2">
                  {(user as any)?.username || "Hunter"}
-                 <span className="text-sm font-mono font-normal text-slate-500 dark:text-white/60 bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded-full border border-gray-200 dark:border-white/10">
+                 <span className="text-sm font-mono font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-full border border-border">
                    {userClass}
                  </span>
                </div>
             </div>
             <div className="text-right">
-              <div className="text-sm text-slate-500 dark:text-white/40 font-mono uppercase tracking-wider text-[10px] mb-1">Level</div>
+              <div className="text-sm text-muted-foreground font-mono uppercase tracking-wider text-[10px] mb-1">Level</div>
               <div className="text-3xl font-bold text-teal-600 dark:text-[#89f7d8] font-mono leading-none">{level}</div>
             </div>
           </div>
@@ -62,11 +62,11 @@ export function PlayerStatus() {
         <div className="p-6 pt-6 space-y-6 relative z-10">
           {/* XP Bar */}
           <div className="space-y-2">
-            <div className="flex justify-between text-xs font-mono text-slate-500 dark:text-white/40">
+            <div className="flex justify-between text-xs font-mono text-muted-foreground">
               <span>EXP</span>
               <span>{xp} / {xpToNext}</span>
             </div>
-            <div className="h-2 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
               <motion.div
                 className="h-full bg-gradient-to-r from-teal-500 to-teal-400 dark:from-[#89f7d8] dark:to-[#7aa7ff]"
                 initial={{ width: 0 }}
@@ -79,18 +79,18 @@ export function PlayerStatus() {
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-4">
              {statConfig.map((stat) => (
-               <div key={stat.key} className="bg-white/50 dark:bg-white/5 rounded-lg p-3 border border-gray-200 dark:border-white/10 flex items-center justify-between group hover:border-teal-500/30 dark:hover:border-[#89f7d8]/30 transition-colors">
+               <div key={stat.key} className="bg-muted/40 dark:bg-muted rounded-lg p-3 border border-border flex items-center justify-between group hover:border-primary/40 transition-colors">
                   <div className="flex items-center gap-2">
                     <stat.icon className={`w-4 h-4 ${stat.color}`} />
-                    <span className="text-sm font-mono text-slate-600 dark:text-white/70">{stat.label}</span>
+                    <span className="text-sm font-mono text-foreground/80">{stat.label}</span>
                   </div>
-                  <span className="font-mono font-bold text-gray-900 dark:text-white">{(stats as any)[stat.key] || 10}</span>
+                  <span className="font-mono font-bold">{(stats as any)[stat.key] || 10}</span>
                </div>
              ))}
           </div>
 
-          <div className="pt-4 border-t border-gray-200 dark:border-white/10">
-             <div className="text-xs text-center text-slate-400 dark:text-white/30 font-mono uppercase tracking-widest">
+          <div className="pt-4 border-t border-border">
+             <div className="text-xs text-center text-muted-foreground font-mono uppercase tracking-widest">
                 System Active
              </div>
           </div>

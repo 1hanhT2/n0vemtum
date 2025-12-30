@@ -1,4 +1,4 @@
-import type { Habit, DailyEntry, WeeklyReview } from "@shared/schema";
+import type { Habit, DailyEntry, WeeklyReview, Goal, ChatMessage, User } from "@shared/schema";
 import { GoogleGenAI } from "@google/genai";
 import { aiCache } from "./cache";
 
@@ -13,7 +13,7 @@ function extractInsight(text: string, key: string): string | null {
 
 async function callGemini(prompt: string): Promise<string> {
   const models = [
-    "gemini-2.5-flash",
+    "gemini-3-flash-preview",
     "gemini-2.5-flash-lite-preview-06-17", 
     "gemini-2.0-flash"
   ];
@@ -365,4 +365,81 @@ export async function generateMotivationalMessage(
     ];
     return messages[Math.floor(Math.random() * messages.length)];
   }
+}
+
+export async function generateAssistantReply(args: {
+  message: string;
+  chatHistory: ChatMessage[];
+  habits: Habit[];
+  goals: Goal[];
+  dailyEntries: DailyEntry[];
+  user?: User;
+}): Promise<string> {
+  const { message, chatHistory, habits, goals, dailyEntries, user } = args;
+  const tagSummary: Record<string, number> = {
+    STR: 0,
+    AGI: 0,
+    INT: 0,
+    VIT: 0,
+    PER: 0,
+  };
+
+  const habitLookup = new Map<number, Habit>();
+  habits.forEach((habit) => habitLookup.set(habit.id, habit));
+
+  dailyEntries.forEach((entry) => {
+    const completions = entry.habitCompletions as Record<string, boolean>;
+    Object.entries(completions || {}).forEach(([habitId, completed]) => {
+      if (!completed) return;
+      const habit = habitLookup.get(Number(habitId));
+      if (!habit || !habit.tags?.length) return;
+      habit.tags.forEach((tag) => {
+        tagSummary[tag] = (tagSummary[tag] || 0) + 1;
+      });
+    });
+  });
+
+  const recentNotes = dailyEntries
+    .filter((entry) => entry.notes && entry.notes.trim().length > 0)
+    .slice(-5)
+    .map((entry) => `${entry.date}: ${entry.notes}`)
+    .join("\n");
+
+  const habitList = habits
+    .map((habit) => `${habit.emoji} ${habit.name} [${habit.tags?.length ? habit.tags.join(",") : "untagged"}]`)
+    .join("\n");
+
+  const goalList = goals
+    .map((goal) => `${goal.tag} ${goal.period} target ${goal.targetCount}`)
+    .join("\n");
+
+  const history = chatHistory
+    .slice(-10)
+    .map((msg) => `${msg.role}: ${msg.content}`)
+    .join("\n");
+
+  const stats = user?.stats ? JSON.stringify(user.stats) : "unknown";
+
+  const prompt = `You are a focused habit coach in a gamified tracker.
+Use the user's data to answer. Keep replies concise, practical, and supportive.
+If the user asks for analysis, cite patterns from notes/completions.
+
+USER STATS: ${stats}
+HABITS (with tags): 
+${habitList || "None"}
+GOALS:
+${goalList || "None"}
+TAG COMPLETION SUMMARY (last 14 days): ${JSON.stringify(tagSummary)}
+RECENT NOTES:
+${recentNotes || "None"}
+
+CHAT HISTORY:
+${history || "None"}
+
+USER MESSAGE: ${message}
+
+Answer in plain text. Offer up to 3 bullet suggestions when appropriate.`;
+
+  const response = await callGemini(prompt);
+  return response.trim();
 }

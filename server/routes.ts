@@ -8,10 +8,12 @@ import {
   insertSettingSchema,
   insertAchievementSchema,
   insertStreakSchema,
-  insertSubtaskSchema
+  insertSubtaskSchema,
+  insertGoalSchema,
+  insertChatMessageSchema
 } from "@shared/schema";
 import { z } from "zod";
-import { generateHabitSuggestions, generateWeeklyInsights, generateMotivationalMessage, analyzeHabitDifficulty } from "./ai";
+import { generateHabitSuggestions, generateWeeklyInsights, generateMotivationalMessage, analyzeHabitDifficulty, generateAssistantReply } from "./ai";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { validateDateParam, validateNumericParam, sanitizeBody } from "./validation";
 
@@ -377,6 +379,136 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ error: "Failed to save setting" });
       }
+    }
+  });
+
+  // Goals routes
+  app.get("/api/goals", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const goals = await storage.getGoals(userId);
+      res.json(goals);
+    } catch (error) {
+      console.error("Failed to fetch goals:", error);
+      res.status(500).json({ error: "Failed to fetch goals" });
+    }
+  });
+
+  app.post("/api/goals", isAuthenticated, sanitizeBody, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const goalData = insertGoalSchema.parse({ ...req.body, userId });
+      const goal = await storage.createGoal(goalData);
+      res.json(goal);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid goal data", details: error.errors });
+      } else {
+        console.error("Failed to create goal:", error);
+        res.status(500).json({ error: "Failed to create goal" });
+      }
+    }
+  });
+
+  app.put("/api/goals/:id", isAuthenticated, validateNumericParam('id'), sanitizeBody, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      const parsed = insertGoalSchema.partial().parse(req.body);
+      const { userId: _ignored, ...goalData } = parsed;
+      const goal = await storage.updateGoal(id, goalData, userId);
+      res.json(goal);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid goal data", details: error.errors });
+      } else {
+        console.error("Failed to update goal:", error);
+        res.status(404).json({ error: "Goal not found" });
+      }
+    }
+  });
+
+  app.delete("/api/goals/:id", isAuthenticated, validateNumericParam('id'), async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      await storage.deleteGoal(id, userId);
+      res.json({ message: "Goal deleted successfully" });
+    } catch (error) {
+      console.error("Failed to delete goal:", error);
+      res.status(404).json({ error: "Goal not found" });
+    }
+  });
+
+  // Assistant chat routes
+  app.get("/api/assistant/messages", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const limit = req.query.limit ? parseInt(req.query.limit, 10) : 50;
+      const messages = await storage.getChatMessages(userId, Number.isFinite(limit) ? limit : 50);
+      res.json(messages);
+    } catch (error) {
+      console.error("Failed to fetch chat messages:", error);
+      res.status(500).json({ error: "Failed to fetch chat messages" });
+    }
+  });
+
+  app.post("/api/assistant/messages", isAuthenticated, sanitizeBody, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const content = typeof req.body?.content === "string" ? req.body.content.trim() : "";
+      if (!content) {
+        return res.status(400).json({ error: "Message content is required" });
+      }
+
+      const userMessageData = insertChatMessageSchema.parse({
+        userId,
+        role: "user",
+        content,
+      });
+      const userMessage = await storage.createChatMessage(userMessageData);
+
+      const endDate = new Date().toISOString().split('T')[0];
+      const startDate = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const [habits, goals, dailyEntries, chatHistory, user] = await Promise.all([
+        storage.getHabits(userId),
+        storage.getGoals(userId),
+        storage.getDailyEntries(userId, startDate, endDate),
+        storage.getChatMessages(userId, 20),
+        storage.getUser(userId),
+      ]);
+
+      const assistantReply = await generateAssistantReply({
+        message: content,
+        chatHistory,
+        habits,
+        goals,
+        dailyEntries,
+        user,
+      });
+
+      const assistantMessageData = insertChatMessageSchema.parse({
+        userId,
+        role: "assistant",
+        content: assistantReply,
+      });
+      const assistantMessage = await storage.createChatMessage(assistantMessageData);
+
+      res.json({ userMessage, assistantMessage });
+    } catch (error) {
+      console.error("Failed to send assistant message:", error);
+      res.status(500).json({ error: "Failed to send assistant message" });
+    }
+  });
+
+  app.delete("/api/assistant/messages", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      await storage.clearChatMessages(userId);
+      res.json({ message: "Chat history cleared" });
+    } catch (error) {
+      console.error("Failed to clear chat history:", error);
+      res.status(500).json({ error: "Failed to clear chat history" });
     }
   });
 

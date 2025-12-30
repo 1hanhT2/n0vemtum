@@ -26,6 +26,8 @@ import { ThemeKey, applyTheme, getStoredDarkMode, getStoredTheme } from "@/lib/t
 import { usePendingProtection } from "@/hooks/use-debounce";
 import { useQueryClient } from "@tanstack/react-query";
 import { HabitSubtasksEditor } from "./habit-subtasks-editor";
+import { habitTagOptions } from "@shared/schema";
+import { habitTagConfig, type HabitTag } from "@/lib/habit-tags";
 
 
 interface SettingsModalProps {
@@ -49,7 +51,13 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
   const queryClient = useQueryClient();
 
 
-  const [habitSettings, setHabitSettings] = useState<Array<{ id: number; name: string; emoji: string; isNew?: boolean }>>([]);
+  const [habitSettings, setHabitSettings] = useState<Array<{
+    id: number;
+    name: string;
+    emoji: string;
+    tags: HabitTag[];
+    isNew?: boolean;
+  }>>([]);
   const [selectedTheme, setSelectedTheme] = useState<ThemeKey>('blue');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [notifications, setNotifications] = useState({
@@ -64,6 +72,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
         id: habit.id,
         name: habit.name,
         emoji: habit.emoji,
+        tags: (habit.tags || []) as HabitTag[],
       })));
     }
 
@@ -114,6 +123,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
             emoji: habit.emoji || '✨',
             order: habitSettings.indexOf(habit) + 1,
             isActive: true,
+            tags: habit.tags || [],
           });
         } else if (habits?.find(h => h.id === habit.id)) {
           await updateHabit.mutateAsync({
@@ -121,6 +131,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
             name: habit.name.trim(),
             emoji: habit.emoji || '✨',
             order: habitSettings.indexOf(habit) + 1,
+            tags: habit.tags || [],
           });
         }
       }
@@ -238,6 +249,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
       id: newId,
       name: 'New Habit',
       emoji: '✨',
+      tags: [],
       isNew: true,
     }]);
   };
@@ -248,8 +260,29 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
       id: newId,
       name: suggestion.name,
       emoji: suggestion.emoji,
+      tags: [],
       isNew: true,
     }]);
+  };
+
+  const toggleHabitTag = (id: number, tag: HabitTag) => {
+    setHabitSettings(prev => prev.map(habit => {
+      if (habit.id !== id) return habit;
+      const tags = habit.tags || [];
+      const isSelected = tags.includes(tag);
+      if (!isSelected && tags.length >= 3) {
+        toast({
+          title: "Tag limit reached",
+          description: "You can select up to 3 tags per habit.",
+          variant: "destructive",
+        });
+        return habit;
+      }
+      return {
+        ...habit,
+        tags: isSelected ? tags.filter(existing => existing !== tag) : [...tags, tag],
+      };
+    }));
   };
 
   const removeHabit = async (id: number) => {
@@ -288,73 +321,77 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" aria-describedby="settings-description">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-gray-800 dark:text-white flex items-center">
-            <Settings className="w-5 h-5 mr-2" />
-            Settings
-          </DialogTitle>
-        </DialogHeader>
-        <div id="settings-description" className="sr-only">
-          Customize your habits, select themes, and configure notification preferences.
-        </div>
+      <DialogContent
+        className="w-screen h-screen max-w-[100vw] max-h-[100vh] sm:max-w-3xl sm:h-[90vh] sm:max-h-[90vh] overflow-hidden p-0 sm:p-0 rounded-none sm:rounded-3xl"
+        aria-describedby="settings-description"
+      >
+        <div className="h-full flex flex-col bg-card min-h-0">
+          <DialogHeader className="px-6 pt-6 pb-4">
+            <DialogTitle className="text-2xl font-bold text-gray-800 dark:text-white flex items-center">
+              <Settings className="w-5 h-5 mr-2" />
+              Settings
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Customize your habits, select themes, and configure notification preferences.
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Account Section */}
-          {!isGuestMode && user && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
-                <User className="w-5 h-5 mr-2" />
-                Account Information
-              </h3>
-              <Card>
-                <CardContent className="pt-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-3">
-                      <Hash className="w-4 h-4 text-muted-foreground" />
-                      <div>
-                        <Label className="text-sm font-medium">User ID</Label>
-                        <p className="text-sm text-muted-foreground font-mono">{user.id}</p>
+          <div className="flex-1 min-h-0 overflow-y-auto settings-scroll px-6 pb-6 space-y-6">
+            {/* Account Section */}
+            {!isGuestMode && user && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
+                  <User className="w-5 h-5 mr-2" />
+                  Account Information
+                </h3>
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <Hash className="w-4 h-4 text-muted-foreground" />
+                        <div>
+                          <Label className="text-sm font-medium">User ID</Label>
+                          <p className="text-sm text-muted-foreground font-mono">{user.id}</p>
+                        </div>
                       </div>
+                      {user.email && (
+                        <div className="flex items-center space-x-3">
+                          <Mail className="w-4 h-4 text-muted-foreground" />
+                          <div>
+                            <Label className="text-sm font-medium">Email</Label>
+                            <p className="text-sm text-muted-foreground">{user.email}</p>
+                          </div>
+                        </div>
+                      )}
+                      {user.username && (
+                        <div className="flex items-center space-x-3">
+                          <User className="w-4 h-4 text-muted-foreground" />
+                          <div>
+                            <Label className="text-sm font-medium">Username</Label>
+                            <p className="text-sm text-muted-foreground">{user.username}</p>
+                          </div>
+                        </div>
+                      )}
+                      {user.createdAt && (
+                        <div className="flex items-center space-x-3">
+                          <Calendar className="w-4 h-4 text-muted-foreground" />
+                          <div>
+                            <Label className="text-sm font-medium">Member Since</Label>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(user.createdAt).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    {user.email && (
-                      <div className="flex items-center space-x-3">
-                        <Mail className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <Label className="text-sm font-medium">Email</Label>
-                          <p className="text-sm text-muted-foreground">{user.email}</p>
-                        </div>
-                      </div>
-                    )}
-                    {user.username && (
-                      <div className="flex items-center space-x-3">
-                        <User className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <Label className="text-sm font-medium">Username</Label>
-                          <p className="text-sm text-muted-foreground">{user.username}</p>
-                        </div>
-                      </div>
-                    )}
-                    {user.createdAt && (
-                      <div className="flex items-center space-x-3">
-                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <Label className="text-sm font-medium">Member Since</Label>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(user.createdAt).toLocaleDateString('en-US', { 
-                              year: 'numeric', 
-                              month: 'long', 
-                              day: 'numeric' 
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
           {/* Habit Names */}
           <div>
@@ -370,7 +407,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
                 <span>Add</span>
               </Button>
             </div>
-            <div className="space-y-3 max-h-[26rem] overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-[26rem] overflow-y-auto pr-1 settings-scroll">
               {habitSettings.map((habit) => (
                 <div
                   key={habit.id}
@@ -398,6 +435,32 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
                     </Button>
                   </div>
 
+                  <div>
+                    <div className="text-xs font-medium text-muted-foreground mb-2">
+                      Tags (up to 3)
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {habitTagOptions.map((tag) => {
+                        const config = habitTagConfig[tag as HabitTag];
+                        const isSelected = habit.tags?.includes(tag as HabitTag);
+                        return (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => toggleHabitTag(habit.id, tag as HabitTag)}
+                            className={`px-2 py-1 rounded-full border text-xs font-mono transition-colors ${
+                              isSelected
+                                ? config.className
+                                : "border-border text-muted-foreground bg-muted/40 hover:bg-muted"
+                            }`}
+                          >
+                            {config.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {habit.isNew ? (
                     <p className="text-sm text-muted-foreground">Save this habit to start adding subtasks.</p>
                   ) : (
@@ -415,7 +478,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
                 <Sparkles className="w-5 h-5 text-purple-500 dark:text-purple-400 mr-2" />
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">AI Suggested Habits</h3>
               </div>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
+              <div className="space-y-2 max-h-32 overflow-y-auto settings-scroll pr-1">
                 {aiSuggestions.map((suggestion: { name: string; emoji: string }, index: number) => (
                   <motion.button
                     key={index}
@@ -523,7 +586,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
           </div>
 
           {/* Action Buttons */}
-          <div className="flex space-x-3">
+          <div className="flex flex-col sm:flex-row sm:space-x-3 gap-3 sm:gap-0 bg-card pt-4 px-6 pb-6 border-t border-border">
             <Button
               onClick={handleSaveSettings}
               disabled={updateHabit.isPending}
@@ -539,6 +602,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
               Reset Data
             </Button>
           </div>
+        </div>
         </div>
       </DialogContent>
 

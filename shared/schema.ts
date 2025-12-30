@@ -2,6 +2,13 @@ import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, ind
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export const habitTagOptions = ["STR", "AGI", "INT", "VIT", "PER"] as const;
+export const habitTagSchema = z.enum(habitTagOptions);
+export const habitTagsSchema = z.array(habitTagSchema).max(3);
+export const goalPeriodOptions = ["daily", "weekly", "monthly"] as const;
+export const goalPeriodSchema = z.enum(goalPeriodOptions);
+export const chatRoleSchema = z.enum(["user", "assistant", "system"]);
+
 // Session storage table for Replit Auth
 export const sessions = pgTable(
   "sessions",
@@ -40,6 +47,7 @@ export const habits = pgTable("habits", {
   userId: varchar("user_id").notNull().default("default"),
   name: text("name").notNull(),
   emoji: text("emoji").notNull(),
+  tags: text("tags").array().notNull().default([]),
   order: integer("order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
   difficultyRating: integer("difficulty_rating").notNull().default(3),
@@ -57,6 +65,24 @@ export const habits = pgTable("habits", {
   tier: text("tier").notNull().default("bronze"), // bronze, silver, gold, platinum, diamond
   badges: text("badges").array().notNull().default([]), // earned badges for this habit
   lastCompleted: text("last_completed"), // YYYY-MM-DD
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const goals = pgTable("goals", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  tag: text("tag").notNull(), // STR/AGI/INT/VIT/PER
+  period: text("period").notNull(), // daily/weekly/monthly
+  targetCount: integer("target_count").notNull().default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  role: text("role").notNull(), // user/assistant/system
+  content: text("content").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -130,11 +156,35 @@ export const subtasks = pgTable("subtasks", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertHabitSchema = createInsertSchema(habits).omit({
-  id: true,
-  createdAt: true,
-  lastAnalyzed: true,
-});
+export const insertHabitSchema = createInsertSchema(habits)
+  .omit({
+    id: true,
+    createdAt: true,
+    lastAnalyzed: true,
+  })
+  .extend({
+    tags: habitTagsSchema.optional(),
+  });
+
+export const insertGoalSchema = createInsertSchema(goals)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    tag: habitTagSchema,
+    period: goalPeriodSchema,
+  });
+
+export const insertChatMessageSchema = createInsertSchema(chatMessages)
+  .omit({
+    id: true,
+    createdAt: true,
+  })
+  .extend({
+    role: chatRoleSchema,
+  });
 
 export const insertDailyEntrySchema = createInsertSchema(dailyEntries).omit({
   id: true,
@@ -169,6 +219,12 @@ export const insertSubtaskSchema = createInsertSchema(subtasks).omit({
 
 export type InsertHabit = z.infer<typeof insertHabitSchema>;
 export type Habit = typeof habits.$inferSelect;
+
+export type InsertGoal = z.infer<typeof insertGoalSchema>;
+export type Goal = typeof goals.$inferSelect;
+
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;
 
 export type InsertDailyEntry = z.infer<typeof insertDailyEntrySchema>;
 export type DailyEntry = typeof dailyEntries.$inferSelect;

@@ -1,5 +1,7 @@
 import {
   habits,
+  goals,
+  chatMessages,
   dailyEntries,
   weeklyReviews,
   settings,
@@ -9,6 +11,10 @@ import {
   subtasks,
   type Habit,
   type InsertHabit,
+  type Goal,
+  type InsertGoal,
+  type ChatMessage,
+  type InsertChatMessage,
   type DailyEntry,
   type InsertDailyEntry,
   type WeeklyReview,
@@ -25,7 +31,7 @@ import {
   type InsertSubtask,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gte, lte, not } from "drizzle-orm";
+import { eq, and, gte, lte, not, desc } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -69,6 +75,17 @@ export interface IStorage {
   getSetting(key: string, userId: string): Promise<Setting | undefined>;
   getSettings(userId: string): Promise<Setting[]>;
   setSetting(setting: InsertSetting): Promise<Setting>;
+
+  // Goals
+  getGoals(userId: string): Promise<Goal[]>;
+  createGoal(goal: InsertGoal): Promise<Goal>;
+  updateGoal(id: number, goal: Partial<InsertGoal>, userId: string): Promise<Goal>;
+  deleteGoal(id: number, userId: string): Promise<void>;
+
+  // Chat messages
+  getChatMessages(userId: string, limit?: number): Promise<ChatMessage[]>;
+  createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  clearChatMessages(userId: string): Promise<void>;
 
   // Achievements
   getAchievements(userId: string): Promise<Achievement[]>;
@@ -475,6 +492,63 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return setting;
     }
+  }
+
+  // Goals
+  async getGoals(userId: string): Promise<Goal[]> {
+    return await db
+      .select()
+      .from(goals)
+      .where(eq(goals.userId, userId))
+      .orderBy(goals.createdAt);
+  }
+
+  async createGoal(insertGoal: InsertGoal): Promise<Goal> {
+    const [goal] = await db
+      .insert(goals)
+      .values(insertGoal)
+      .returning();
+    return goal;
+  }
+
+  async updateGoal(id: number, updateData: Partial<InsertGoal>, userId: string): Promise<Goal> {
+    const [goal] = await db
+      .update(goals)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(and(eq(goals.id, id), eq(goals.userId, userId)))
+      .returning();
+
+    if (!goal) {
+      throw new Error("Goal not found");
+    }
+    return goal;
+  }
+
+  async deleteGoal(id: number, userId: string): Promise<void> {
+    await db.delete(goals).where(and(eq(goals.id, id), eq(goals.userId, userId)));
+  }
+
+  // Chat messages
+  async getChatMessages(userId: string, limit = 50): Promise<ChatMessage[]> {
+    const messages = await db
+      .select()
+      .from(chatMessages)
+      .where(eq(chatMessages.userId, userId))
+      .orderBy(desc(chatMessages.createdAt))
+      .limit(limit);
+    return messages.reverse();
+  }
+
+  async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {
+    const [message] = await db
+      .insert(chatMessages)
+      .values(insertMessage)
+      .returning();
+    return message;
+  }
+
+  async clearChatMessages(userId: string): Promise<void> {
+    await db.delete(chatMessages).where(eq(chatMessages.userId, userId));
   }
 
   // Achievements
@@ -1117,6 +1191,8 @@ export class DatabaseStorage implements IStorage {
       await db.delete(dailyEntries);
       await db.delete(weeklyReviews);
       await db.delete(streaks);
+      await db.delete(goals);
+      await db.delete(chatMessages);
 
       // Reset achievements to unlocked state
       await db.update(achievements).set({
@@ -1157,6 +1233,8 @@ export class DatabaseStorage implements IStorage {
       await db.delete(dailyEntries).where(eq(dailyEntries.userId, userId));
       await db.delete(weeklyReviews).where(eq(weeklyReviews.userId, userId));
       await db.delete(streaks).where(eq(streaks.userId, userId));
+      await db.delete(goals).where(eq(goals.userId, userId));
+      await db.delete(chatMessages).where(eq(chatMessages.userId, userId));
 
       // Reset user's achievements to unlocked state
       await db.update(achievements)

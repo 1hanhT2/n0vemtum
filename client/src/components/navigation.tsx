@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { CalendarDays, TrendingUp, History, Trophy, BarChart3 } from "lucide-react";
+import { CalendarDays, TrendingUp, History, Trophy, BarChart3, MessageSquareText } from "lucide-react";
 
-type View = 'today' | 'weekly' | 'history' | 'achievements' | 'analytics';
+type View = 'today' | 'weekly' | 'history' | 'achievements' | 'analytics' | 'assistant';
 
 interface NavigationProps {
   currentView: View;
@@ -15,11 +15,12 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
     { value: 'history' as const, icon: History, label: 'History' },
     { value: 'achievements' as const, icon: Trophy, label: 'Achievements' },
     { value: 'analytics' as const, icon: BarChart3, label: 'Analytics' },
+    { value: 'assistant' as const, icon: MessageSquareText, label: 'Assistant' },
   ];
 
   return (
     <nav className="flex justify-center gap-2 mb-6">
-      <div className="inline-flex bg-white border border-gray-200 rounded-full p-1 shadow-sm">
+      <div className="inline-flex bg-card border border-border rounded-full p-1 shadow-sm">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -28,8 +29,8 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
               onClick={() => onViewChange(item.value)}
               className={`flex items-center gap-2 px-5 py-2 rounded-full font-medium text-sm transition-all duration-200 ${
                 currentView === item.value
-                  ? 'bg-teal text-white shadow-sm'
-                  : 'text-gray-500 hover:text-teal-dark hover:bg-teal-light/30'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
               }`}
             >
               <Icon className="h-4 w-4" />
