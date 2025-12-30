@@ -34,7 +34,7 @@ export function SystemLogo({ variant = 'default', className, showTag = false }: 
     return (
       <div className={cn("flex items-baseline gap-4", className)}>
         <div
-          className="font-extrabold tracking-[-0.07em] leading-none select-none text-transparent dark:text-transparent text-white/0"
+          className="font-serif font-extrabold tracking-[-0.07em] leading-none select-none text-transparent dark:text-transparent text-white/0"
           style={{
             fontSize: 'clamp(44px, 5.8vw, 74px)',
             WebkitTextStroke: '1px rgba(255,255,255,.38)', // Fallback for dark
@@ -60,7 +60,7 @@ export function SystemLogo({ variant = 'default', className, showTag = false }: 
     <div className={cn("group flex flex-col gap-1 cursor-default", className)}>
       <div className="relative inline-block">
         <div className={cn(
-          "text-4xl sm:text-5xl font-extrabold tracking-[-0.065em] leading-none transition-all duration-300",
+          "text-4xl sm:text-5xl font-serif font-extrabold tracking-[-0.065em] leading-none transition-all duration-300",
           "text-gray-900 dark:text-white",
           "group-hover:text-transparent",
           "group-hover:[-webkit-text-stroke:1px_rgba(0,0,0,0.38)]",

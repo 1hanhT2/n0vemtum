@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Navigation } from "@/components/navigation";
+import { type NavigationView } from "@/components/navigation";
 import { Header } from "@/components/header";
 import { TodayView } from "@/components/today-view";
 import { WeeklyView } from "@/components/weekly-view";
@@ -14,7 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Eye, LogIn, Sparkles } from "lucide-react";
 
-type View = 'today' | 'weekly' | 'history' | 'achievements' | 'analytics' | 'assistant';
+type View = NavigationView;
 
 interface HomeProps {
   isGuestMode?: boolean;
@@ -46,9 +46,14 @@ export function Home({ isGuestMode = false }: HomeProps) {
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/10 selection:text-primary">
-      <Header onSettingsClick={() => setIsSettingsOpen(true)} isGuestMode={isGuestMode} />
+      <Header
+        onSettingsClick={() => setIsSettingsOpen(true)}
+        isGuestMode={isGuestMode}
+        currentView={currentView}
+        onViewChange={setCurrentView}
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 lg:pt-24 pb-8">
         {isGuestMode && (
           <div className="mb-8">
             <div className="bg-card border border-border rounded-lg p-4 shadow-sm">
@@ -94,8 +99,6 @@ export function Home({ isGuestMode = false }: HomeProps) {
           </p>
         </div>
 
-        <Navigation currentView={currentView} onViewChange={setCurrentView} />
-        
         {/* Mobile Status Window */}
         <div className="lg:hidden mb-8">
           <PlayerStatus />
