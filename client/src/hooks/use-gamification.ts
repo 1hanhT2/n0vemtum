@@ -48,12 +48,26 @@ export function useUpdateHabitProgress() {
       });
       return response.json();
     },
-    onSuccess: (habit, { completed }) => {
+    onSuccess: (response, { completed }) => {
+      const { userProgress, ...habit } = response || {};
       // Use optimistic updates instead of invalidating all queries
       queryClient.setQueryData(['/api/habits'], (oldHabits: any[]) => 
         oldHabits?.map(h => h.id === habit.id ? habit : h)
       );
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      if (userProgress) {
+        queryClient.setQueryData(['/api/user/progress'], userProgress);
+        queryClient.setQueryData(['/api/auth/user'], (oldUser: any) => {
+          if (!oldUser) return oldUser;
+          return {
+            ...oldUser,
+            level: userProgress.level,
+            xp: userProgress.xp,
+          };
+        });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/user/progress'] });
+      }
       
       if (completed) {
         // Check for new badges or tier promotions (simplified check)

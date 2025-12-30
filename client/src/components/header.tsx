@@ -24,25 +24,27 @@ export function Header({
           <div className="flex items-center gap-4 lg:h-20">
             {/* Logo */}
             <Link href="/app">
-              <div className="cursor-pointer group py-2 lg:py-0 lg:translate-y-0.5">
-                <div className="block scale-75 origin-left">
-                  <SystemLogo variant="wordmark" />
-                </div>
-              </div>
+              <SystemLogo
+                variant="wordmark"
+                className="cursor-pointer py-2 lg:py-0 lg:translate-y-0.5"
+                textClassName="text-3xl sm:text-4xl"
+              />
             </Link>
 
-            <Navigation
-              className="hidden sm:block sm:ml-3 sm:w-auto"
-              currentView={currentView}
-              onViewChange={onViewChange}
-            />
+            <div className="hidden sm:flex flex-1 px-4">
+              <Navigation
+                currentView={currentView}
+                onViewChange={onViewChange}
+                listClassName="sm:w-full sm:justify-between sm:mx-0"
+              />
+            </div>
 
             {/* Settings button */}
             <Button
               onClick={onSettingsClick}
               variant="ghost"
               size="icon"
-              className="ml-auto w-9 h-9 hover:bg-teal-light/50 text-gray-500 hover:text-teal-dark dark:text-white/65 dark:hover:text-white dark:hover:bg-white/10 rounded-full transition-colors"
+              className="ml-auto sm:ml-0 w-9 h-9 hover:bg-teal-light/50 text-gray-500 hover:text-teal-dark dark:text-white/65 dark:hover:text-white dark:hover:bg-white/10 rounded-full transition-colors"
             >
               <Settings className="h-5 w-5" />
             </Button>

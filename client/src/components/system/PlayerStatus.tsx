@@ -1,16 +1,23 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
 import { Shield, Zap, Brain, Activity, Eye, Crown } from "lucide-react";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 
 export function PlayerStatus() {
   const { user } = useAuth();
+  const { data: progress } = useQuery<{ level: number; xp: number; xpToNext: number }>({
+    queryKey: ["/api/user/progress"],
+    enabled: !!user,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
 
   // Safe defaults if fields are missing (though schema update should handle this)
-  const level = (user as any)?.level || 1;
-  const xp = (user as any)?.xp || 0;
-  const xpToNext = level * 100; // Simple XP curve
+  const level = progress?.level ?? (user as any)?.level ?? 1;
+  const xp = progress?.xp ?? (user as any)?.xp ?? 0;
+  const xpToNext = progress?.xpToNext ?? Math.max(1, level) * 100; // Simple XP curve
   const xpPercentage = Math.min(100, (xp / xpToNext) * 100);
   const userClass = (user as any)?.class || "Novice";
 

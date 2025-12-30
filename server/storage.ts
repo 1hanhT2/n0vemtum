@@ -37,6 +37,7 @@ export interface IStorage {
   // User operations (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  getUserProgress(userId: string): Promise<{ level: number; xp: number; xpToNext: number } | undefined>;
 
   // Habits
   getHabits(userId: string): Promise<Habit[]>;
@@ -137,6 +138,40 @@ export class DatabaseStorage implements IStorage {
     await this.initializeAchievements(user.id);
 
     return user;
+  }
+
+  private calculateUserProgressFromStats(stats: Record<string, number>) {
+    const baseStats = {
+      strength: 10,
+      agility: 10,
+      intelligence: 10,
+      vitality: 10,
+      perception: 10,
+    };
+    const baseTotal = Object.values(baseStats).reduce((sum, value) => sum + value, 0);
+    const statTotal = Object.keys(baseStats).reduce((sum, key) => {
+      const value = typeof stats[key] === "number" ? stats[key] : baseStats[key as keyof typeof baseStats];
+      return sum + value;
+    }, 0);
+    const totalXp = Math.max(0, (statTotal - baseTotal) * 10);
+
+    let level = 1;
+    let xp = totalXp;
+    let xpToNext = Math.max(1, level) * 100;
+    while (xp >= xpToNext) {
+      xp -= xpToNext;
+      level += 1;
+      xpToNext = Math.max(1, level) * 100;
+    }
+
+    return { level, xp, xpToNext };
+  }
+
+  async getUserProgress(userId: string): Promise<{ level: number; xp: number; xpToNext: number } | undefined> {
+    await this.ensureInitialized();
+    const user = await this.getUser(userId);
+    if (!user) return undefined;
+    return this.calculateUserProgressFromStats(user.stats as Record<string, number>);
   }
 
   private async initializeDefaults() {
@@ -910,7 +945,6 @@ export class DatabaseStorage implements IStorage {
     const isStateChanging = currentlyCompleted !== completed;
 
     let newExperience = habit.experience;
-    let newMasteryPoints = habit.masteryPoints;
     let newStreak = habit.streak;
     let newLongestStreak = habit.longestStreak;
     let newTotalCompletions = habit.totalCompletions;
@@ -924,7 +958,6 @@ export class DatabaseStorage implements IStorage {
       const earnedXP = Math.floor(baseXP * difficultyMultiplier * streakMultiplier);
 
       newExperience += earnedXP;
-      newMasteryPoints += Math.floor(earnedXP * 0.5);
       newTotalCompletions += 1;
 
       // Update streak - build consecutive day chains
@@ -1004,9 +1037,15 @@ export class DatabaseStorage implements IStorage {
           nextStats[statKey] = Math.max(0, current + delta);
         });
 
+        const progress = this.calculateUserProgressFromStats(nextStats);
         await db
           .update(users)
-          .set({ stats: nextStats, updatedAt: new Date() })
+          .set({
+            stats: nextStats,
+            xp: progress.xp,
+            level: progress.level,
+            updatedAt: new Date(),
+          })
           .where(eq(users.id, effectiveUserId));
       }
     }
@@ -1015,7 +1054,6 @@ export class DatabaseStorage implements IStorage {
       .update(habits)
       .set({
         experience: newExperience,
-        masteryPoints: newMasteryPoints,
         streak: newStreak,
         longestStreak: newLongestStreak,
         totalCompletions: newTotalCompletions,
@@ -1057,7 +1095,6 @@ export class DatabaseStorage implements IStorage {
         level: newLevel,
         experience: remainingXP,
         experienceToNext: newXPToNext,
-        masteryPoints: habit.masteryPoints + (newLevel * 10)
       })
       .where(and(eq(habits.id, habitId), eq(habits.userId, userId)))
       .returning();
@@ -1101,13 +1138,10 @@ export class DatabaseStorage implements IStorage {
     }
 
     let newTier = habit.tier;
-    const { level, completionRate, longestStreak, masteryPoints, difficultyRating, totalCompletions } = habit;
+    const { level, completionRate, longestStreak, difficultyRating, totalCompletions } = habit;
 
     // Calculate consistency score (streak vs total completions ratio)
     const consistencyScore = totalCompletions > 0 ? Math.min((longestStreak / totalCompletions) * 100, 100) : 0;
-
-    // Difficulty-adjusted requirements
-    const difficultyMultiplier = (difficultyRating || 3) / 3; // 1.0 for difficulty 3, scales with actual difficulty
 
     // Balanced tier promotion logic - more achievable but still meaningful
     // Diamond Tier - Master level with challenging habits
@@ -1115,7 +1149,6 @@ export class DatabaseStorage implements IStorage {
         completionRate >= 70 &&
         consistencyScore >= 50 &&
         longestStreak >= 21 &&
-        masteryPoints >= 800 &&
         (difficultyRating || 3) >= 4) {
       newTier = "diamond";
     }
@@ -1124,24 +1157,21 @@ export class DatabaseStorage implements IStorage {
              completionRate >= 60 &&
              consistencyScore >= 40 &&
              longestStreak >= 14 &&
-             masteryPoints >= 400 &&
-             (difficultyRating || 3) >= 3) {
+        (difficultyRating || 3) >= 3) {
       newTier = "platinum";
     }
     // Gold Tier - Advanced level with solid progress
     else if (level >= 6 &&
              completionRate >= 50 &&
              consistencyScore >= 30 &&
-             longestStreak >= 7 &&
-             masteryPoints >= 150) {
+             longestStreak >= 7) {
       newTier = "gold";
     }
     // Silver Tier - Developing consistency
     else if (level >= 3 &&
              completionRate >= 35 &&
              consistencyScore >= 20 &&
-             longestStreak >= 3 &&
-             masteryPoints >= 50) {
+             longestStreak >= 3) {
       newTier = "silver";
     }
     // Bronze Tier - Starting level

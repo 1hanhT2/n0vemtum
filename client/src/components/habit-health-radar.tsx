@@ -10,7 +10,6 @@ interface HabitHealthRadarProps {
     level?: number;
     experience?: number;
     experienceToNext?: number;
-    masteryPoints?: number;
     streak?: number;
     longestStreak?: number;
     completionRate?: number;
@@ -44,8 +43,8 @@ export function HabitHealthRadar({ habits }: HabitHealthRadarProps) {
       ? activeHabits.reduce((sum, h) => sum + (h.level || 1), 0) / activeHabits.length
       : 1;
     
-    const avgMasteryPoints = activeHabits.length > 0
-      ? activeHabits.reduce((sum, h) => sum + (h.masteryPoints || 0), 0) / activeHabits.length
+    const avgDifficulty = activeHabits.length > 0
+      ? activeHabits.reduce((sum, h) => sum + (h.difficultyRating || 3), 0) / activeHabits.length
       : 0;
     
     const totalBadges = habits.reduce((sum, h) => sum + (h.badges?.length || 0), 0);
@@ -77,8 +76,8 @@ export function HabitHealthRadar({ habits }: HabitHealthRadarProps) {
         fullMark: 100
       },
       {
-        metric: 'Mastery Points',
-        value: Math.min(avgMasteryPoints / 2, 100), // Scale mastery (200 points = 100%)
+        metric: 'Difficulty Rating',
+        value: Math.min((avgDifficulty / 5) * 100, 100),
         fullMark: 100
       },
       {

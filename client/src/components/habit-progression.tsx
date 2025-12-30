@@ -27,7 +27,6 @@ interface HabitProgressionProps {
     level?: number;
     experience?: number;
     experienceToNext?: number;
-    masteryPoints?: number;
     streak?: number;
     longestStreak?: number;
     completionRate?: number;
@@ -80,7 +79,6 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
   const level = habit.level || 1;
   const experience = habit.experience || 0;
   const experienceToNext = habit.experienceToNext || 100;
-  const masteryPoints = habit.masteryPoints || 0;
   const streak = habit.streak || 0;
   const longestStreak = habit.longestStreak || 0;
   const completionRate = habit.completionRate || 0;
@@ -137,12 +135,12 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
-        {/* Experience Progress */}
+    <CardContent className="space-y-4">
+        {/* Level Progress */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600 dark:text-gray-400">Experience</span>
-            <span className="font-medium">{experience} / {experienceToNext} XP</span>
+            <span className="text-gray-600 dark:text-gray-400">Level Progress</span>
+            <span className="font-medium">{Math.round(experiencePercentage)}%</span>
           </div>
           <Progress value={experiencePercentage} className="h-2" />
           {experiencePercentage >= 100 && (
@@ -185,8 +183,8 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
             <div className="flex items-center justify-center">
               <Zap className="w-4 h-4 text-purple-500" />
             </div>
-            <div className="text-sm font-medium">{masteryPoints}</div>
-            <div className="text-xs text-gray-500">Mastery</div>
+            <div className="text-sm font-medium">{completionRate}%</div>
+            <div className="text-xs text-gray-500">Success</div>
           </div>
           <div className="space-y-1">
             <div className="flex items-center justify-center">
@@ -245,8 +243,8 @@ export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
                       <span>{totalCompletions}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Mastery Points</span>
-                      <span>{masteryPoints}</span>
+                      <span className="text-gray-600 dark:text-gray-400">Level Progress</span>
+                      <span>{Math.round(experiencePercentage)}%</span>
                     </div>
                   </div>
                 </div>

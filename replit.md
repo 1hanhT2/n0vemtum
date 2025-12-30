@@ -54,8 +54,8 @@ This project is **PushForward**, a modern habit tracking web application built w
 - **Caching**: In-memory caching system to reduce API calls
 
 ### Gamification System
-- **Levels**: XP-based progression system
-- **Tiers**: Long-term mastery recognition (Bronze → Diamond)
+- **Levels**: Progression system based on habit completions
+- **Tiers**: Long-term consistency recognition (Bronze → Diamond)
 - **Streaks**: Daily and weekly consistency tracking
 - **Achievements**: Comprehensive badge system with 23 achievements across categories:
   - Streak achievements (First Steps, Getting Started, Week Warrior, Monthly Master, etc.)
@@ -63,7 +63,7 @@ This project is **PushForward**, a modern habit tracking web application built w
   - Completion achievements (Perfect Day, Near Perfect)
   - Consistency achievements (Reflection Master, Self-Aware)
   - Special achievements (Early Bird, Habit Creator, Perfectionist)
-- **Mastery Points**: Advanced progression metrics
+- **Experience**: Progress earned from habit completions
 
 ## Data Flow
 

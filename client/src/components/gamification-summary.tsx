@@ -1,7 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Trophy, Star, Zap, Target } from "lucide-react";
+import { Trophy, Star, Award, Target } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface GamificationSummaryProps {
@@ -12,7 +10,6 @@ interface GamificationSummaryProps {
     level?: number;
     experience?: number;
     experienceToNext?: number;
-    masteryPoints?: number;
     streak?: number;
     longestStreak?: number;
     completionRate?: number;
@@ -41,7 +38,7 @@ export function GamificationSummary({ habits }: GamificationSummaryProps) {
         </CardHeader>
         <CardContent>
           <p className="text-gray-600 dark:text-gray-400">
-            Complete habits to unlock progression features, experience points, and achievements!
+            Complete habits to unlock progression features and achievements!
           </p>
         </CardContent>
       </Card>
@@ -50,7 +47,7 @@ export function GamificationSummary({ habits }: GamificationSummaryProps) {
 
   // Calculate summary stats
   const totalLevel = gamifiedHabits.reduce((sum, habit) => sum + (habit.level || 0), 0);
-  const totalMasteryPoints = gamifiedHabits.reduce((sum, habit) => sum + (habit.masteryPoints || 0), 0);
+  const totalBadges = gamifiedHabits.reduce((sum, habit) => sum + (habit.badges?.length || 0), 0);
   const averageCompletionRate = Math.floor(
     gamifiedHabits.reduce((sum, habit) => sum + (habit.completionRate || 0), 0) / gamifiedHabits.length
   );
@@ -87,9 +84,9 @@ export function GamificationSummary({ habits }: GamificationSummaryProps) {
           
           <div className="text-center space-y-1">
             <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
-              <Zap className="w-5 h-5 text-purple-500 mx-auto mb-1" />
-              <div className="text-lg font-bold">{totalMasteryPoints}</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">Mastery Points</div>
+              <Award className="w-5 h-5 text-purple-500 mx-auto mb-1" />
+              <div className="text-lg font-bold">{totalBadges}</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">Badges Earned</div>
             </div>
           </div>
           

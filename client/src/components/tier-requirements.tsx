@@ -8,7 +8,6 @@ interface TierRequirementsProps {
     level: number;
     completionRate: number;
     longestStreak: number;
-    masteryPoints: number;
     difficultyRating: number;
     totalCompletions: number;
     tier: string;
@@ -25,7 +24,6 @@ const tierInfo = [
       completionRate: 0,
       consistency: 0,
       longestStreak: 1,
-      masteryPoints: 0,
       difficulty: 1
     },
     description: "Starting your habit journey"
@@ -39,7 +37,6 @@ const tierInfo = [
       completionRate: 35,
       consistency: 20,
       longestStreak: 3,
-      masteryPoints: 50,
       difficulty: 1
     },
     description: "Building momentum"
@@ -53,7 +50,6 @@ const tierInfo = [
       completionRate: 50,
       consistency: 30,
       longestStreak: 7,
-      masteryPoints: 150,
       difficulty: 2
     },
     description: "Establishing consistency"
@@ -67,10 +63,9 @@ const tierInfo = [
       completionRate: 60,
       consistency: 40,
       longestStreak: 14,
-      masteryPoints: 400,
       difficulty: 3
     },
-    description: "Strong habit mastery"
+    description: "Strong habit performance"
   },
   {
     name: "Diamond",
@@ -81,7 +76,6 @@ const tierInfo = [
       completionRate: 70,
       consistency: 50,
       longestStreak: 21,
-      masteryPoints: 800,
       difficulty: 4
     },
     description: "Elite habit champion"
@@ -109,7 +103,6 @@ export function TierRequirements({ currentHabit }: TierRequirementsProps) {
       completionRate: Math.min((habit.completionRate / nextTier.requirements.completionRate) * 100, 100),
       consistency: Math.min((consistency / nextTier.requirements.consistency) * 100, 100),
       longestStreak: Math.min((habit.longestStreak / nextTier.requirements.longestStreak) * 100, 100),
-      masteryPoints: Math.min((habit.masteryPoints / nextTier.requirements.masteryPoints) * 100, 100),
       difficulty: Math.min((habit.difficultyRating / nextTier.requirements.difficulty) * 100, 100)
     };
     
@@ -162,14 +155,6 @@ export function TierRequirements({ currentHabit }: TierRequirementsProps) {
                     <span>{currentHabit?.longestStreak} / {progressData.nextTier.requirements.longestStreak}</span>
                   </div>
                   <Progress value={progressData.progress.longestStreak} />
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Mastery Points</span>
-                    <span>{currentHabit?.masteryPoints} / {progressData.nextTier.requirements.masteryPoints}</span>
-                  </div>
-                  <Progress value={progressData.progress.masteryPoints} />
                 </div>
                 
                 <div className="space-y-2">
@@ -244,10 +229,6 @@ export function TierRequirements({ currentHabit }: TierRequirementsProps) {
                     <div>
                       <span className="text-gray-500 dark:text-gray-400">Streak:</span>
                       <span className="ml-1 font-medium">{tier.requirements.longestStreak}+ days</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 dark:text-gray-400">Mastery:</span>
-                      <span className="ml-1 font-medium">{tier.requirements.masteryPoints}+ pts</span>
                     </div>
                     <div>
                       <span className="text-gray-500 dark:text-gray-400">Min Difficulty:</span>

@@ -20,7 +20,7 @@ export function TierExplanation() {
               <Badge variant="outline">Individual Progress</Badge>
             </h4>
             <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-              <li>• Gained through XP from habit completions</li>
+              <li>• Gained through habit completions</li>
               <li>• Increase quickly with consistent practice</li>
               <li>• Affected by habit difficulty and streaks</li>
               <li>• Show immediate progress recognition</li>
@@ -31,7 +31,7 @@ export function TierExplanation() {
             <h4 className="font-semibold flex items-center space-x-2">
               <span className="text-purple-600">👑</span>
               <span>Tiers</span>
-              <Badge variant="outline">Mastery Recognition</Badge>
+              <Badge variant="outline">Consistency Recognition</Badge>
             </h4>
             <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
               <li>• Measure long-term consistency and skill</li>

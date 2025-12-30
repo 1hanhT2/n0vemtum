@@ -102,8 +102,8 @@ export function LevelUpNotification({ habit, onLevelUp, show, onClose }: LevelUp
 
               <div className="bg-white dark:bg-gray-800 rounded-lg p-3 space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Current XP</span>
-                  <span className="font-medium">{habit.experience} / {habit.experienceToNext}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Level Progress</span>
+                  <span className="font-medium">100%</span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div 
@@ -112,7 +112,7 @@ export function LevelUpNotification({ habit, onLevelUp, show, onClose }: LevelUp
                   />
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Surplus XP will carry over to the next level
+                  Surplus progress carries over to the next level
                 </p>
               </div>
 

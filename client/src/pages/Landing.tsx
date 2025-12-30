@@ -368,7 +368,7 @@ export function Landing() {
               {
                 icon: Trophy,
                 title: "Achievement Matrix",
-                desc: "Unlock 50+ badges, ascend through 10 tiers, and earn mastery points for unwavering consistency."
+                desc: "Unlock 50+ badges, ascend through 10 tiers, and build lasting consistency."
               },
               {
                 icon: Brain,

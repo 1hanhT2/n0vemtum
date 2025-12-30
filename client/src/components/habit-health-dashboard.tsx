@@ -13,7 +13,6 @@ interface HabitHealthDashboardProps {
     level?: number;
     experience?: number;
     experienceToNext?: number;
-    masteryPoints?: number;
     streak?: number;
     longestStreak?: number;
     completionRate?: number;
@@ -32,7 +31,6 @@ export function HabitHealthDashboard({ habits }: HabitHealthDashboardProps) {
     averageLevel: habits.length > 0 ? Math.round(habits.reduce((sum, h) => sum + (h.level || 1), 0) / habits.length) : 0,
     totalBadges: habits.reduce((sum, h) => sum + (h.badges?.length || 0), 0),
     longestStreak: Math.max(...habits.map(h => h.longestStreak || 0), 0),
-    totalMasteryPoints: habits.reduce((sum, h) => sum + (h.masteryPoints || 0), 0),
     averageCompletionRate: habits.length > 0 
       ? Math.round(habits.reduce((sum, h) => sum + (h.completionRate || 0), 0) / habits.length)
       : 0

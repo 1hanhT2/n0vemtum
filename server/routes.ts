@@ -32,6 +32,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
+
+  app.get('/api/user/progress', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const progress = await storage.getUserProgress(userId);
+      if (!progress) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+      res.json(progress);
+    } catch (error) {
+      console.error("Error fetching user progress:", error);
+      res.status(500).json({ message: "Failed to fetch user progress" });
+    }
+  });
   
   // Habits routes
   app.get("/api/habits", isAuthenticated, async (req: any, res) => {
@@ -112,7 +127,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const habit = await storage.updateHabitProgress(id, completed, date, userId);
-      res.json(habit);
+      const progress = await storage.getUserProgress(userId);
+      if (!progress) {
+        res.json(habit);
+        return;
+      }
+      res.json({
+        ...habit,
+        userProgress: {
+          level: progress.level,
+          xp: progress.xp,
+          xpToNext: progress.xpToNext,
+        },
+      });
     } catch (error) {
       console.error(`Habit progress update error for habit ${req.params.id}:`, error);
       res.status(400).json({ error: error instanceof Error ? error.message : "Failed to update habit progress" });

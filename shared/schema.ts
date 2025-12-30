@@ -57,7 +57,6 @@ export const habits = pgTable("habits", {
   level: integer("level").notNull().default(1),
   experience: integer("experience").notNull().default(0),
   experienceToNext: integer("experience_to_next").notNull().default(100),
-  masteryPoints: integer("mastery_points").notNull().default(0),
   streak: integer("streak").notNull().default(0),
   longestStreak: integer("longest_streak").notNull().default(0),
   completionRate: integer("completion_rate").notNull().default(0), // percentage

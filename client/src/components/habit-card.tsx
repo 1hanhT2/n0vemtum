@@ -14,7 +14,6 @@ interface Habit {
   level?: number;
   experience?: number;
   experienceToNext?: number;
-  masteryPoints?: number;
   streak?: number;
   longestStreak?: number;
   completionRate?: number;
@@ -49,8 +48,8 @@ export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitC
 
   const handleToggle = useThrottle(handleToggleInternal, 500);
 
-  const experiencePercentage = habit.experience && habit.experienceToNext 
-    ? (habit.experience / (habit.experience + habit.experienceToNext)) * 100 
+  const experiencePercentage = habit.experience !== undefined && habit.experienceToNext
+    ? Math.min(100, (habit.experience / habit.experienceToNext) * 100)
     : 0;
 
   const tierColor = tierColors[habit.tier as keyof typeof tierColors] || tierColors.bronze;
@@ -124,13 +123,13 @@ export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitC
               )}
             </div>
             
-            {/* Experience bar for mobile */}
+            {/* Level progress for mobile */}
             {habit.experience !== undefined && habit.experienceToNext && (
               <div className="space-y-1">
                 <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
-                  <span className="sm:hidden">XP</span>
-                  <span className="hidden sm:inline">Experience</span>
-                  <span>{habit.experience}/{habit.experience + habit.experienceToNext} XP</span>
+                  <span className="sm:hidden">Progress</span>
+                  <span className="hidden sm:inline">Level Progress</span>
+                  <span>{Math.round(experiencePercentage)}%</span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <motion.div 

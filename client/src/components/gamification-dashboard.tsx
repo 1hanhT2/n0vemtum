@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Trophy, Crown, Star, Zap, Target, Flame, Medal } from "lucide-react";
+import { Trophy, Crown, Star, Award, Target, Flame, Medal } from "lucide-react";
 import { motion } from "framer-motion";
 import { resolveBadgeIcon } from "@/lib/badgeIcons";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -14,7 +13,6 @@ interface GamificationDashboardProps {
     level: number;
     experience: number;
     experienceToNext: number;
-    masteryPoints: number;
     streak: number;
     longestStreak: number;
     completionRate: number;
@@ -31,7 +29,7 @@ export function GamificationDashboard({ habits }: GamificationDashboardProps) {
 
   // Calculate overall stats
   const totalLevel = habits.reduce((sum, habit) => sum + habit.level, 0);
-  const totalMasteryPoints = habits.reduce((sum, habit) => sum + habit.masteryPoints, 0);
+  const totalBadges = habits.reduce((sum, habit) => sum + habit.badges.length, 0);
   const averageCompletionRate = Math.floor(
     habits.reduce((sum, habit) => sum + habit.completionRate, 0) / habits.length
   );
@@ -45,8 +43,6 @@ export function GamificationDashboard({ habits }: GamificationDashboardProps) {
       ? sorted[mid]
       : Math.floor((sorted[mid - 1] + sorted[mid]) / 2);
   })();
-  const totalBadges = habits.reduce((sum, habit) => sum + habit.badges.length, 0);
-
   // Calculate tier distribution
   const tierCounts = habits.reduce((acc, habit) => {
     acc[habit.tier] = (acc[habit.tier] || 0) + 1;
@@ -85,9 +81,9 @@ export function GamificationDashboard({ habits }: GamificationDashboardProps) {
             
             <div className="text-center space-y-2">
               <div className="p-3 bg-white dark:bg-gray-800 rounded-lg">
-                <Zap className="w-6 h-6 text-purple-500 mx-auto mb-1" />
-                <div className="text-lg font-bold">{totalMasteryPoints}</div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Mastery Points</div>
+                <Award className="w-6 h-6 text-purple-500 mx-auto mb-1" />
+                <div className="text-lg font-bold">{totalBadges}</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">Badges Earned</div>
               </div>
             </div>
             
@@ -160,7 +156,7 @@ export function GamificationDashboard({ habits }: GamificationDashboardProps) {
           <CardContent>
             <div className="space-y-3">
               {habits
-                .sort((a, b) => b.level - a.level || b.masteryPoints - a.masteryPoints)
+                .sort((a, b) => b.level - a.level || b.completionRate - a.completionRate)
                 .slice(0, 3)
                 .map((habit, index) => (
                   <motion.div
@@ -187,7 +183,7 @@ export function GamificationDashboard({ habits }: GamificationDashboardProps) {
                         <span className="font-medium">{habit.name}</span>
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
-                        Level {habit.level} • {habit.masteryPoints} MP
+                        Level {habit.level} • {Math.round(habit.completionRate)}% success
                       </div>
                     </div>
                     <Badge className={getTierColor(habit.tier)}>

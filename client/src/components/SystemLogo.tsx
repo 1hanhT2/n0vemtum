@@ -4,10 +4,16 @@ import { cn } from "@/lib/utils";
 interface SystemLogoProps {
   variant?: 'default' | 'wordmark' | 'monogram' | 'compact' | 'outlined';
   className?: string;
+  textClassName?: string;
   showTag?: boolean;
 }
 
-export function SystemLogo({ variant = 'default', className, showTag = false }: SystemLogoProps) {
+export function SystemLogo({
+  variant = 'default',
+  className,
+  textClassName,
+  showTag = false,
+}: SystemLogoProps) {
 
   if (variant === 'monogram') {
     return (
@@ -64,7 +70,8 @@ export function SystemLogo({ variant = 'default', className, showTag = false }: 
           "text-gray-900 dark:text-white",
           "group-hover:text-transparent",
           "group-hover:[-webkit-text-stroke:1px_rgba(0,0,0,0.38)]",
-          "dark:group-hover:[-webkit-text-stroke:1px_rgba(255,255,255,0.38)]"
+          "dark:group-hover:[-webkit-text-stroke:1px_rgba(255,255,255,0.38)]",
+          textClassName,
         )}>
           System
         </div>
