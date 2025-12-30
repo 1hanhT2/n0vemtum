@@ -49,19 +49,23 @@ export function useUpdateHabitProgress() {
       return response.json();
     },
     onSuccess: (response, { completed }) => {
-      const { userProgress, ...habit } = response || {};
+      const { userProgress, user, ...habit } = response || {};
       // Use optimistic updates instead of invalidating all queries
       queryClient.setQueryData(['/api/habits'], (oldHabits: any[]) => 
         oldHabits?.map(h => h.id === habit.id ? habit : h)
       );
       if (userProgress) {
         queryClient.setQueryData(['/api/user/progress'], userProgress);
+        if (user) {
+          queryClient.setQueryData(['/api/auth/user'], user);
+        }
         queryClient.setQueryData(['/api/auth/user'], (oldUser: any) => {
           if (!oldUser) return oldUser;
           return {
             ...oldUser,
             level: userProgress.level,
             xp: userProgress.xp,
+            stats: user?.stats ?? oldUser.stats,
           };
         });
       } else {

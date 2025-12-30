@@ -132,6 +132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json(habit);
         return;
       }
+      const user = await storage.getUser(userId);
       res.json({
         ...habit,
         userProgress: {
@@ -139,6 +140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           xp: progress.xp,
           xpToNext: progress.xpToNext,
         },
+        user,
       });
     } catch (error) {
       console.error(`Habit progress update error for habit ${req.params.id}:`, error);

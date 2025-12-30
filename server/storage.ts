@@ -1376,19 +1376,17 @@ export class DatabaseStorage implements IStorage {
       await db.delete(goals).where(eq(goals.userId, userId));
       await db.delete(chatMessages).where(eq(chatMessages.userId, userId));
 
-      // Reset user's achievements to unlocked state
-      await db.update(achievements)
-        .set({
-          isUnlocked: false,
-          unlockedAt: null
-        })
-        .where(eq(achievements.userId, userId));
+      // Remove achievements entirely
+      await db.delete(achievements).where(eq(achievements.userId, userId));
 
       // Delete ALL user's habits (not just custom ones)
       await db.delete(habits).where(eq(habits.userId, userId));
 
       // Delete user's settings
       await db.delete(settings).where(eq(settings.userId, userId));
+
+      // Finally remove the user record itself
+      await db.delete(users).where(eq(users.id, userId));
 
       console.log(`All data for user ${userId} has been permanently deleted`);
     } catch (error) {
