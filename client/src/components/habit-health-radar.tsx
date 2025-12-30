@@ -112,7 +112,7 @@ export function HabitHealthRadar({ habits }: HabitHealthRadarProps) {
 
   if (!habits || habits.length === 0) {
     return (
-      <Card>
+      <Card className="w-full overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Activity className="w-5 h-5" />
@@ -131,7 +131,7 @@ export function HabitHealthRadar({ habits }: HabitHealthRadarProps) {
   }
 
   return (
-    <Card>
+    <Card className="w-full overflow-hidden">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center space-x-2">

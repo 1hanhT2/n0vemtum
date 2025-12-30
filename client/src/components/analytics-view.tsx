@@ -108,7 +108,7 @@ export function AnalyticsView({ isGuestMode = false }: AnalyticsViewProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-full overflow-x-auto">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <LineChart className="h-5 w-5 text-primary" />
@@ -121,12 +121,12 @@ export function AnalyticsView({ isGuestMode = false }: AnalyticsViewProps) {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+      <div className="grid gap-6 lg:grid-cols-2 items-stretch min-w-0">
+        <Card className="min-w-0 h-full flex flex-col">
           <CardHeader>
             <CardTitle className="text-lg font-semibold">Tag Goals</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 flex-1 flex flex-col">
             <div className="grid gap-3 sm:grid-cols-3">
               <div>
                 <div className="text-xs font-medium text-muted-foreground mb-2">Tag</div>
@@ -219,11 +219,11 @@ export function AnalyticsView({ isGuestMode = false }: AnalyticsViewProps) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="min-w-0 h-full flex flex-col">
           <CardHeader>
             <CardTitle className="text-lg font-semibold">Tag Distribution</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1 min-w-0 overflow-auto settings-scroll">
             {tagDistribution.length === 0 ? (
               <div className="text-sm text-muted-foreground">
                 Add tags to habits to see distribution.

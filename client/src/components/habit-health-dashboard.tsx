@@ -58,12 +58,12 @@ export function HabitHealthDashboard({ habits }: HabitHealthDashboardProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0">
       {/* Overall Health Radar */}
       <HabitHealthRadar habits={habits} />
 
       {/* Detailed Analytics */}
-      <Tabs defaultValue="overview" className="w-full">
+      <Tabs defaultValue="overview" className="w-full min-w-0">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>

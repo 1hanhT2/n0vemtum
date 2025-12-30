@@ -452,23 +452,9 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   }, [habitCompletions, subtaskCompletions, notes, isDayCompleted, isGuestMode, handleCompleteDay]);
 
   useEffect(() => {
-    if (isGuestMode || isDayCompleted || !habits || habits.length === 0) {
-      autoCompleteRef.current = false;
-      return;
-    }
-
-    const allCompleted = habits.every((habit) => habitCompletions[habit.id]);
-    if (!allCompleted) {
-      autoCompleteRef.current = false;
-      return;
-    }
-
-    if (autoCompleteRef.current) return;
-    autoCompleteRef.current = true;
-    Promise.resolve(handleCompleteDay()).catch(() => {
-      autoCompleteRef.current = false;
-    });
-  }, [habitCompletions, habits, isDayCompleted, isGuestMode, handleCompleteDay]);
+    // Auto-completion when all habits are done is intentionally disabled to avoid surprise saves.
+    autoCompleteRef.current = false;
+  }, [habitCompletions, habits, isDayCompleted, isGuestMode]);
 
   const handleScoreChange = (type: 'punctuality' | 'adherence', value: number[]) => {
     if (isDayCompleted) return; // Prevent changes if day is completed

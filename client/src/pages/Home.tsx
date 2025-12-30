@@ -113,7 +113,7 @@ export function Home({ isGuestMode = false }: HomeProps) {
           </div>
 
           {/* Side Panel - System Stats */}
-          <div className="hidden lg:block space-y-6 lg:mt-8">
+          <div className="hidden lg:block lg:sticky lg:top-24 lg:self-start space-y-6 lg:mt-8">
              <PlayerStatus />
           </div>
         </div>

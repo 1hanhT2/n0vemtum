@@ -12,6 +12,42 @@ interface AchievementsPanelProps {
   isGuestMode?: boolean;
 }
 
+const achievementXp: Record<string, number> = {
+  "First Steps": 50,
+  "Spark Starter": 60,
+  "Week Warrior": 100,
+  "Momentum Master": 140,
+  "Peak Performer": 180,
+  "Unstoppable Force": 220,
+  "Legend": 320,
+  "Mythic Rhythm": 450,
+  "Perfect Day": 180,
+  "Near Perfect": 140,
+  "Flow State": 160,
+  "Solid Progress": 110,
+  "Reflection Master": 90,
+  "Self-Aware": 130,
+  "Wisdom Keeper": 170,
+  "Getting Into It": 80,
+  "Dedicated": 120,
+  "Half Century": 160,
+  "Century Club": 220,
+  "Habit Master": 300,
+  "Life Changer": 380,
+  "Note Taker": 90,
+  "Habit Creator": 110,
+};
+
+const nonRepeatableAchievements = new Set<string>(["First Steps", "Spark Starter"]);
+
+const getXpLabel = (name: string) => {
+  const base = achievementXp[name] ?? 100;
+  if (nonRepeatableAchievements.has(name)) {
+    return `${base} XP (one-time)`;
+  }
+  return `${base} XP (${Math.floor(base * 0.5)} XP on repeat)`;
+};
+
 export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProps) {
   const { data: achievements, isLoading: achievementsLoading } = isGuestMode 
     ? { data: getMockAchievements(), isLoading: false }
@@ -134,6 +170,9 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
                   <p className="text-xs text-gray-600 dark:text-gray-300">
                     {achievement.description}
                   </p>
+                  <p className="text-[11px] text-amber-700 dark:text-amber-300 mt-1">
+                    {getXpLabel(achievement.name)}
+                  </p>
                   <Badge variant="secondary" className="mt-2 text-xs">
                     Unlocked
                   </Badge>
@@ -171,6 +210,9 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
                 </h3>
                 <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">
                   {achievement.description}
+                </p>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-1">
+                  {getXpLabel(achievement.name)}
                 </p>
                 <Badge variant="outline" className="text-xs">
                   {achievement.type === 'streak' && `${achievement.requirement} days`}

@@ -140,7 +140,7 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  private calculateUserProgressFromStats(stats: Record<string, number>) {
+  private calculateUserProgressFromStats(stats: Record<string, number>, bonusXp = 0) {
     const baseStats = {
       strength: 10,
       agility: 10,
@@ -153,7 +153,7 @@ export class DatabaseStorage implements IStorage {
       const value = typeof stats[key] === "number" ? stats[key] : baseStats[key as keyof typeof baseStats];
       return sum + value;
     }, 0);
-    const totalXp = Math.max(0, (statTotal - baseTotal) * 10);
+    const totalXp = Math.max(0, (statTotal - baseTotal) * 10) + Math.max(0, bonusXp);
 
     let level = 1;
     let xp = totalXp;
@@ -171,7 +171,8 @@ export class DatabaseStorage implements IStorage {
     await this.ensureInitialized();
     const user = await this.getUser(userId);
     if (!user) return undefined;
-    return this.calculateUserProgressFromStats(user.stats as Record<string, number>);
+    const bonusXp = typeof (user as any).xp === "number" ? Math.max(0, (user as any).xp) : 0;
+    return this.calculateUserProgressFromStats(user.stats as Record<string, number>, bonusXp);
   }
 
   private async initializeDefaults() {
@@ -648,50 +649,57 @@ export class DatabaseStorage implements IStorage {
             type: 'streak',
             name: 'First Steps',
             description: 'Complete your first day',
-            badge: '🌱',
+            badge: 'sprout',
             requirement: 1,
           },
           {
             type: 'streak',
-            name: 'Getting Started',
+            name: 'Spark Starter',
             description: 'Maintain a 3-day streak',
-            badge: '🔥',
+            badge: 'spark',
             requirement: 3,
           },
           {
             type: 'streak',
             name: 'Week Warrior',
             description: 'Maintain a 7-day streak',
-            badge: '⚡',
+            badge: 'shield',
             requirement: 7,
           },
           {
             type: 'streak',
             name: 'Momentum Master',
             description: 'Maintain a 14-day streak',
-            badge: '🚀',
+            badge: 'rocket',
             requirement: 14,
           },
           {
             type: 'streak',
-            name: 'Habit Hero',
-            description: 'Maintain a 30-day streak',
-            badge: '🏆',
+            name: 'Peak Performer',
+            description: 'Summit a 30-day streak',
+            badge: 'mountain',
             requirement: 30,
           },
           {
             type: 'streak',
             name: 'Unstoppable Force',
             description: 'Maintain a 60-day streak',
-            badge: '💪',
+            badge: 'muscle',
             requirement: 60,
           },
           {
             type: 'streak',
             name: 'Legend',
             description: 'Maintain a 100-day streak',
-            badge: '🌟',
+            badge: 'star',
             requirement: 100,
+          },
+          {
+            type: 'streak',
+            name: 'Mythic Rhythm',
+            description: 'Maintain a 180-day streak',
+            badge: 'crown',
+            requirement: 180,
           },
 
           // Completion Achievements
@@ -699,21 +707,28 @@ export class DatabaseStorage implements IStorage {
             type: 'completion',
             name: 'Perfect Day',
             description: 'Complete all habits in a day',
-            badge: '⭐',
+            badge: 'target',
             requirement: 100,
           },
           {
             type: 'completion',
             name: 'Near Perfect',
             description: 'Complete 90% of habits in a day',
-            badge: '🎯',
+            badge: 'sparkles',
             requirement: 90,
           },
           {
             type: 'completion',
-            name: 'Good Progress',
+            name: 'Flow State',
+            description: 'Finish at least 85% of habits in a day',
+            badge: 'infinity',
+            requirement: 85,
+          },
+          {
+            type: 'completion',
+            name: 'Solid Progress',
             description: 'Complete 75% of habits in a day',
-            badge: '✅',
+            badge: 'palette',
             requirement: 75,
           },
 
@@ -722,21 +737,21 @@ export class DatabaseStorage implements IStorage {
             type: 'consistency',
             name: 'Reflection Master',
             description: 'Complete 5 weekly reviews',
-            badge: '📝',
+            badge: 'book',
             requirement: 5,
           },
           {
             type: 'consistency',
             name: 'Self-Aware',
             description: 'Complete 10 weekly reviews',
-            badge: '🔍',
+            badge: 'pen',
             requirement: 10,
           },
           {
             type: 'consistency',
             name: 'Wisdom Keeper',
             description: 'Complete 25 weekly reviews',
-            badge: '🧠',
+            badge: 'sunrise',
             requirement: 25,
           },
 
@@ -745,79 +760,58 @@ export class DatabaseStorage implements IStorage {
             type: 'milestone',
             name: 'Getting Into It',
             description: 'Complete 10 total days',
-            badge: '🎪',
+            badge: 'flag',
             requirement: 10,
           },
           {
             type: 'milestone',
             name: 'Dedicated',
             description: 'Complete 25 total days',
-            badge: '💝',
+            badge: 'medal',
             requirement: 25,
           },
           {
             type: 'milestone',
             name: 'Half Century',
             description: 'Complete 50 total days',
-            badge: '🏅',
+            badge: 'sun',
             requirement: 50,
           },
           {
             type: 'milestone',
             name: 'Century Club',
             description: 'Complete 100 total days',
-            badge: '💯',
+            badge: 'trophy',
             requirement: 100,
           },
           {
             type: 'milestone',
             name: 'Habit Master',
             description: 'Complete 250 total days',
-            badge: '🎖️',
+            badge: 'crown',
             requirement: 250,
           },
           {
             type: 'milestone',
             name: 'Life Changer',
             description: 'Complete 365 total days',
-            badge: '🌈',
+            badge: 'spark',
             requirement: 365,
           },
 
           // Special Achievements
           {
             type: 'special',
-            name: 'Early Bird',
-            description: 'Score 5/5 on punctuality',
-            badge: '🐦',
-            requirement: 5,
-          },
-          {
-            type: 'special',
-            name: 'Disciplined',
-            description: 'Score 5/5 on adherence',
-            badge: '⚖️',
-            requirement: 5,
-          },
-          {
-            type: 'special',
-            name: 'Perfectionist',
-            description: 'Score 5/5 on both metrics same day',
-            badge: '💎',
-            requirement: 1,
-          },
-          {
-            type: 'special',
             name: 'Note Taker',
             description: 'Add notes for 7 consecutive days',
-            badge: '📓',
+            badge: 'book',
             requirement: 7,
           },
           {
             type: 'special',
             name: 'Habit Creator',
             description: 'Create 5 custom habits',
-            badge: '🛠️',
+            badge: 'compass',
             requirement: 5,
           },
         ];
@@ -1037,12 +1031,13 @@ export class DatabaseStorage implements IStorage {
           nextStats[statKey] = Math.max(0, current + delta);
         });
 
-        const progress = this.calculateUserProgressFromStats(nextStats);
+        const bonusXp = typeof (userRecord as any).xp === "number" ? Math.max(0, (userRecord as any).xp) : 0;
+        const progress = this.calculateUserProgressFromStats(nextStats, bonusXp);
         await db
           .update(users)
           .set({
             stats: nextStats,
-            xp: progress.xp,
+            xp: bonusXp,
             level: progress.level,
             updatedAt: new Date(),
           })
@@ -1211,11 +1206,79 @@ export class DatabaseStorage implements IStorage {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 
+  private ACHIEVEMENT_BASE_XP: Record<string, number> = {
+    "First Steps": 50,
+    "Spark Starter": 60,
+    "Week Warrior": 100,
+    "Momentum Master": 140,
+    "Peak Performer": 180,
+    "Unstoppable Force": 220,
+    "Legend": 320,
+    "Mythic Rhythm": 450,
+    "Perfect Day": 180,
+    "Near Perfect": 140,
+    "Flow State": 160,
+    "Solid Progress": 110,
+    "Reflection Master": 90,
+    "Self-Aware": 130,
+    "Wisdom Keeper": 170,
+    "Getting Into It": 80,
+    "Dedicated": 120,
+    "Half Century": 160,
+    "Century Club": 220,
+    "Habit Master": 300,
+    "Life Changer": 380,
+    "Note Taker": 90,
+    "Habit Creator": 110,
+  };
+
+  private NON_REPEATABLE_ACHIEVEMENTS = new Set<string>(["First Steps", "Spark Starter"]);
+
+  private async refreshAchievementTimestamp(id: number, userId: string) {
+    await db
+      .update(achievements)
+      .set({ unlockedAt: new Date(), isUnlocked: true })
+      .where(and(eq(achievements.id, id), eq(achievements.userId, userId)));
+  }
+
+  private async applyUserXpBonus(userId: string, xpGain: number): Promise<void> {
+    if (xpGain <= 0) return;
+
+    const [userRecord] = await db
+      .select({
+        stats: users.stats,
+        bonusXp: users.xp,
+      })
+      .from(users)
+      .where(eq(users.id, userId));
+
+    if (!userRecord) return;
+
+    const currentBonus = typeof userRecord.bonusXp === "number" ? Math.max(0, userRecord.bonusXp) : 0;
+    const nextBonus = currentBonus + xpGain;
+    const progress = this.calculateUserProgressFromStats(userRecord.stats as Record<string, number>, nextBonus);
+
+    await db
+      .update(users)
+      .set({
+        xp: nextBonus,
+        level: progress.level,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+  }
+
   private async checkAchievements(currentStreak: number, dailyEntry: DailyEntry): Promise<void> {
-    const allAchievements = await db.select().from(achievements);
+    const allAchievements = await db
+      .select()
+      .from(achievements)
+      .where(eq(achievements.userId, dailyEntry.userId));
 
     for (const achievement of allAchievements) {
-      if (achievement.isUnlocked) continue;
+      const repeatable = !this.NON_REPEATABLE_ACHIEVEMENTS.has(achievement.name);
+      const alreadyUnlocked = achievement.isUnlocked;
+
+      if (alreadyUnlocked && !repeatable) continue;
 
       let shouldUnlock = false;
 
@@ -1230,15 +1293,29 @@ export class DatabaseStorage implements IStorage {
             shouldUnlock = completionRate >= achievement.requirement;
           }
           break;
-        case 'milestone':
-          const totalCompletedDays = await db.select().from(dailyEntries).where(eq(dailyEntries.isCompleted, true));
+        case 'milestone': {
+          const totalCompletedDays = await db
+            .select()
+            .from(dailyEntries)
+            .where(and(eq(dailyEntries.isCompleted, true), eq(dailyEntries.userId, dailyEntry.userId)));
           shouldUnlock = totalCompletedDays.length >= achievement.requirement;
           break;
+        }
       }
 
       if (shouldUnlock) {
         try {
-          await this.unlockAchievement(achievement.id, dailyEntry.userId);
+          const isFirstCompletion = !alreadyUnlocked;
+          const baseXp = this.ACHIEVEMENT_BASE_XP[achievement.name] ?? 100;
+          const xpGain = isFirstCompletion ? baseXp : Math.floor(baseXp * 0.5);
+
+          if (isFirstCompletion) {
+            await this.unlockAchievement(achievement.id, dailyEntry.userId);
+          } else if (repeatable) {
+            await this.refreshAchievementTimestamp(achievement.id, dailyEntry.userId);
+          }
+
+          await this.applyUserXpBonus(dailyEntry.userId, xpGain);
         } catch (error) {
           console.warn(`Failed to unlock achievement ${achievement.id} for user ${dailyEntry.userId}:`, error);
           // Continue processing other achievements instead of failing completely
