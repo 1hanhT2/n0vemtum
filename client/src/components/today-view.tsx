@@ -144,11 +144,27 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const autoCompleteRef = useRef(false);
   const autoFinalizeRef = useRef(false);
 
+  const filterCompletionsToHabits = useCallback(
+    (completions: Record<number, boolean> = {}) => {
+      if (!habits || habits.length === 0) return {};
+      const habitIds = new Set(habits.map((h) => h.id));
+      const filtered: Record<number, boolean> = {};
+      Object.entries(completions || {}).forEach(([id, done]) => {
+        const numericId = Number(id);
+        if (habitIds.has(numericId)) {
+          filtered[numericId] = !!done;
+        }
+      });
+      return filtered;
+    },
+    [habits]
+  );
 
   // Load existing data when dailyEntry changes
   useEffect(() => {
     if (dailyEntry) {
-      setHabitCompletions(dailyEntry.habitCompletions as Record<number, boolean> || {});
+      const filteredCompletions = filterCompletionsToHabits(dailyEntry.habitCompletions as Record<number, boolean> || {});
+      setHabitCompletions(filteredCompletions);
       setSubtaskCompletions(dailyEntry.subtaskCompletions as Record<number, boolean> || {});
       setPunctualityScore([dailyEntry.punctualityScore]);
       setAdherenceScore([dailyEntry.adherenceScore]);
@@ -285,7 +301,8 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     if (tempData && !dailyEntry) {
       try {
         const parsed = JSON.parse(tempData);
-        setHabitCompletions(parsed.habitCompletions || {});
+        const filteredCompletions = filterCompletionsToHabits(parsed.habitCompletions || {});
+        setHabitCompletions(filteredCompletions);
         setSubtaskCompletions(parsed.subtaskCompletions || {});
         setPunctualityScore([parsed.punctualityScore || 3]);
         setAdherenceScore([parsed.adherenceScore || 3]);
@@ -296,7 +313,13 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         localStorage.removeItem(`temp_daily_entry_${today}`);
       }
     }
-  }, [today, dailyEntry]);
+  }, [today, dailyEntry, filterCompletionsToHabits]);
+
+  // Whenever habits change (e.g., after reset), drop completions that no longer map to existing habits
+  useEffect(() => {
+    if (!habits) return;
+    setHabitCompletions((prev) => filterCompletionsToHabits(prev));
+  }, [habits, filterCompletionsToHabits]);
 
   const handleSubtaskToggle = (subtaskId: number, checked: boolean, habitId: number, totalSubtasks: number, completedSubtasks: number) => {
     if (isDayCompleted) return;
@@ -456,6 +479,12 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     autoCompleteRef.current = false;
   }, [habitCompletions, habits, isDayCompleted, isGuestMode]);
 
+  const completedHabitsCount = useMemo(() => Object.values(habitCompletions).filter(Boolean).length, [habitCompletions]);
+  const totalHabits = habits?.length ?? 0;
+  const completionPercent = totalHabits > 0 ? Math.round((completedHabitsCount / totalHabits) * 100) : 0;
+  const remainingHabits = totalHabits > 0 ? Math.max(0, totalHabits - completedHabitsCount) : 0;
+  const progressBarWidth = totalHabits > 0 ? Math.min(100, (completedHabitsCount / totalHabits) * 100) : 0;
+
   const handleScoreChange = (type: 'punctuality' | 'adherence', value: number[]) => {
     if (isDayCompleted) return; // Prevent changes if day is completed
     let newPunctuality = punctualityScore;
@@ -569,23 +598,23 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                 </span>
               </div>
               <span className="text-2xl font-bold text-foreground">
-                {Object.values(habitCompletions).filter(Boolean).length}/{habits.length}
+                {completedHabitsCount}/{totalHabits}
               </span>
             </div>
             <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
               <div 
                 className="bg-primary h-2 rounded-full transition-all duration-500 ease-out"
                 style={{ 
-                  width: `${Math.min(100, habits.length > 0 ? (Object.values(habitCompletions).filter(Boolean).length / habits.length) * 100 : 0)}%` 
+                  width: `${progressBarWidth}%` 
                 }}
               ></div>
             </div>
             <div className="mt-3 flex justify-between text-sm">
               <span className="text-muted-foreground">
-                {Math.round((Object.values(habitCompletions).filter(Boolean).length / habits.length) * 100)}% Complete
+                {completionPercent}% Complete
               </span>
               <span className="text-muted-foreground">
-                {habits.length - Object.values(habitCompletions).filter(Boolean).length} remaining
+                {remainingHabits} remaining
               </span>
             </div>
           </Card>
