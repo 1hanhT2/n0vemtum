@@ -5,6 +5,9 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+// Default to production when NODE_ENV is unset (common in some deploy targets).
+// `npm run dev` explicitly sets NODE_ENV=development.
+app.set("env", process.env.NODE_ENV ?? "production");
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -105,7 +108,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = 5000;
+  const port = Number(process.env.PORT ?? 5000);
   server.listen({
     port,
     host: "0.0.0.0",
