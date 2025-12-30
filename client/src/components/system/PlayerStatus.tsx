@@ -1,10 +1,17 @@
 import { useAuth } from "@/hooks/useAuth";
-import { Shield, Zap, Brain, Activity, Eye, Crown } from "lucide-react";
+import { Shield, Zap, Brain, Activity, Eye, Crown, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useMemo } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 export function PlayerStatus() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const { data: progress } = useQuery<{ level: number; xp: number; xpToNext: number }>({
     queryKey: ["/api/user/progress"],
     enabled: !!user,
@@ -12,6 +19,92 @@ export function PlayerStatus() {
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
+  });
+
+  const { data: challengesData, isLoading: challengesLoading, isError: challengesError } = useQuery<any>({
+    queryKey: ["/api/challenges"],
+    enabled: !!user,
+    staleTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+    queryFn: async () => {
+      const response = await apiRequest("/api/challenges");
+      return response.json();
+    },
+  });
+
+  const normalizedChallenges = useMemo(() => {
+    return (challengesData?.challenges || []).map((challenge: any, idx: number) => {
+      if (typeof challenge === "string") {
+        return { key: challenge, label: challenge, xp: 15, completed: false, id: idx + 1 };
+      }
+      if (typeof challenge === "object" && challenge !== null) {
+        const label = `${challenge.emoji ? `${challenge.emoji} ` : ""}${challenge.name || challenge.title || "New challenge"}`;
+        const xp =
+          Number.isFinite(Number(challenge.xp)) && Number(challenge.xp) > 0
+            ? Math.round(Number(challenge.xp))
+            : 15;
+        const id = typeof challenge.id === "number" ? challenge.id : idx + 1;
+        const key = `${id}-${label}-${xp}`;
+        return { key, label, xp, completed: !!challenge.completed, id };
+      }
+      return { key: `${idx}`, label: "Challenge incoming...", xp: 10, completed: false, id: idx + 1 };
+    });
+  }, [challengesData]);
+
+  const completeChallenge = useMutation({
+    mutationFn: async ({ id, completed }: { id: number | string; completed: boolean }) => {
+      const response = await apiRequest(`/api/challenges/${id}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ completed }),
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data?.challenges) {
+        queryClient.setQueryData(["/api/challenges"], (prev: any) => ({
+          ...(prev || {}),
+          challenges: data.challenges,
+          date: data.date || prev?.date,
+        }));
+      }
+      if (data?.progress) {
+        queryClient.setQueryData(["/api/user/progress"], data.progress);
+        queryClient.setQueryData(["/api/auth/user"], (oldUser: any) => {
+          if (!oldUser) return oldUser;
+          return { ...oldUser, level: data.progress.level, xp: data.progress.xp };
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Challenge update failed",
+        description: error?.message || "Could not update challenge.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const reshuffleChallenges = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest(`/api/challenges/reshuffle`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data?.challenges) {
+        queryClient.setQueryData(["/api/challenges"], data);
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Could not reshuffle",
+        description: error?.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Safe defaults if fields are missing (though schema update should handle this)
@@ -42,6 +135,7 @@ export function PlayerStatus() {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
+      className="space-y-4"
     >
       <div className="panel bg-card text-foreground shadow-sm">
         <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
@@ -102,6 +196,79 @@ export function PlayerStatus() {
              </div>
           </div>
         </div>
+      </div>
+
+      <div className="bg-card border border-border rounded-xl shadow-sm p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+            <Sparkles className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-xs uppercase tracking-[0.1em] text-muted-foreground font-mono">Challenges</div>
+            <div className="text-sm text-foreground/90">AI one-off tasks to boost today</div>
+          </div>
+        </div>
+        {!user && (
+          <p className="text-sm text-muted-foreground">Sign in to get personalized challenges.</p>
+        )}
+        {user && (
+          <>
+            {challengesLoading && <p className="text-sm text-muted-foreground">Fetching fresh challenges…</p>}
+            {challengesError && <p className="text-sm text-muted-foreground">Couldn&apos;t load challenges right now.</p>}
+            {!challengesLoading && !challengesError && (
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-muted-foreground">Daily challenges refresh each day.</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-xs"
+                  onClick={() => reshuffleChallenges.mutate()}
+                  disabled={reshuffleChallenges.isPending}
+                >
+                  {reshuffleChallenges.isPending ? "Shuffling…" : "Reshuffle"}
+                </Button>
+              </div>
+            )}
+            {!challengesLoading && !challengesError && (
+              <ul className="space-y-2">
+                {normalizedChallenges.slice(0, 3).map((challenge) => {
+                  const checked = !!challenge.completed;
+                  return (
+                    <li
+                      key={challenge.key}
+                      className={`text-sm text-foreground/90 border rounded-lg px-3 py-2 transition-colors cursor-pointer ${
+                        checked ? "bg-green-500/10 border-green-500/60" : "bg-muted/50 border-border/60"
+                      }`}
+                      onClick={() => completeChallenge.mutate({ id: challenge.id, completed: !checked })}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <div className="w-full flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={() => completeChallenge.mutate({ id: challenge.id, completed: !checked })}
+                            className="data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <span className={checked ? "line-through text-muted-foreground" : ""}>
+                            {challenge.label}
+                          </span>
+                        </div>
+                        <span className={`text-xs font-mono ${checked ? "text-green-600" : "text-primary"}`}>
+                          +{challenge.xp} XP
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
+                {normalizedChallenges.length === 0 && (
+                  <li className="text-sm text-muted-foreground">No suggestions yet—complete a habit to get tailored challenges.</li>
+                )}
+              </ul>
+            )}
+          </>
+        )}
       </div>
     </motion.div>
   );

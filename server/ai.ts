@@ -11,12 +11,44 @@ function extractInsight(text: string, key: string): string | null {
   return match ? match[1] : null;
 }
 
-async function callGemini(prompt: string): Promise<string> {
-  const models = [
-    "gemini-3-flash-preview",
-    "gemini-2.5-flash-lite-preview-06-17", 
-    "gemini-2.0-flash"
-  ];
+type GeminiTask =
+  | "chat"
+  | "simple"
+  | "difficulty"
+  | "analysis"
+  | "default";
+
+async function callGemini(prompt: string, kind: GeminiTask = "default"): Promise<string> {
+  const modelPriority: Record<GeminiTask, string[]> = {
+    chat: [
+      "gemini-3-pro-preview",
+      "gemini-3-flash-preview",
+      "gemini-2.5-flash",
+      "gemini-2.5-flash-lite",
+    ],
+    simple: [
+      "gemini-2.5-flash-lite",
+      "gemini-2.5-flash",
+      "gemini-3-flash-preview",
+    ],
+    difficulty: [
+      "gemini-2.5-flash",
+      "gemini-3-flash-preview",
+      "gemini-2.5-flash-lite",
+    ],
+    analysis: [
+      "gemini-2.5-flash",
+      "gemini-3-flash-preview",
+      "gemini-2.5-flash-lite",
+    ],
+    default: [
+      "gemini-3-flash-preview",
+      "gemini-2.5-flash",
+      "gemini-2.5-flash-lite",
+    ],
+  };
+
+  const models = modelPriority[kind] || modelPriority.default;
 
   for (const model of models) {
     try {
@@ -38,34 +70,42 @@ async function callGemini(prompt: string): Promise<string> {
   throw new Error("All Gemini models unavailable");
 }
 
-export async function generateHabitSuggestions(existingHabits: Habit[]): Promise<string[]> {
+export async function generateHabitSuggestions(
+  existingHabits: Habit[],
+  options?: { difficulty?: number; type?: string; force?: boolean }
+): Promise<any[]> {
   // Create cache key based on habit names
   const habitNames = existingHabits.map(h => h.name).sort().join(", ");
-  const cacheKey = `habit-suggestions:${habitNames}`;
+  const difficulty = Math.max(0, Math.min(100, Number(options?.difficulty ?? 50)));
+  const type = (options?.type || "balanced").toLowerCase();
+  const cacheKey = `habit-suggestions:${habitNames}:diff:${difficulty}:type:${type}`;
   
-  // Check cache first
-  const cached = aiCache.get<string[]>(cacheKey);
-  if (cached) {
-    console.log('Returning cached habit suggestions');
-    return cached;
+  // Check cache first unless forcing a refresh
+  if (!options?.force) {
+    const cached = aiCache.get<string[]>(cacheKey);
+    if (cached) {
+      console.log('Returning cached habit suggestions');
+      return cached;
+    }
   }
   
   const prompt = `Given existing habits: ${habitNames}
+User preference: difficulty ${difficulty}/100, type: ${type}.
 
-Generate 3-5 short, specific habit suggestions that complement the existing habits. Keep them simple and actionable.
+Generate 3-5 short, specific one-off challenges that complement the existing habits and match the requested type. Avoid duplicating the listed habits. Calibrate intensity and XP to the difficulty: low difficulty = gentle/low XP; high difficulty = tougher/higher XP. Keep each challenge concise (max 12 words), measurable, and actionable for today.
 
 Output ONLY a valid JSON array. No explanations, no markdown, just the JSON:
 
-[{"name": "short specific habit", "emoji": "emoji"}]
+[{"name": "short specific challenge", "emoji": "emoji", "xp": 20, "type": "physical"}]
 
 Examples of good suggestions:
-- "10-min morning walk"
-- "Drink water at 8 AM"
-- "5-min evening stretch"
-- "Read 1 page daily"`;
+- {"name": "10-min brisk walk outside", "emoji": "🚶", "xp": 20, "type": "physical"}
+- {"name": "Drink water at 8 AM", "emoji": "💧", "xp": 12, "type": "wellness"}
+- {"name": "5-min evening stretch", "emoji": "🤸", "xp": 18, "type": "physical"}
+- {"name": "Read 1 page of a book", "emoji": "📚", "xp": 15, "type": "mental"}`;
 
   try {
-    const response = await callGemini(prompt);
+    const response = await callGemini(prompt, "simple");
     // Extract JSON array from any text response - handle multiline arrays
     const arrayMatch = response.match(/\[[\s\S]*?\]/);
     if (!arrayMatch) {
@@ -79,10 +119,13 @@ Examples of good suggestions:
     
     const jsonString = arrayMatch[0];
     const suggestions = JSON.parse(jsonString);
-    const result = Array.isArray(suggestions) ? suggestions : getDefaultHabitSuggestions(existingHabits);
+    const normalized = normalizeSuggestions(suggestions);
+    const result = normalized.length > 0 ? normalized : getDefaultHabitSuggestions(existingHabits);
     
-    // Cache the result for 30 minutes
-    aiCache.set(cacheKey, result, 30);
+    // Cache the result for 30 minutes (skip if force-refresh)
+    if (!options?.force) {
+      aiCache.set(cacheKey, result, 30);
+    }
     return result;
   } catch (error) {
     console.error('Error generating habit suggestions:', error);
@@ -93,16 +136,16 @@ Examples of good suggestions:
 
 function getDefaultHabitSuggestions(existingHabits: Habit[]): any[] {
   const allSuggestions = [
-    {"name": "Drink water at wake-up", "emoji": "💧"},
-    {"name": "10-min morning meditation", "emoji": "🧘"},
-    {"name": "Write 3 gratitude notes", "emoji": "📝"},
-    {"name": "5-min bedtime stretches", "emoji": "🤸"},
-    {"name": "Read 1 page daily", "emoji": "📚"},
-    {"name": "15-min lunch walk", "emoji": "🚶"},
-    {"name": "3-min deep breathing", "emoji": "🫁"},
-    {"name": "Listen to podcast", "emoji": "🎧"},
-    {"name": "Digital sunset at 9 PM", "emoji": "📱"},
-    {"name": "Plan tomorrow at night", "emoji": "📅"}
+    {"name": "Drink water at wake-up", "emoji": "💧", "xp": 12},
+    {"name": "10-min morning meditation", "emoji": "🧘", "xp": 18},
+    {"name": "Write 3 gratitude notes", "emoji": "📝", "xp": 15},
+    {"name": "5-min bedtime stretches", "emoji": "🤸", "xp": 16},
+    {"name": "Read 1 page daily", "emoji": "📚", "xp": 14},
+    {"name": "15-min lunch walk", "emoji": "🚶", "xp": 20},
+    {"name": "3-min deep breathing", "emoji": "🫁", "xp": 10},
+    {"name": "Listen to podcast", "emoji": "🎧", "xp": 12},
+    {"name": "Digital sunset at 9 PM", "emoji": "📱", "xp": 18},
+    {"name": "Plan tomorrow at night", "emoji": "📅", "xp": 16}
   ];
   
   const existingNames = existingHabits.map(h => h.name.toLowerCase());
@@ -111,6 +154,23 @@ function getDefaultHabitSuggestions(existingHabits: Habit[]): any[] {
       name.includes(suggestion.name.toLowerCase().split(' ')[0])
     )
   ).slice(0, 5);
+}
+
+function normalizeSuggestions(raw: any[]): any[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item) => {
+    if (typeof item === "string") {
+      return { name: item, emoji: "✨", xp: 15 };
+    }
+    if (typeof item === "object" && item !== null) {
+      const name = item.name || item.title || "New challenge";
+      const emoji = item.emoji || "✨";
+      const xp = Number(item.xp);
+      const safeXp = Number.isFinite(xp) ? Math.max(5, Math.min(50, Math.round(xp))) : 15;
+      return { name, emoji, xp: safeXp };
+    }
+    return null;
+  }).filter(Boolean);
 }
 
 export async function generateWeeklyInsights(
@@ -147,7 +207,7 @@ Output ONLY valid JSON with insights:
 {"patterns": "pattern observation incorporating notes context", "strengths": "what went well based on data and notes", "improvements": "actionable suggestions informed by reflections", "motivation": "encouraging message that acknowledges their thoughts"}`;
 
   try {
-    const response = await callGemini(prompt);
+    const response = await callGemini(prompt, "analysis");
     // Clean up the response by removing markdown code blocks
     const cleanedResponse = response.replace(/```json\s*|\s*```/g, '').trim();
     
@@ -228,7 +288,7 @@ Respond with JSON format:
   "analysis": "[Brief 2-3 sentence explanation of the difficulty rating and key factors]"
 }`;
 
-    const response = await callGemini(prompt);
+    const response = await callGemini(prompt, "difficulty");
     
     try {
       // Clean up the response by removing markdown code blocks
@@ -440,6 +500,6 @@ USER MESSAGE: ${message}
 
 Answer in plain text. Offer up to 3 bullet suggestions when appropriate.`;
 
-  const response = await callGemini(prompt);
+  const response = await callGemini(prompt, "chat");
   return response.trim();
 }

@@ -589,6 +589,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Challenges routes
+  app.get("/api/challenges", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const date = (req.query?.date as string) || new Date().toISOString().split("T")[0];
+      const challenges = await storage.getDailyChallenges(userId, date);
+      res.json({ date, challenges });
+    } catch (error) {
+      console.error("Failed to fetch challenges:", error);
+      res.status(500).json({ error: "Failed to fetch challenges" });
+    }
+  });
+
+  app.post("/api/challenges/:id/complete", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const rawId = req.params.id;
+      const parsedId = parseInt(rawId);
+      const id = Number.isNaN(parsedId) ? rawId : parsedId;
+      const { completed = true, date } = req.body || {};
+      const result = await storage.completeChallenge(id, userId, completed, date);
+      res.json(result);
+    } catch (error) {
+      console.error("Failed to complete challenge:", error);
+      res.status(400).json({ error: error instanceof Error ? error.message : "Failed to complete challenge" });
+    }
+  });
+
+  app.post("/api/challenges/reshuffle", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const date = (req.body?.date as string) || new Date().toISOString().split("T")[0];
+      const challenges = await storage.reshuffleChallenges(userId, date);
+      res.json({ date, challenges });
+    } catch (error) {
+      console.error("Failed to reshuffle challenges:", error);
+      res.status(500).json({ error: "Failed to reshuffle challenges" });
+    }
+  });
+
   // Data reset route
   app.post("/api/reset-data", isAuthenticated, async (req: any, res) => {
     try {

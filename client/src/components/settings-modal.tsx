@@ -24,10 +24,13 @@ import { X, Plus, Trash2, Sparkles, User, Mail, Calendar, Hash, Moon, Palette, S
 import { getMockHabits } from "@/lib/mockData";
 import { ThemeKey, applyTheme, getStoredDarkMode, getStoredTheme } from "@/lib/theme";
 import { usePendingProtection } from "@/hooks/use-debounce";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { HabitSubtasksEditor } from "./habit-subtasks-editor";
 import { habitTagOptions } from "@shared/schema";
 import { habitTagConfig, type HabitTag } from "@/lib/habit-tags";
+import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useSetSetting } from "@/hooks/use-settings";
 
 
 interface SettingsModalProps {
@@ -49,6 +52,11 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
     ? { data: ["Try morning journaling", "Practice gratitude daily", "Take evening walks"], isLoading: false }
     : useHabitSuggestions();
   const queryClient = useQueryClient();
+  const { data: userSettings } = useQuery<any[]>({
+    queryKey: ["/api/settings"],
+    enabled: !isGuestMode,
+  });
+  const setSetting = useSetSetting();
 
 
   const [habitSettings, setHabitSettings] = useState<Array<{
@@ -65,6 +73,8 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
     weeklyReview: false,
   });
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [challengeDifficulty, setChallengeDifficulty] = useState<number>(50);
+  const [challengeType, setChallengeType] = useState<string>("balanced");
 
   useEffect(() => {
     if (habits) {
@@ -83,6 +93,21 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
     setIsDarkMode(savedMode);
     applyTheme(savedTheme, savedMode);
   }, [habits]);
+
+  useEffect(() => {
+    if (!userSettings) return;
+    const difficultySetting = userSettings.find((s) => s.key === "challengeDifficulty");
+    const typeSetting = userSettings.find((s) => s.key === "challengeType");
+    if (difficultySetting) {
+      const parsed = Number(difficultySetting.value);
+      if (Number.isFinite(parsed)) {
+        setChallengeDifficulty(Math.max(0, Math.min(100, parsed)));
+      }
+    }
+    if (typeSetting) {
+      setChallengeType(typeSetting.value || "balanced");
+    }
+  }, [userSettings]);
 
   const handleSaveSettings = async () => {
     if (isGuestMode) {
@@ -143,6 +168,12 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
       // Also save to localStorage for immediate access
       localStorage.setItem('theme', selectedTheme);
       localStorage.setItem('darkMode', isDarkMode.toString());
+
+      // Persist challenge preferences
+      if (user?.id) {
+        await setSetting.mutateAsync({ key: 'challengeDifficulty', value: String(Math.round(challengeDifficulty)), userId: user.id });
+        await setSetting.mutateAsync({ key: 'challengeType', value: challengeType, userId: user.id });
+      }
 
       // Apply theme
       applyTheme(selectedTheme, isDarkMode);
@@ -494,6 +525,45 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
                     <Plus className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                   </motion.button>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Challenge Preferences */}
+          {!isGuestMode && (
+            <div className="border border-border rounded-xl p-4 space-y-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" />
+                <h3 className="text-lg font-semibold text-foreground">Daily Challenge Settings</h3>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm font-medium text-muted-foreground">
+                  <span>Difficulty</span>
+                  <span>{Math.round(challengeDifficulty)}</span>
+                </div>
+                <Slider
+                  value={[challengeDifficulty]}
+                  max={100}
+                  step={1}
+                  onValueChange={(val) => setChallengeDifficulty(val[0] ?? 50)}
+                />
+                <p className="text-xs text-muted-foreground">Higher difficulty yields tougher, higher-XP one-off challenges.</p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-muted-foreground">Type</Label>
+                <Select value={challengeType} onValueChange={setChallengeType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select challenge type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="physical">Physical</SelectItem>
+                    <SelectItem value="mental">Mental</SelectItem>
+                    <SelectItem value="productivity">Productivity</SelectItem>
+                    <SelectItem value="wellness">Wellness</SelectItem>
+                    <SelectItem value="balanced">Balanced</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Guide the AI toward the style of daily challenges you want.</p>
               </div>
             </div>
           )}

@@ -32,6 +32,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lte, not, desc } from "drizzle-orm";
+import { generateHabitSuggestions } from "./ai";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -102,6 +103,21 @@ export interface IStorage {
   // Data management
   resetAllData(): Promise<void>;
   resetUserData(userId: string): Promise<void>;
+
+  // Challenges
+  getDailyChallenges(userId: string, date?: string): Promise<Challenge[]>;
+  completeChallenge(id: number, userId: string, completed?: boolean, date?: string): Promise<{ challenges: Challenge[]; progress?: { level: number; xp: number; xpToNext: number } }>;
+  reshuffleChallenges(userId: string, date?: string): Promise<Challenge[]>;
+}
+
+export interface Challenge {
+  id: number;
+  name: string;
+  emoji: string;
+  xp: number;
+  completed: boolean;
+  date: string;
+  type?: string;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -118,6 +134,32 @@ export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
+  }
+
+  private getTodayKey() {
+    return new Date().toISOString().split("T")[0];
+  }
+
+  private challengeSettingKey(date: string) {
+    return `daily_challenges_${date}`;
+  }
+
+  private normalizeChallenges(raw: any[], date: string): Challenge[] {
+    if (!Array.isArray(raw)) return [];
+    return raw.map((item, idx) => {
+      if (typeof item === "string") {
+        return { id: idx + 1, name: item, emoji: "✨", xp: 15, completed: false, date, type: "balanced" };
+      }
+      if (typeof item === "object" && item !== null) {
+        const name = item.name || item.title || "New challenge";
+        const emoji = item.emoji || "✨";
+        const xpRaw = Number(item.xp);
+        const xp = Number.isFinite(xpRaw) ? Math.max(5, Math.min(50, Math.round(xpRaw))) : 15;
+        const type = item.type || item.category || "balanced";
+        return { id: item.id || idx + 1, name, emoji, xp, completed: false, date, type };
+      }
+      return { id: idx + 1, name: "New challenge", emoji: "✨", xp: 10, completed: false, date, type: "balanced" };
+    });
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
@@ -1393,6 +1435,103 @@ export class DatabaseStorage implements IStorage {
       console.error(`Failed to reset data for user ${userId}:`, error);
       throw new Error('Failed to reset user data');
     }
+  }
+
+  async getDailyChallenges(userId: string, date: string = this.getTodayKey()): Promise<Challenge[]> {
+    await this.ensureInitialized();
+    const key = this.challengeSettingKey(date);
+    const existingSetting = await this.getSetting(key, userId);
+    const difficultySetting = await this.getSetting("challengeDifficulty", userId);
+    const typeSetting = await this.getSetting("challengeType", userId);
+    const difficulty = Math.max(0, Math.min(100, Number(difficultySetting?.value) || 50));
+    const challengeType = typeSetting?.value || "balanced";
+
+    if (existingSetting && existingSetting.value) {
+      try {
+        const stored = JSON.parse(existingSetting.value) as Challenge[];
+        if (Array.isArray(stored) && stored.length > 0) {
+          return stored;
+        }
+      } catch (error) {
+        console.warn("Failed to parse stored challenges, regenerating", error);
+      }
+    }
+
+    // Generate new challenges
+    const userHabits = await this.getHabits(userId);
+    const aiSuggestions = await generateHabitSuggestions(userHabits, { difficulty, type: challengeType });
+    const challenges = this.normalizeChallenges(aiSuggestions, date).slice(0, 5);
+
+    await this.setSetting({
+      key,
+      userId,
+      value: JSON.stringify(challenges),
+    });
+
+    return challenges;
+  }
+
+  async reshuffleChallenges(userId: string, date: string = this.getTodayKey()): Promise<Challenge[]> {
+    await this.ensureInitialized();
+    const existing = await this.getDailyChallenges(userId, date);
+    const completed = existing.filter((c) => c.completed);
+    const maxId = existing.reduce((max, c) => Math.max(max, c.id || 0), 0);
+    const difficultySetting = await this.getSetting("challengeDifficulty", userId);
+    const typeSetting = await this.getSetting("challengeType", userId);
+    const difficulty = Math.max(0, Math.min(100, Number(difficultySetting?.value) || 50));
+    const challengeType = typeSetting?.value || "balanced";
+    const userHabits = await this.getHabits(userId);
+    const aiSuggestions = await generateHabitSuggestions(userHabits, { difficulty, type: challengeType, force: true });
+    const fresh = this.normalizeChallenges(aiSuggestions, date);
+
+    // Keep completed challenges, refresh the rest
+    const usedNames = new Set(completed.map((c) => c.name.toLowerCase()));
+    const remainingSlots = Math.max(0, 5 - completed.length);
+    const newOnes = fresh
+      .filter((c) => !usedNames.has(c.name.toLowerCase()))
+      .slice(0, remainingSlots)
+      .map((c, idx) => ({ ...c, id: maxId + idx + 1 }));
+
+    const challenges = [...completed, ...newOnes];
+
+    await this.setSetting({
+      key: this.challengeSettingKey(date),
+      userId,
+      value: JSON.stringify(challenges),
+    });
+
+    return challenges;
+  }
+
+  async completeChallenge(
+    id: number | string,
+    userId: string,
+    completed = true,
+    date: string = this.getTodayKey()
+  ): Promise<{ challenges: Challenge[]; progress?: { level: number; xp: number; xpToNext: number } }> {
+    await this.ensureInitialized();
+    const challenges = await this.getDailyChallenges(userId, date);
+    const updated = challenges.map((challenge) => ({ ...challenge }));
+    const target = updated.find((c) => c.id === id || String(c.id) === String(id));
+    if (!target) {
+      throw new Error("Challenge not found");
+    }
+
+    const wasCompleted = target.completed;
+    target.completed = completed;
+
+    if (completed && !wasCompleted) {
+      await this.applyUserXpBonus(userId, target.xp);
+    }
+
+    await this.setSetting({
+      key: this.challengeSettingKey(date),
+      userId,
+      value: JSON.stringify(updated),
+    });
+
+    const progress = await this.getUserProgress(userId);
+    return { challenges: updated, progress };
   }
 }
 
