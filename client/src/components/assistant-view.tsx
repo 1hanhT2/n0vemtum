@@ -175,7 +175,7 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 placeholder="Ask about progress, goals, or how to improve..."
-                className="min-h-[44px] resize-none border-0 bg-transparent px-2 py-2 text-sm shadow-none focus-visible:ring-0 leading-relaxed"
+                className="min-h-0 h-11 resize-none border-0 bg-transparent px-2 py-3 text-sm leading-5 shadow-none focus-visible:ring-0"
                 onKeyDown={handleComposerKeyDown}
               />
               <Button

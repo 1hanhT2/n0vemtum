@@ -25,7 +25,7 @@ export function Navigation({ currentView, onViewChange, className, listClassName
       <div className="w-full overflow-x-auto scrollbar-hide">
         <div
           className={cn(
-            "flex w-max items-center bg-card border border-border rounded-full p-1 shadow-sm mx-auto sm:mx-0",
+            "flex w-full items-center justify-between bg-card border border-border rounded-full p-1 shadow-sm mx-auto sm:mx-0 sm:w-max sm:justify-start",
             listClassName,
           )}
         >
