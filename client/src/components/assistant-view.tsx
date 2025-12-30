@@ -162,7 +162,7 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
           </ScrollArea>
 
           <div className="space-y-2">
-            <div className="flex items-end gap-2 rounded-3xl border border-border bg-muted/30 p-2">
+            <div className="flex items-center gap-2 rounded-3xl border border-border bg-muted/30 p-2">
               <button
                 type="button"
                 className="grid h-10 w-10 place-items-center rounded-2xl text-muted-foreground hover:text-foreground"
@@ -175,10 +175,14 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 placeholder="Ask about progress, goals, or how to improve..."
-                className="min-h-[52px] resize-none border-0 bg-transparent px-2 py-2 text-sm shadow-none focus-visible:ring-0"
+                className="min-h-[44px] resize-none border-0 bg-transparent px-2 py-2 text-sm shadow-none focus-visible:ring-0 leading-relaxed"
                 onKeyDown={handleComposerKeyDown}
               />
-              <Button onClick={handleSend} disabled={!input.trim() || sendMessage.isPending}>
+              <Button
+                onClick={handleSend}
+                disabled={!input.trim() || sendMessage.isPending}
+                className="h-10"
+              >
                 <Send className="mr-2 h-4 w-4" />
                 {sendMessage.isPending ? "Sending..." : "Send"}
               </Button>

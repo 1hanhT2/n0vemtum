@@ -53,6 +53,7 @@ export function useUpdateHabitProgress() {
       queryClient.setQueryData(['/api/habits'], (oldHabits: any[]) => 
         oldHabits?.map(h => h.id === habit.id ? habit : h)
       );
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       
       if (completed) {
         // Check for new badges or tier promotions (simplified check)

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,6 +46,11 @@ interface TodayViewProps {
 export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const { toast } = useToast();
   const today = getCurrentDateKey();
+  const previousDateKey = useMemo(() => {
+    const date = new Date(`${today}T00:00:00`);
+    date.setDate(date.getDate() - 1);
+    return date.toISOString().split('T')[0];
+  }, [today]);
   const { user } = useAuth();
 
   const { data: habits, isLoading: habitsLoading, error: habitsError } = isGuestMode 
@@ -55,6 +60,9 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const { data: dailyEntry, isLoading: entryLoading } = isGuestMode
     ? { data: getMockDailyEntry(today), isLoading: false }
     : useDailyEntry(today);
+  const { data: previousEntry } = isGuestMode
+    ? { data: null }
+    : useDailyEntry(previousDateKey);
   const createDailyEntry = useCreateDailyEntry();
   const updateDailyEntry = useUpdateDailyEntry();
 
@@ -133,6 +141,8 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const [motivationalMessage, setMotivationalMessage] = useState('');
   const [isDayCompleted, setIsDayCompleted] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const autoCompleteRef = useRef(false);
+  const autoFinalizeRef = useRef(false);
 
 
   // Load existing data when dailyEntry changes
@@ -149,6 +159,35 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       setIsDayCompleted(false);
     }
   }, [dailyEntry]);
+
+  useEffect(() => {
+    if (isGuestMode || !previousEntry || previousEntry.isCompleted) return;
+
+    const notesPresent = previousEntry.notes && previousEntry.notes.trim().length > 0;
+    const habitCompletionsData = (previousEntry.habitCompletions as Record<string, boolean>) || {};
+    const subtaskCompletionsData = (previousEntry.subtaskCompletions as Record<string, boolean>) || {};
+    const hasCompletions = Object.values(habitCompletionsData).some(Boolean);
+    const hasSubtasks = Object.values(subtaskCompletionsData).some(Boolean);
+
+    if (!notesPresent && !hasCompletions && !hasSubtasks) {
+      return;
+    }
+
+    if (autoFinalizeRef.current) return;
+    autoFinalizeRef.current = true;
+
+    updateDailyEntry.mutate(
+      { date: previousDateKey, isCompleted: true },
+      {
+        onError: () => {
+          autoFinalizeRef.current = false;
+        },
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['/api/daily-entries'] });
+        },
+      }
+    );
+  }, [isGuestMode, previousEntry, previousDateKey, updateDailyEntry]);
 
   // Generate motivational message when habits change
   useEffect(() => {
@@ -261,6 +300,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
 
   const handleSubtaskToggle = (subtaskId: number, checked: boolean, habitId: number, totalSubtasks: number, completedSubtasks: number) => {
     if (isDayCompleted) return;
+    const previousHabitCompletion = habitCompletions[habitId] || false;
     const newSubtaskCompletions = { ...subtaskCompletions, [subtaskId]: checked };
     setSubtaskCompletions(newSubtaskCompletions);
 
@@ -271,6 +311,10 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     
     const newHabitCompletions = { ...habitCompletions, [habitId]: isHabitComplete };
     setHabitCompletions(newHabitCompletions);
+
+    if (!isGuestMode && previousHabitCompletion !== isHabitComplete) {
+      updateHabitProgress.mutate({ habitId, completed: isHabitComplete, date: today });
+    }
 
     // Recalculate scores based on new habit completion
     const newScore = calculateCompletionScore(newHabitCompletions);
@@ -311,13 +355,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       return;
     }
 
-    // In real mode, habit progress will be updated when "finish day" is pressed
-    // For now, just show user feedback that the change is pending
-    toast({
-      title: "Changes Saved Temporarily",
-      description: "Click 'Finish Day' to finalize your progress",
-      variant: "default",
-    });
+    updateHabitProgress.mutate({ habitId, completed: checked, date: today });
 
     // Auto-calculate scores based on completion
     const newScore = calculateCompletionScore(newCompletions);
@@ -349,24 +387,6 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
 
   const handleCompleteDayInternal = async () => {
     try {
-      // Process habit completions sequentially to avoid race conditions
-      const completedHabits = Object.entries(habitCompletions).filter(([_, completed]) => completed);
-
-      for (const [habitId, completed] of completedHabits) {
-        if (completed) {
-          try {
-            await updateHabitProgress.mutateAsync({
-              habitId: parseInt(habitId),
-              completed: true,
-              date: today
-            });
-          } catch (error) {
-            console.error(`Failed to update habit ${habitId}:`, error);
-            // Continue processing other habits even if one fails
-          }
-        }
-      }
-
       // Create or update daily entry
       const entryData = {
         date: today,
@@ -407,6 +427,48 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   };
 
   const [handleCompleteDay, isCompletingDay] = usePendingProtection(handleCompleteDayInternal);
+
+  useEffect(() => {
+    if (isGuestMode || isDayCompleted) return;
+
+    const now = new Date();
+    const nextMidnight = new Date(now);
+    nextMidnight.setHours(24, 0, 0, 0);
+    const delay = nextMidnight.getTime() - now.getTime();
+    if (delay <= 0) return;
+
+    const timeout = setTimeout(() => {
+      const hasActivity =
+        Object.values(habitCompletions).some(Boolean) ||
+        Object.values(subtaskCompletions).some(Boolean) ||
+        notes.trim().length > 0;
+
+      if (hasActivity && !isDayCompleted) {
+        Promise.resolve(handleCompleteDay()).catch(() => undefined);
+      }
+    }, delay);
+
+    return () => clearTimeout(timeout);
+  }, [habitCompletions, subtaskCompletions, notes, isDayCompleted, isGuestMode, handleCompleteDay]);
+
+  useEffect(() => {
+    if (isGuestMode || isDayCompleted || !habits || habits.length === 0) {
+      autoCompleteRef.current = false;
+      return;
+    }
+
+    const allCompleted = habits.every((habit) => habitCompletions[habit.id]);
+    if (!allCompleted) {
+      autoCompleteRef.current = false;
+      return;
+    }
+
+    if (autoCompleteRef.current) return;
+    autoCompleteRef.current = true;
+    Promise.resolve(handleCompleteDay()).catch(() => {
+      autoCompleteRef.current = false;
+    });
+  }, [habitCompletions, habits, isDayCompleted, isGuestMode, handleCompleteDay]);
 
   const handleScoreChange = (type: 'punctuality' | 'adherence', value: number[]) => {
     if (isDayCompleted) return; // Prevent changes if day is completed

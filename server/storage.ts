@@ -978,6 +978,39 @@ export class DatabaseStorage implements IStorage {
       return habit;
     }
 
+    if (habit.tags && habit.tags.length > 0) {
+      const [userRecord] = await db
+        .select({ stats: users.stats })
+        .from(users)
+        .where(eq(users.id, effectiveUserId));
+
+      if (userRecord) {
+        type StatKey = "strength" | "agility" | "intelligence" | "vitality" | "perception";
+        const statMap: Record<string, StatKey> = {
+          STR: "strength",
+          AGI: "agility",
+          INT: "intelligence",
+          VIT: "vitality",
+          PER: "perception",
+        };
+        const delta = completed ? 1 : -1;
+        const nextStats = { ...(userRecord.stats as Record<string, number>) };
+        const uniqueTags = Array.from(new Set(habit.tags));
+
+        uniqueTags.forEach((tag) => {
+          const statKey = statMap[tag];
+          if (!statKey) return;
+          const current = typeof nextStats[statKey] === "number" ? nextStats[statKey] : 0;
+          nextStats[statKey] = Math.max(0, current + delta);
+        });
+
+        await db
+          .update(users)
+          .set({ stats: nextStats, updatedAt: new Date() })
+          .where(eq(users.id, effectiveUserId));
+      }
+    }
+
     const [updatedHabit] = await db
       .update(habits)
       .set({

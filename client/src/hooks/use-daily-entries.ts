@@ -21,7 +21,7 @@ export function useDailyEntries(startDate?: string, endDate?: string) {
   });
 }
 
-export function useDailyEntry(date: string) {
+export function useDailyEntry(date: string, options?: { enabled?: boolean }) {
   return useQuery<DailyEntry>({
     queryKey: ["/api/daily-entries", date],
     queryFn: async () => {
@@ -30,6 +30,7 @@ export function useDailyEntry(date: string) {
       if (!response.ok) throw new Error('Failed to fetch daily entry');
       return response.json();
     },
+    enabled: options?.enabled ?? true,
   });
 }
 
