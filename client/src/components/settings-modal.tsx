@@ -79,6 +79,9 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
   const [challengeType, setChallengeType] = useState<string>("balanced");
   const [personalizationProfile, setPersonalizationProfile] = useState("");
   const personalizationMaxLength = 800;
+  const displayName = user
+    ? [user.firstName, user.lastName].filter(Boolean).join(" ").trim()
+    : "";
 
   useEffect(() => {
     if (habits) {
@@ -419,12 +422,12 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
                               </div>
                             </div>
                           )}
-                          {user.username && (
+                          {displayName && (
                             <div className="flex items-center space-x-3">
                               <User className="w-4 h-4 text-muted-foreground" />
                               <div>
-                                <Label className="text-sm font-medium">Username</Label>
-                                <p className="text-sm text-muted-foreground">{user.username}</p>
+                                <Label className="text-sm font-medium">Name</Label>
+                                <p className="text-sm text-muted-foreground">{displayName}</p>
                               </div>
                             </div>
                           )}
