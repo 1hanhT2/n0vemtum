@@ -434,8 +434,9 @@ export async function generateAssistantReply(args: {
   goals: Goal[];
   dailyEntries: DailyEntry[];
   user?: User;
+  weeklyReview?: WeeklyReview | null;
 }): Promise<string> {
-  const { message, chatHistory, habits, goals, dailyEntries, user } = args;
+  const { message, chatHistory, habits, goals, dailyEntries, user, weeklyReview } = args;
   const tagSummary: Record<string, number> = {
     STR: 0,
     AGI: 0,
@@ -473,6 +474,14 @@ export async function generateAssistantReply(args: {
     .map((goal) => `${goal.tag} ${goal.period} target ${goal.targetCount}`)
     .join("\n");
 
+  const reflectionBlock = weeklyReview
+    ? `Weekly Reflection (${weeklyReview.weekStartDate}):
+- Accomplishment: ${weeklyReview.accomplishment || "None"}
+- Breakdown: ${weeklyReview.breakdown || "None"}
+- Adjustment: ${weeklyReview.adjustment || "None"}
+- AI Insights: ${weeklyReview.aiInsights ? JSON.stringify(weeklyReview.aiInsights) : "None"}`
+    : "Weekly Reflection: None saved yet.";
+
   const history = chatHistory
     .slice(-10)
     .map((msg) => `${msg.role}: ${msg.content}`)
@@ -490,6 +499,8 @@ ${habitList || "None"}
 GOALS:
 ${goalList || "None"}
 TAG COMPLETION SUMMARY (last 14 days): ${JSON.stringify(tagSummary)}
+WEEKLY REVIEW & REFLECTIONS:
+${reflectionBlock}
 RECENT NOTES:
 ${recentNotes || "None"}
 

@@ -513,12 +513,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const endDate = new Date().toISOString().split('T')[0];
       const startDate = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      const [habits, goals, dailyEntries, chatHistory, user] = await Promise.all([
+      const [habits, goals, dailyEntries, chatHistory, user, weeklyReview] = await Promise.all([
         storage.getHabits(userId),
         storage.getGoals(userId),
         storage.getDailyEntries(userId, startDate, endDate),
         storage.getChatMessages(userId, 20),
         storage.getUser(userId),
+        storage.getLatestWeeklyReview(userId),
       ]);
 
       const assistantReply = await generateAssistantReply({
@@ -528,6 +529,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         goals,
         dailyEntries,
         user,
+        weeklyReview,
       });
 
       const assistantMessageData = insertChatMessageSchema.parse({

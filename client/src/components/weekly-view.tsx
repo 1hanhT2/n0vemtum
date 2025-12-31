@@ -58,6 +58,7 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
       setAccomplishment(weeklyReview.accomplishment || '');
       setBreakdown(weeklyReview.breakdown || '');
       setAdjustment(weeklyReview.adjustment || '');
+      setAiInsights(weeklyReview.aiInsights || null);
     }
   }, [weeklyReview]);
 
@@ -69,23 +70,55 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
   }, [weeklyReviewError, weekStartDate, isGuestMode]);
 
   // Handle AI insights response
-  useEffect(() => {
-    if (weeklyInsightsMutation.isSuccess && weeklyInsightsMutation.data) {
-      console.log('Weekly insights received:', weeklyInsightsMutation.data);
-      setAiInsights(weeklyInsightsMutation.data);
-    }
-  }, [weeklyInsightsMutation.isSuccess, weeklyInsightsMutation.data]);
+  const persistAiInsights = async (insights: any) => {
+    if (isGuestMode) return;
 
-  // Generate AI insights when data is available
-  useEffect(() => {
-    if (!isGuestMode && dailyEntries && habits && dailyEntries.length > 0) {
-      weeklyInsightsMutation.mutate(undefined, {
-        onSuccess: (data) => {
-          setAiInsights(data);
-        },
+    const payload = {
+      weekStartDate,
+      aiInsights: insights,
+    };
+
+    if (weeklyReview) {
+      await updateWeeklyReview.mutateAsync(payload);
+    } else {
+      await createWeeklyReview.mutateAsync({
+        weekStartDate,
+        accomplishment: "",
+        breakdown: "",
+        adjustment: "",
+        aiInsights: insights,
       });
     }
-  }, [dailyEntries, habits, isGuestMode]);
+  };
+
+  const handleGenerateInsights = () => {
+    if (isGuestMode) {
+      toast({
+        title: "Insights unavailable in demo",
+        description: "Sign in to generate and save weekly insights.",
+      });
+      return;
+    }
+
+    weeklyInsightsMutation.mutate(undefined, {
+      onSuccess: async (data) => {
+        console.log('Weekly insights received:', data);
+        setAiInsights(data);
+        await persistAiInsights(data);
+        toast({
+          title: "Insights refreshed",
+          description: "AI insights have been generated and saved.",
+        });
+      },
+      onError: () => {
+        toast({
+          title: "Could not generate insights",
+          description: "Please try again.",
+          variant: "destructive",
+        });
+      },
+    });
+  };
 
   // Calculate weekly statistics
   const weeklyStats = {
@@ -149,6 +182,7 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
       accomplishment,
       breakdown,
       adjustment,
+      aiInsights: aiInsights || {},
     };
 
     try {
@@ -315,11 +349,32 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
 
       {/* AI Insights Section */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <CardTitle className="flex items-center space-x-2">
             <Sparkles className="w-5 h-5 text-purple-500" />
             <span>AI Weekly Insights</span>
           </CardTitle>
+          {aiInsights && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGenerateInsights}
+              disabled={weeklyInsightsMutation.isPending || isGuestMode}
+              className="flex items-center gap-2"
+            >
+              {weeklyInsightsMutation.isPending ? (
+                <>
+                  <Sparkles className="w-4 h-4 animate-spin" />
+                  Generating…
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  Refresh Insights
+                </>
+              )}
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           {aiInsights ? (
@@ -352,8 +407,8 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
           ) : (
             <div className="text-center py-8">
               <Button
-                onClick={() => weeklyInsightsMutation.mutate()}
-                disabled={weeklyInsightsMutation.isPending}
+                onClick={handleGenerateInsights}
+                disabled={weeklyInsightsMutation.isPending || isGuestMode}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
               >
                 {weeklyInsightsMutation.isPending ? (

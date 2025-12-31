@@ -71,6 +71,7 @@ export interface IStorage {
   // Weekly Reviews
   getWeeklyReview(weekStartDate: string, userId: string): Promise<WeeklyReview | undefined>;
   getWeeklyReviews(userId: string): Promise<WeeklyReview[]>;
+  getLatestWeeklyReview(userId: string): Promise<WeeklyReview | undefined>;
   createWeeklyReview(review: InsertWeeklyReview): Promise<WeeklyReview>;
   updateWeeklyReview(weekStartDate: string, review: Partial<InsertWeeklyReview>, userId: string): Promise<WeeklyReview>;
 
@@ -518,6 +519,16 @@ export class DatabaseStorage implements IStorage {
       .from(weeklyReviews)
       .where(eq(weeklyReviews.userId, userId))
       .orderBy(weeklyReviews.weekStartDate);
+  }
+
+  async getLatestWeeklyReview(userId: string): Promise<WeeklyReview | undefined> {
+    const [review] = await db
+      .select()
+      .from(weeklyReviews)
+      .where(eq(weeklyReviews.userId, userId))
+      .orderBy(desc(weeklyReviews.weekStartDate))
+      .limit(1);
+    return review || undefined;
   }
 
   async createWeeklyReview(insertReview: InsertWeeklyReview): Promise<WeeklyReview> {

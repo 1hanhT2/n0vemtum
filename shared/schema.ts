@@ -107,6 +107,7 @@ export const weeklyReviews = pgTable("weekly_reviews", {
   accomplishment: text("accomplishment").default(""),
   breakdown: text("breakdown").default(""),
   adjustment: text("adjustment").default(""),
+  aiInsights: jsonb("ai_insights").default({}),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
