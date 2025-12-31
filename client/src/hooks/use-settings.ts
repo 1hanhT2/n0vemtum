@@ -25,7 +25,11 @@ export function useSetSetting() {
   
   return useMutation({
     mutationFn: async (setting: InsertSetting) => {
-      const response = await apiRequest("POST", "/api/settings", setting);
+      const response = await apiRequest("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(setting),
+      });
       return response.json();
     },
     onSuccess: (data) => {
