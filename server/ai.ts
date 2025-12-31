@@ -269,10 +269,17 @@ export async function analyzeHabitDifficulty(habit: any, userCompletionData?: an
       ? `User completion data shows ${userCompletionData.filter(d => d.completed).length}/${userCompletionData.length} successful completions.`
       : 'No completion history available yet.';
 
-    const prompt = `Analyze the difficulty of this habit and provide a rating:
+    const prompt = `Analyze the difficulty of this habit and provide a rating.
 
 Habit: "${habit.emoji} ${habit.name}"
 ${completionContext}
+
+Use this 1-5 star scale (pick the closest match):
+1 star (Very Easy): <=5 minutes, minimal effort, no prep, low friction, easy to start.
+2 stars (Easy): 5-15 minutes, light effort, simple steps, minor friction.
+3 stars (Moderate): 15-30 minutes, sustained focus/effort, moderate friction or consistency demands.
+4 stars (Hard): 30-60 minutes, high effort or coordination, significant barriers or setup.
+5 stars (Very Hard): 60+ minutes, high intensity/complexity, strong barriers, high skill or dependency.
 
 Consider factors like:
 - Time commitment required
@@ -281,6 +288,7 @@ Consider factors like:
 - Environmental dependencies
 - Skill requirements
 - Motivation sustainability
+- Completion history (if low success rate, lean higher)
 
 Respond with JSON format:
 {

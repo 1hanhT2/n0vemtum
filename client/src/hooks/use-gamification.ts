@@ -16,8 +16,26 @@ export function useLevelUpHabit() {
       });
       return response.json();
     },
-    onSuccess: (habit) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/habits'] });
+    onSuccess: (response) => {
+      const { userProgress, user, ...habit } = response || {};
+      queryClient.setQueryData(['/api/habits'], (oldHabits: any[]) =>
+        oldHabits?.map(h => h.id === habit.id ? habit : h)
+      );
+      if (userProgress) {
+        queryClient.setQueryData(['/api/user/progress'], userProgress);
+        queryClient.setQueryData(['/api/auth/user'], (oldUser: any) => {
+          if (!oldUser) return oldUser;
+          return {
+            ...oldUser,
+            level: userProgress.level,
+            xp: userProgress.xp,
+            stats: user?.stats ?? oldUser.stats,
+          };
+        });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['/api/user/progress'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      }
       toast({
         title: "Level Up!",
         description: `${habit.emoji} ${habit.name} reached level ${habit.level}!`,

@@ -125,6 +125,12 @@ export function PlayerStatus() {
     perception: 10
   };
 
+  const formatStatValue = (value: number) => {
+    if (!Number.isFinite(value)) return "0";
+    const rounded = Math.round(value * 10) / 10;
+    return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+  };
+
   const statConfig = [
     { key: 'strength', label: 'STR', icon: Shield, color: 'text-red-500 dark:text-red-400' },
     { key: 'agility', label: 'AGI', icon: Zap, color: 'text-yellow-500 dark:text-yellow-400' },
@@ -188,7 +194,7 @@ export function PlayerStatus() {
                     <stat.icon className={`w-4 h-4 ${stat.color}`} />
                     <span className="text-sm font-mono text-foreground/80">{stat.label}</span>
                   </div>
-                  <span className="font-mono font-bold">{(stats as any)[stat.key] || 10}</span>
+                  <span className="font-mono font-bold">{formatStatValue((stats as any)[stat.key] ?? 10)}</span>
                </div>
              ))}
           </div>

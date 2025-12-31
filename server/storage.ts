@@ -184,6 +184,14 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  private SKILL_POINTS_BY_DIFFICULTY: Record<number, number> = {
+    1: 0.2,
+    2: 0.6,
+    3: 1.0,
+    4: 1.4,
+    5: 2.0,
+  };
+
   private calculateUserProgressFromStats(stats: Record<string, number>, bonusXp = 0) {
     const baseStats = {
       strength: 10,
@@ -197,7 +205,7 @@ export class DatabaseStorage implements IStorage {
       const value = typeof stats[key] === "number" ? stats[key] : baseStats[key as keyof typeof baseStats];
       return sum + value;
     }, 0);
-    const totalXp = Math.max(0, (statTotal - baseTotal) * 10) + Math.max(0, bonusXp);
+    const totalXp = Math.max(0, Math.round((statTotal - baseTotal) * 10)) + Math.max(0, bonusXp);
 
     let level = 1;
     let xp = totalXp;
@@ -209,6 +217,63 @@ export class DatabaseStorage implements IStorage {
     }
 
     return { level, xp, xpToNext };
+  }
+
+  private normalizeStatValue(value: number) {
+    return Math.round(value * 10) / 10;
+  }
+
+  private getSkillPointsForDifficulty(difficulty?: number | null) {
+    const ratingRaw = typeof difficulty === "number" ? Math.round(difficulty) : 3;
+    const rating = Math.max(1, Math.min(5, ratingRaw));
+    return this.SKILL_POINTS_BY_DIFFICULTY[rating] ?? 1.0;
+  }
+
+  private async applySkillPointDelta(userId: string, tags: string[], delta: number): Promise<void> {
+    if (!tags?.length || delta === 0) return;
+
+    const [userRecord] = await db
+      .select({
+        stats: users.stats,
+        bonusXp: users.xp,
+      })
+      .from(users)
+      .where(eq(users.id, userId));
+
+    if (!userRecord) return;
+
+    type StatKey = "strength" | "agility" | "intelligence" | "vitality" | "perception";
+    const statMap: Record<string, StatKey> = {
+      STR: "strength",
+      AGI: "agility",
+      INT: "intelligence",
+      VIT: "vitality",
+      PER: "perception",
+    };
+
+    const nextStats = { ...(userRecord.stats as Record<string, number>) };
+    const uniqueTags = Array.from(new Set(tags));
+
+    uniqueTags.forEach((tag) => {
+      const statKey = statMap[tag];
+      if (!statKey) return;
+      const current = typeof nextStats[statKey] === "number" ? nextStats[statKey] : 0;
+      nextStats[statKey] = Math.max(0, this.normalizeStatValue(current + delta));
+    });
+
+    const bonusXp = typeof userRecord.bonusXp === "number" ? Math.max(0, userRecord.bonusXp) : 0;
+    const progress = this.calculateUserProgressFromStats(nextStats, bonusXp);
+
+    await db
+      .update(users)
+      .set({
+        stats: nextStats,
+        xp: bonusXp,
+        level: progress.level,
+        class: getRankForLevel(progress.level).name,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
   }
 
   async getUserProgress(userId: string): Promise<{ level: number; xp: number; xpToNext: number } | undefined> {
@@ -1060,44 +1125,9 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (habit.tags && habit.tags.length > 0) {
-      const [userRecord] = await db
-        .select({ stats: users.stats })
-        .from(users)
-        .where(eq(users.id, effectiveUserId));
-
-      if (userRecord) {
-        type StatKey = "strength" | "agility" | "intelligence" | "vitality" | "perception";
-        const statMap: Record<string, StatKey> = {
-          STR: "strength",
-          AGI: "agility",
-          INT: "intelligence",
-          VIT: "vitality",
-          PER: "perception",
-        };
-        const delta = completed ? 1 : -1;
-        const nextStats = { ...(userRecord.stats as Record<string, number>) };
-        const uniqueTags = Array.from(new Set(habit.tags));
-
-        uniqueTags.forEach((tag) => {
-          const statKey = statMap[tag];
-          if (!statKey) return;
-          const current = typeof nextStats[statKey] === "number" ? nextStats[statKey] : 0;
-          nextStats[statKey] = Math.max(0, current + delta);
-        });
-
-        const bonusXp = typeof (userRecord as any).xp === "number" ? Math.max(0, (userRecord as any).xp) : 0;
-        const progress = this.calculateUserProgressFromStats(nextStats, bonusXp);
-        await db
-          .update(users)
-          .set({
-            stats: nextStats,
-            xp: bonusXp,
-            level: progress.level,
-            class: getRankForLevel(progress.level).name,
-            updatedAt: new Date(),
-          })
-          .where(eq(users.id, effectiveUserId));
-      }
+      const skillDelta = this.getSkillPointsForDifficulty(habit.difficultyRating);
+      const delta = completed ? skillDelta : -skillDelta;
+      await this.applySkillPointDelta(effectiveUserId, habit.tags, delta);
     }
 
     const [updatedHabit] = await db
@@ -1151,6 +1181,10 @@ export class DatabaseStorage implements IStorage {
 
     // Check for tier promotion after leveling up
     const tierPromotedHabit = await this.calculateTierPromotion(habitId, userId);
+
+    if (tierPromotedHabit.tags && tierPromotedHabit.tags.length > 0) {
+      await this.applySkillPointDelta(userId, tierPromotedHabit.tags, 1);
+    }
 
     return tierPromotedHabit;
   }
@@ -1296,8 +1330,8 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(achievements.id, id), eq(achievements.userId, userId)));
   }
 
-  private async applyUserXpBonus(userId: string, xpGain: number): Promise<void> {
-    if (xpGain <= 0) return;
+  private async applyUserXpBonus(userId: string, xpDelta: number): Promise<void> {
+    if (xpDelta === 0) return;
 
     const [userRecord] = await db
       .select({
@@ -1310,7 +1344,7 @@ export class DatabaseStorage implements IStorage {
     if (!userRecord) return;
 
     const currentBonus = typeof userRecord.bonusXp === "number" ? Math.max(0, userRecord.bonusXp) : 0;
-    const nextBonus = currentBonus + xpGain;
+    const nextBonus = Math.max(0, currentBonus + xpDelta);
     const progress = this.calculateUserProgressFromStats(userRecord.stats as Record<string, number>, nextBonus);
 
     await db
@@ -1534,8 +1568,9 @@ export class DatabaseStorage implements IStorage {
     const wasCompleted = target.completed;
     target.completed = completed;
 
-    if (completed && !wasCompleted) {
-      await this.applyUserXpBonus(userId, target.xp);
+    if (completed !== wasCompleted) {
+      const xpDelta = completed ? target.xp : -target.xp;
+      await this.applyUserXpBonus(userId, xpDelta);
     }
 
     await this.setSetting({

@@ -1,12 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAchievements } from "@/hooks/use-achievements";
+import { useHabits } from "@/hooks/use-habits";
 import { useStreaks } from "@/hooks/use-streaks";
 import { useRanks } from "@/hooks/use-ranks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
-import { getMockAchievements, getMockRankInfo, getMockStreaks } from "@/lib/mockData";
-import { Crown, Flame, Medal, Trophy } from "lucide-react";
+import { getMockAchievements, getMockHabits, getMockRankInfo, getMockStreaks } from "@/lib/mockData";
+import { Crown, Flame, Medal, Star, Trophy } from "lucide-react";
 import { resolveBadgeIcon } from "@/lib/badgeIcons";
 import { rankDefinitions } from "@shared/ranks";
 
@@ -54,6 +55,9 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
   const { data: achievements, isLoading: achievementsLoading } = isGuestMode 
     ? { data: getMockAchievements(), isLoading: false }
     : useAchievements();
+  const { data: habits, isLoading: habitsLoading } = isGuestMode
+    ? { data: getMockHabits(), isLoading: false }
+    : useHabits();
   const { data: streaks, isLoading: streaksLoading } = isGuestMode
     ? { data: getMockStreaks(), isLoading: false }
     : useStreaks();
@@ -61,7 +65,7 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
     ? { data: getMockRankInfo(), isLoading: false }
     : useRanks();
 
-  if (achievementsLoading || streaksLoading || ranksLoading) {
+  if (achievementsLoading || habitsLoading || streaksLoading || ranksLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-20 w-full" />
@@ -83,6 +87,48 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
   const rankProgress = rankInfo?.progressToNext ?? 0;
   const currentLevel = rankInfo?.level ?? 1;
   const levelsToNext = nextRank ? Math.max(0, nextRank.minLevel - currentLevel) : 0;
+
+  const tierOrder: Record<string, number> = {
+    bronze: 1,
+    silver: 2,
+    gold: 3,
+    platinum: 4,
+    diamond: 5,
+  };
+
+  const normalizeTier = (tier?: string) => (tier || "bronze").toLowerCase();
+  const formatTierLabel = (tier?: string) => {
+    const normalized = normalizeTier(tier);
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  };
+
+  const sortedHabits = [...(habits || [])].sort((a, b) => {
+    const aTier = tierOrder[normalizeTier(a.tier)] ?? 0;
+    const bTier = tierOrder[normalizeTier(b.tier)] ?? 0;
+    if (aTier !== bTier) return bTier - aTier;
+    const aLevel = a.level ?? 0;
+    const bLevel = b.level ?? 0;
+    if (aLevel !== bLevel) return bLevel - aLevel;
+    return (a.name || "").localeCompare(b.name || "");
+  });
+
+  const renderDifficultyStars = (rating?: number) => {
+    const normalized = Math.min(5, Math.max(0, Math.round(rating ?? 0)));
+    return (
+      <div className="flex items-center gap-0.5">
+        {Array.from({ length: 5 }).map((_, idx) => {
+          const filled = idx < normalized;
+          return (
+            <Star
+              key={`${normalized}-${idx}`}
+              className={filled ? "h-3 w-3 text-amber-500" : "h-3 w-3 text-muted-foreground/40"}
+              fill={filled ? "currentColor" : "none"}
+            />
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <motion.div
@@ -302,6 +348,45 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
               </motion.div>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-2xl shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white">
+            Task Ranks
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Each task can reach 5 tiers: Bronze, Silver, Gold, Platinum, Diamond.
+          </p>
+        </CardHeader>
+        <CardContent>
+          {sortedHabits.length > 0 ? (
+            <div className="grid md:grid-cols-2 gap-3">
+              {sortedHabits.map((habit) => {
+                const tierLabel = `${formatTierLabel(habit.tier)} ${habit.level ?? 1}`;
+                return (
+                  <div
+                    key={habit.id}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3"
+                  >
+                    <div>
+                      <div className="text-sm font-semibold text-foreground">
+                        {habit.emoji} {habit.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground">{tierLabel}</div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Difficulty</span>
+                      {renderDifficultyStars(habit.difficultyRating)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No tasks yet.</p>
+          )}
         </CardContent>
       </Card>
     </motion.div>
