@@ -739,7 +739,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         {/* Auto-Calculated Score */}
         <Card className="border border-border rounded-xl bg-card text-card-foreground shadow-sm">
           <CardHeader className="border-b border-border pb-4">
-            <CardTitle className="text-lg font-serif font-semibold text-foreground flex items-center gap-2">
+            <CardTitle className="text-lg font-sans font-semibold text-foreground flex items-center gap-2">
               <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
                 <Target className="w-5 h-5 text-blue-500" />
               </div>
@@ -780,7 +780,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         {/* Manual Override (Optional) */}
         <Card className="rounded-xl shadow-sm bg-card text-card-foreground border border-border">
           <CardHeader>
-            <CardTitle className="text-lg font-serif font-semibold text-foreground flex items-center">
+            <CardTitle className="text-lg font-sans font-semibold text-foreground flex items-center">
               <Settings className="mr-2 h-5 w-5 text-muted-foreground" />
               Manual Adjustment
             </CardTitle>
@@ -812,7 +812,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       {/* Daily Notes */}
       <Card className="rounded-xl shadow-sm bg-card text-card-foreground border border-border">
         <CardHeader>
-          <CardTitle className="text-lg font-serif font-semibold text-foreground flex items-center">
+          <CardTitle className="text-lg font-sans font-semibold text-foreground flex items-center">
             <span className="mr-2">📝</span>
             Daily Log & Notes
           </CardTitle>
