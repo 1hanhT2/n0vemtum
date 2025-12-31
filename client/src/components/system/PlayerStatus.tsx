@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useRanks } from "@/hooks/use-ranks";
 
 export function PlayerStatus() {
   const { user } = useAuth();
@@ -20,6 +21,8 @@ export function PlayerStatus() {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
+
+  const { data: rankInfo } = useRanks({ enabled: !!user });
 
   const { data: challengesData, isLoading: challengesLoading, isError: challengesError } = useQuery<any>({
     queryKey: ["/api/challenges"],
@@ -108,11 +111,11 @@ export function PlayerStatus() {
   });
 
   // Safe defaults if fields are missing (though schema update should handle this)
-  const level = progress?.level ?? (user as any)?.level ?? 1;
+  const level = progress?.level ?? rankInfo?.level ?? (user as any)?.level ?? 1;
   const xp = progress?.xp ?? (user as any)?.xp ?? 0;
   const xpToNext = progress?.xpToNext ?? Math.max(1, level) * 100; // Simple XP curve
   const xpPercentage = Math.min(100, (xp / xpToNext) * 100);
-  const userClass = (user as any)?.class || "Novice";
+  const userClass = rankInfo?.currentRank?.name || (user as any)?.class || "Novice";
 
   const stats = (user as any)?.stats || {
     strength: 10,

@@ -2,11 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAchievements } from "@/hooks/use-achievements";
 import { useStreaks } from "@/hooks/use-streaks";
+import { useRanks } from "@/hooks/use-ranks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
-import { getMockAchievements, getMockStreaks } from "@/lib/mockData";
-import { Flame, Medal, Trophy } from "lucide-react";
+import { getMockAchievements, getMockRankInfo, getMockStreaks } from "@/lib/mockData";
+import { Crown, Flame, Medal, Trophy } from "lucide-react";
 import { resolveBadgeIcon } from "@/lib/badgeIcons";
+import { rankDefinitions } from "@shared/ranks";
 
 interface AchievementsPanelProps {
   isGuestMode?: boolean;
@@ -55,8 +57,11 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
   const { data: streaks, isLoading: streaksLoading } = isGuestMode
     ? { data: getMockStreaks(), isLoading: false }
     : useStreaks();
+  const { data: rankInfo, isLoading: ranksLoading } = isGuestMode
+    ? { data: getMockRankInfo(), isLoading: false }
+    : useRanks();
 
-  if (achievementsLoading || streaksLoading) {
+  if (achievementsLoading || streaksLoading || ranksLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-20 w-full" />
@@ -72,6 +77,12 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
   const dailyStreak = streaks?.find(s => s.type === 'daily_completion');
   const unlockedAchievements = achievements?.filter(a => a.isUnlocked) || [];
   const lockedAchievements = achievements?.filter(a => !a.isUnlocked) || [];
+  const ranks = rankInfo?.ranks || rankDefinitions;
+  const currentRank = rankInfo?.currentRank || ranks[0];
+  const nextRank = rankInfo?.nextRank;
+  const rankProgress = rankInfo?.progressToNext ?? 0;
+  const currentLevel = rankInfo?.level ?? 1;
+  const levelsToNext = nextRank ? Math.max(0, nextRank.minLevel - currentLevel) : 0;
 
   return (
     <motion.div
@@ -140,6 +151,74 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
           </CardContent>
         </Card>
       </div>
+
+      {/* Rank Ladder */}
+      {ranks.length > 0 && (
+        <Card className="rounded-2xl shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+              <Crown className="h-5 w-5 text-amber-500" />
+              System Ranks
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Direct from the Status Window so your rank ladder is easy to reference.</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {currentRank && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-muted-foreground font-mono uppercase tracking-wide">
+                  <span className="text-foreground/80">Current: {currentRank.name}</span>
+                  <span>
+                    {nextRank ? `Next: Lv ${nextRank.minLevel} ${nextRank.name}` : "Max rank reached"}
+                  </span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-amber-400 to-orange-500"
+                    style={{ width: `${Math.round(rankProgress * 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Level {currentLevel}
+                  {nextRank ? ` · ${levelsToNext} levels to ${nextRank.name}` : " · Legendary status unlocked"}
+                </p>
+              </div>
+            )}
+
+            <div className="grid sm:grid-cols-2 gap-3">
+              {ranks.map((rank) => {
+                const isCurrent = rank.name === currentRank?.name;
+                const isNext = rank.name === nextRank?.name;
+                return (
+                  <div
+                    key={rank.name}
+                    className={`p-3 rounded-lg border transition-colors ${
+                      isCurrent
+                        ? "border-amber-400 bg-amber-50 dark:bg-amber-900/10"
+                        : "border-border bg-muted/30"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${isCurrent ? "bg-amber-500" : "bg-muted-foreground/50"}`} />
+                        <span className="font-semibold text-foreground">{rank.name}</span>
+                      </div>
+                      <Badge variant={isCurrent ? "default" : "secondary"} className="text-[11px]">
+                        {isCurrent ? "Current" : `Lv ${rank.minLevel}+`}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                      {rank.description}
+                    </p>
+                    {isNext && !isCurrent && (
+                      <p className="text-[11px] text-amber-600 dark:text-amber-300 mt-1">You're headed here next.</p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Unlocked Achievements */}
       {unlockedAchievements.length > 0 && (

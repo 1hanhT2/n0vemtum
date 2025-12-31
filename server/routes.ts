@@ -12,6 +12,7 @@ import {
   insertGoalSchema,
   insertChatMessageSchema
 } from "@shared/schema";
+import { getRankInfo } from "@shared/ranks";
 import { z } from "zod";
 import { generateHabitSuggestions, generateWeeklyInsights, generateMotivationalMessage, analyzeHabitDifficulty, generateAssistantReply } from "./ai";
 import { setupAuth, isAuthenticated } from "./replitAuth";
@@ -45,6 +46,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user progress:", error);
       res.status(500).json({ message: "Failed to fetch user progress" });
+    }
+  });
+  
+  app.get('/api/ranks', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      const level = user?.level ?? 1;
+      const rankInfo = getRankInfo(level);
+      res.json(rankInfo);
+    } catch (error) {
+      console.error("Error fetching ranks:", error);
+      res.status(500).json({ message: "Failed to fetch ranks" });
     }
   });
   

@@ -30,6 +30,7 @@ import {
   type Subtask,
   type InsertSubtask,
 } from "@shared/schema";
+import { getRankForLevel } from "@shared/ranks";
 import { db } from "./db";
 import { eq, and, gte, lte, not, desc } from "drizzle-orm";
 import { generateHabitSuggestions } from "./ai";
@@ -1081,6 +1082,7 @@ export class DatabaseStorage implements IStorage {
             stats: nextStats,
             xp: bonusXp,
             level: progress.level,
+            class: getRankForLevel(progress.level).name,
             updatedAt: new Date(),
           })
           .where(eq(users.id, effectiveUserId));
@@ -1305,6 +1307,7 @@ export class DatabaseStorage implements IStorage {
       .set({
         xp: nextBonus,
         level: progress.level,
+        class: getRankForLevel(progress.level).name,
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId));

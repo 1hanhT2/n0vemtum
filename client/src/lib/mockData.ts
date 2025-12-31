@@ -1,4 +1,6 @@
 import type { Habit, DailyEntry, Achievement, Streak } from "@shared/schema";
+import type { RankInfo } from "@shared/ranks";
+import { getRankInfo, rankDefinitions } from "@shared/ranks";
 
 export const mockHabits: Habit[] = [
   {
@@ -218,4 +220,15 @@ export function getMockStreaks(): Streak[] {
 
 export function getMockStreak(type: string): Streak | undefined {
   return mockStreaks.find(s => s.type === type);
+}
+
+const mockRankLevel = 9;
+const mockRankInfo: RankInfo = {
+  ...getRankInfo(mockRankLevel),
+  ranks: rankDefinitions,
+  level: mockRankLevel,
+};
+
+export function getMockRankInfo(): RankInfo {
+  return mockRankInfo;
 }
