@@ -711,7 +711,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
             </Tabs>
 
             {/* Action Buttons */}
-            <div className="mt-6 flex flex-col sm:flex-row sm:space-x-3 gap-3 sm:gap-0 bg-card pt-4 px-6 pb-6 border-t border-border rounded-b-3xl">
+            <div className="mt-6 flex flex-col sm:flex-row sm:space-x-3 gap-3 sm:gap-0 bg-card pt-4 px-6 pb-6 border-t border-border rounded-3xl">
               <Button
                 onClick={handleSaveSettings}
                 disabled={updateHabit.isPending}
