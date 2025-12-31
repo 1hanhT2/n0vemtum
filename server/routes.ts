@@ -423,7 +423,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/settings", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const settingData = insertSettingSchema.parse({ ...req.body, userId });
+      const payload = { ...req.body, userId };
+      if (payload.key === "personalizationProfile" && typeof payload.value === "string") {
+        payload.value = payload.value.trim().slice(0, 800);
+      }
+      const settingData = insertSettingSchema.parse(payload);
       const setting = await storage.setSetting(settingData);
       res.json(setting);
     } catch (error) {

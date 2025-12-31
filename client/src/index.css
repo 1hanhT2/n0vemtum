@@ -9,9 +9,28 @@
   * {
     @apply border-border;
   }
+  html {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  html::-webkit-scrollbar {
+    display: none;
+  }
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  body::-webkit-scrollbar {
+    display: none;
+  }
+  #root {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  #root::-webkit-scrollbar {
+    display: none;
   }
 
   /* Add safe area padding for mobile devices */
