@@ -1491,8 +1491,10 @@ export class DatabaseStorage implements IStorage {
     const existingSetting = await this.getSetting(key, userId);
     const difficultySetting = await this.getSetting("challengeDifficulty", userId);
     const typeSetting = await this.getSetting("challengeType", userId);
+    const personalizationSetting = await this.getSetting("personalizationProfile", userId);
     const difficulty = Math.max(0, Math.min(100, Number(difficultySetting?.value) || 50));
     const challengeType = typeSetting?.value || "balanced";
+    const personalization = personalizationSetting?.value || "";
 
     if (existingSetting && existingSetting.value) {
       try {
@@ -1507,7 +1509,7 @@ export class DatabaseStorage implements IStorage {
 
     // Generate new challenges
     const userHabits = await this.getHabits(userId);
-    const aiSuggestions = await generateHabitSuggestions(userHabits, { difficulty, type: challengeType });
+    const aiSuggestions = await generateHabitSuggestions(userHabits, { difficulty, type: challengeType, personalization });
     const challenges = this.normalizeChallenges(aiSuggestions, date).slice(0, 5);
 
     await this.setSetting({
@@ -1526,10 +1528,12 @@ export class DatabaseStorage implements IStorage {
     const maxId = existing.reduce((max, c) => Math.max(max, c.id || 0), 0);
     const difficultySetting = await this.getSetting("challengeDifficulty", userId);
     const typeSetting = await this.getSetting("challengeType", userId);
+    const personalizationSetting = await this.getSetting("personalizationProfile", userId);
     const difficulty = Math.max(0, Math.min(100, Number(difficultySetting?.value) || 50));
     const challengeType = typeSetting?.value || "balanced";
+    const personalization = personalizationSetting?.value || "";
     const userHabits = await this.getHabits(userId);
-    const aiSuggestions = await generateHabitSuggestions(userHabits, { difficulty, type: challengeType, force: true });
+    const aiSuggestions = await generateHabitSuggestions(userHabits, { difficulty, type: challengeType, force: true, personalization });
     const fresh = this.normalizeChallenges(aiSuggestions, date);
 
     // Keep completed challenges, refresh the rest

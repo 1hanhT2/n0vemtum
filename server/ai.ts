@@ -4,6 +4,7 @@ import { aiCache } from "./cache";
 
 // Gemini configuration
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const MAX_PERSONALIZATION_LENGTH = 800;
 
 function extractInsight(text: string, key: string): string | null {
   const regex = new RegExp(`"${key}":\\s*"([^"]*)"`, 'i');
@@ -70,15 +71,28 @@ async function callGemini(prompt: string, kind: GeminiTask = "default"): Promise
   throw new Error("All Gemini models unavailable");
 }
 
+function formatPersonalizationContext(personalization?: string) {
+  if (!personalization) return "";
+  const trimmed = personalization.trim();
+  if (!trimmed) return "";
+  const clipped = trimmed.length > MAX_PERSONALIZATION_LENGTH
+    ? trimmed.slice(0, MAX_PERSONALIZATION_LENGTH)
+    : trimmed;
+  return `PERSONAL CONTEXT (user-provided, follow when relevant, do not invent details beyond this):\n${clipped}\n`;
+}
+
 export async function generateHabitSuggestions(
   existingHabits: Habit[],
-  options?: { difficulty?: number; type?: string; force?: boolean }
+  options?: { difficulty?: number; type?: string; force?: boolean; personalization?: string }
 ): Promise<any[]> {
   // Create cache key based on habit names
   const habitNames = existingHabits.map(h => h.name).sort().join(", ");
   const difficulty = Math.max(0, Math.min(100, Number(options?.difficulty ?? 50)));
   const type = (options?.type || "balanced").toLowerCase();
-  const cacheKey = `habit-suggestions:${habitNames}:diff:${difficulty}:type:${type}`;
+  const personalization = options?.personalization?.trim() || "";
+  const personalizationToken = personalization ? personalization.slice(0, 120) : "";
+  const cacheKey = `habit-suggestions:${habitNames}:diff:${difficulty}:type:${type}${personalizationToken ? `:personal:${personalizationToken}` : ""}`;
+  const personalizationBlock = formatPersonalizationContext(personalization);
   
   // Check cache first unless forcing a refresh
   if (!options?.force) {
@@ -91,6 +105,7 @@ export async function generateHabitSuggestions(
   
   const prompt = `Given existing habits: ${habitNames}
 User preference: difficulty ${difficulty}/100, type: ${type}.
+${personalizationBlock}
 
 Generate 3-5 short, specific one-off challenges that complement the existing habits and match the requested type. Avoid duplicating the listed habits. Calibrate intensity and XP to the difficulty: low difficulty = gentle/low XP; high difficulty = tougher/higher XP. Keep each challenge concise (max 12 words), measurable, and actionable for today.
 
@@ -175,8 +190,10 @@ function normalizeSuggestions(raw: any[]): any[] {
 
 export async function generateWeeklyInsights(
   dailyEntries: DailyEntry[], 
-  habits: Habit[]
+  habits: Habit[],
+  personalization?: string
 ): Promise<string> {
+  const personalizationBlock = formatPersonalizationContext(personalization);
   const completionData = dailyEntries.map(entry => ({
     date: entry.date,
     score: (entry.punctualityScore + entry.adherenceScore) / 2,
@@ -191,7 +208,7 @@ export async function generateWeeklyInsights(
     .map(entry => `${entry.date}: "${entry.notes}"`)
     .join('\n');
 
-  const prompt = `Analyze habit tracking data and daily reflections:
+  const prompt = `${personalizationBlock}Analyze habit tracking data and daily reflections:
 
 COMPLETION DATA: ${JSON.stringify(completionData)}
 
@@ -252,11 +269,16 @@ Output ONLY valid JSON with insights:
   }
 }
 
-export async function analyzeHabitDifficulty(habit: any, userCompletionData?: any[]): Promise<{
+export async function analyzeHabitDifficulty(
+  habit: any,
+  userCompletionData?: any[],
+  personalization?: string
+): Promise<{
   difficulty: number;
   analysis: string;
 }> {
-  const cacheKey = `difficulty_${habit.id}_${habit.name}`;
+  const personalizationKey = personalization?.trim() ? personalization.trim().slice(0, 120) : "";
+  const cacheKey = `difficulty_${habit.id}_${habit.name}${personalizationKey ? `:${personalizationKey}` : ""}`;
   const cached = aiCache.get<{ difficulty: number; analysis: string }>(cacheKey);
   
   if (cached) {
@@ -269,7 +291,8 @@ export async function analyzeHabitDifficulty(habit: any, userCompletionData?: an
       ? `User completion data shows ${userCompletionData.filter(d => d.completed).length}/${userCompletionData.length} successful completions.`
       : 'No completion history available yet.';
 
-    const prompt = `Analyze the difficulty of this habit and provide a rating.
+    const personalizationBlock = formatPersonalizationContext(personalization);
+    const prompt = `${personalizationBlock}Analyze the difficulty of this habit and provide a rating.
 
 Habit: "${habit.emoji} ${habit.name}"
 ${completionContext}
@@ -443,8 +466,9 @@ export async function generateAssistantReply(args: {
   dailyEntries: DailyEntry[];
   user?: User;
   weeklyReview?: WeeklyReview | null;
+  personalization?: string;
 }): Promise<string> {
-  const { message, chatHistory, habits, goals, dailyEntries, user, weeklyReview } = args;
+  const { message, chatHistory, habits, goals, dailyEntries, user, weeklyReview, personalization } = args;
   const tagSummary: Record<string, number> = {
     STR: 0,
     AGI: 0,
@@ -497,10 +521,12 @@ export async function generateAssistantReply(args: {
 
   const stats = user?.stats ? JSON.stringify(user.stats) : "unknown";
 
+  const personalizationBlock = formatPersonalizationContext(personalization);
   const prompt = `You are a focused habit coach in a gamified tracker.
 Use the user's data to answer. Keep replies concise, practical, and supportive.
 If the user asks for analysis, cite patterns from notes/completions.
 
+${personalizationBlock}
 USER STATS: ${stats}
 HABITS (with tags): 
 ${habitList || "None"}

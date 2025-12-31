@@ -523,14 +523,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const endDate = new Date().toISOString().split('T')[0];
       const startDate = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      const [habits, goals, dailyEntries, chatHistory, user, weeklyReview] = await Promise.all([
+      const [
+        habits,
+        goals,
+        dailyEntries,
+        chatHistory,
+        user,
+        weeklyReview,
+        personalizationSetting,
+      ] = await Promise.all([
         storage.getHabits(userId),
         storage.getGoals(userId),
         storage.getDailyEntries(userId, startDate, endDate),
         storage.getChatMessages(userId, 20),
         storage.getUser(userId),
         storage.getLatestWeeklyReview(userId),
+        storage.getSetting("personalizationProfile", userId),
       ]);
+      const personalization = personalizationSetting?.value || "";
 
       const assistantReply = await generateAssistantReply({
         message: content,
@@ -540,6 +550,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dailyEntries,
         user,
         weeklyReview,
+        personalization,
       });
 
       const assistantMessageData = insertChatMessageSchema.parse({
@@ -681,8 +692,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/ai/habit-suggestions", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const habits = await storage.getHabits(userId);
-      const suggestions = await generateHabitSuggestions(habits);
+      const [habits, personalizationSetting] = await Promise.all([
+        storage.getHabits(userId),
+        storage.getSetting("personalizationProfile", userId),
+      ]);
+      const personalization = personalizationSetting?.value || "";
+      const suggestions = await generateHabitSuggestions(habits, { personalization });
       res.json(suggestions);
     } catch (error) {
       console.error('AI habit suggestions error:', error);
@@ -694,12 +709,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { startDate, endDate } = req.body;
-      const [dailyEntries, habits] = await Promise.all([
+      const [dailyEntries, habits, personalizationSetting] = await Promise.all([
         storage.getDailyEntries(userId, startDate, endDate),
-        storage.getHabits(userId)
+        storage.getHabits(userId),
+        storage.getSetting("personalizationProfile", userId),
       ]);
+      const personalization = personalizationSetting?.value || "";
       
-      const insights = await generateWeeklyInsights(dailyEntries, habits);
+      const insights = await generateWeeklyInsights(dailyEntries, habits, personalization);
       res.json(insights);
     } catch (error) {
       console.error('AI weekly insights error:', error);
@@ -746,7 +763,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         completed: (entry.habitCompletions as Record<number, boolean>)?.[habitId] || false
       }));
 
-      const analysis = await analyzeHabitDifficulty(habit, completionData);
+      const personalizationSetting = await storage.getSetting("personalizationProfile", userId);
+      const personalization = personalizationSetting?.value || "";
+      const analysis = await analyzeHabitDifficulty(habit, completionData, personalization);
       
       // Update the habit with the analysis
       await storage.updateHabitDifficulty(habitId, analysis.difficulty, analysis.analysis, userId);
