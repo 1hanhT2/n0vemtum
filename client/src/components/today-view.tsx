@@ -146,7 +146,9 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
 
   const filterCompletionsToHabits = useCallback(
     (completions: Record<number, boolean> = {}) => {
-      if (!habits || habits.length === 0) return {};
+      // If habits haven't loaded yet, keep the raw completions so we don't lose saved state
+      if (!habits) return completions || {};
+      if (habits.length === 0) return {};
       const habitIds = new Set(habits.map((h) => h.id));
       const filtered: Record<number, boolean> = {};
       Object.entries(completions || {}).forEach(([id, done]) => {
