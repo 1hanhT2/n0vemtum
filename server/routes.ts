@@ -677,11 +677,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.resetUserData(userId);
       
       // Destroy the session to log out the user
-      req.session.destroy((err: any) => {
-        if (err) {
-          console.error("Session destroy error:", err);
-        }
-      });
+      const session = req.session as any;
+      if (session?.destroy) {
+        session.destroy((err: any) => {
+          if (err) {
+            console.error("Session destroy error:", err);
+          }
+        });
+      } else {
+        console.warn("No session found during reset-data; skipping session destroy");
+      }
       
       res.clearCookie('pushfoward.sid');
       res.clearCookie('connect.sid'); // Clear both possible cookie names
