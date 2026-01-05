@@ -73,15 +73,24 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   useEffect(() => {
     dailyEntryRef.current = dailyEntry;
   }, [dailyEntry]);
+  const lastSavedPayloadRef = useRef<string | null>(null);
+  const habitToggleTimers = useRef<Record<number, ReturnType<typeof setTimeout> | undefined>>({});
+  const latestHabitToggleState = useRef<Record<number, boolean>>({});
 
   // Debounced save function to prevent excessive API calls - memoized to prevent recreating
   const debouncedSaveInternal = useCallback((entryData: any) => {
+    const serialized = JSON.stringify({ date: today, ...entryData });
+    if (lastSavedPayloadRef.current === serialized && !updateDailyEntry.isPending && !createDailyEntry.isPending) {
+      return;
+    }
+
     const existingEntry = dailyEntryRef.current;
     if (existingEntry) {
       console.log('Auto-save: Updating existing daily entry for', today, entryData);
       updateDailyEntry.mutate({ date: today, ...entryData }, {
         onSuccess: () => {
           console.log('Auto-save: Update successful');
+          lastSavedPayloadRef.current = serialized;
           setAutoSaveStatus('saved');
           setTimeout(() => setAutoSaveStatus('idle'), 2000);
         },
@@ -104,6 +113,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       createDailyEntry.mutate({ userId: user.id, date: today, ...entryData }, {
         onSuccess: () => {
           console.log('Auto-save: Create successful');
+          lastSavedPayloadRef.current = serialized;
           setAutoSaveStatus('saved');
           setTimeout(() => setAutoSaveStatus('idle'), 2000);
         },
@@ -118,7 +128,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         }
       });
     }
-  }, [today, updateDailyEntry, createDailyEntry, toast, user]); // Dependencies that are stable
+  }, [today, updateDailyEntry, updateDailyEntry.isPending, createDailyEntry, createDailyEntry.isPending, toast, user]); // Dependencies that are stable
 
   const debouncedSave = useDebounce(debouncedSaveInternal, 1500);
   const { data: currentStreak } = isGuestMode
@@ -177,6 +187,22 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     } else {
       // Reset state if no daily entry exists
       setIsDayCompleted(false);
+    }
+  }, [dailyEntry]);
+
+  useEffect(() => {
+    if (dailyEntry) {
+      lastSavedPayloadRef.current = JSON.stringify({
+        date: dailyEntry.date,
+        habitCompletions: dailyEntry.habitCompletions,
+        subtaskCompletions: dailyEntry.subtaskCompletions,
+        punctualityScore: dailyEntry.punctualityScore,
+        adherenceScore: dailyEntry.adherenceScore,
+        notes: dailyEntry.notes || '',
+        isCompleted: dailyEntry.isCompleted,
+      });
+    } else {
+      lastSavedPayloadRef.current = null;
     }
   }, [dailyEntry]);
 
@@ -335,6 +361,36 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     setHabitCompletions((prev) => filterCompletionsToHabits(prev));
   }, [habits, filterCompletionsToHabits]);
 
+  const scheduleHabitProgressUpdate = useCallback((habitId: number, completed: boolean) => {
+    latestHabitToggleState.current[habitId] = completed;
+
+    const existingTimer = habitToggleTimers.current[habitId];
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+
+    habitToggleTimers.current[habitId] = setTimeout(() => {
+      if (updateHabitProgress.isPending) {
+        habitToggleTimers.current[habitId] = setTimeout(() => {
+          const latest = latestHabitToggleState.current[habitId];
+          if (typeof latest === 'boolean') {
+            scheduleHabitProgressUpdate(habitId, latest);
+          }
+        }, 150);
+        return;
+      }
+
+      updateHabitProgress.mutate(
+        { habitId, completed, date: today },
+        {
+          onSettled: () => {
+            habitToggleTimers.current[habitId] = undefined;
+          },
+        }
+      );
+    }, 250);
+  }, [today, updateHabitProgress]);
+
   const handleSubtaskToggle = (subtaskId: number, checked: boolean, habitId: number, totalSubtasks: number, completedSubtasks: number) => {
     if (isDayCompleted) return;
     const previousHabitCompletion = habitCompletions[habitId] || false;
@@ -350,7 +406,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     setHabitCompletions(newHabitCompletions);
 
     if (!isGuestMode && previousHabitCompletion !== isHabitComplete) {
-      updateHabitProgress.mutate({ habitId, completed: isHabitComplete, date: today });
+      scheduleHabitProgressUpdate(habitId, isHabitComplete);
     }
 
     // Recalculate scores based on new habit completion
@@ -392,7 +448,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       return;
     }
 
-    updateHabitProgress.mutate({ habitId, completed: checked, date: today });
+    scheduleHabitProgressUpdate(habitId, checked);
 
     // Auto-calculate scores based on completion
     const newScore = calculateCompletionScore(newCompletions);

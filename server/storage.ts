@@ -226,10 +226,15 @@ export class DatabaseStorage implements IStorage {
     return this.SKILL_POINTS_BY_DIFFICULTY[rating] ?? 1.0;
   }
 
-  private async applySkillPointDelta(userId: string, tags: string[], delta: number): Promise<void> {
+  private async applySkillPointDelta(
+    userId: string,
+    tags: string[],
+    delta: number,
+    executor: typeof db = db
+  ): Promise<void> {
     if (!tags?.length || delta === 0) return;
 
-    const [userRecord] = await db
+    const [userRecord] = await executor
       .select({
         stats: users.stats,
         bonusXp: users.xp,
@@ -254,14 +259,15 @@ export class DatabaseStorage implements IStorage {
     uniqueTags.forEach((tag) => {
       const statKey = statMap[tag];
       if (!statKey) return;
-      const current = typeof nextStats[statKey] === "number" ? nextStats[statKey] : 0;
-      nextStats[statKey] = Math.max(0, this.normalizeStatValue(current + delta));
+      const current = typeof nextStats[statKey] === "number" ? nextStats[statKey] : 10;
+      const updated = this.normalizeStatValue(current + delta);
+      nextStats[statKey] = Math.max(10, updated);
     });
 
     const bonusXp = typeof userRecord.bonusXp === "number" ? Math.max(0, userRecord.bonusXp) : 0;
     const progress = this.calculateUserProgressFromStats(nextStats, bonusXp);
 
-    await db
+    await executor
       .update(users)
       .set({
         stats: nextStats,
@@ -1030,124 +1036,150 @@ export class DatabaseStorage implements IStorage {
   // Add gamification methods before checkAchievements
   async updateHabitProgress(habitId: number, completed: boolean, date: string, userId?: string, timeZone = "UTC"): Promise<Habit> {
     await this.ensureInitialized();
-    const zone = normalizeTimeZone(timeZone);
-
-    // Get habit with userId in single query if not provided
-    let effectiveUserId: string;
-    const habit = userId
-      ? await this.getHabitById(habitId, userId, zone)
-      : await db.select().from(habits).where(eq(habits.id, habitId)).then(([h]) => {
-          if (!h) throw new Error(`Habit with id ${habitId} not found`);
-          userId = h.userId;
-          return h;
-        });
-
-    if (!habit) {
-      throw new Error(`Habit with id ${habitId} not found for user ${userId}`);
-    }
-
-    // Now we're guaranteed to have a userId
-    effectiveUserId = userId || habit.userId;
-
-    // Check current completion state for this date to prevent duplicate experience
-    const dailyEntry = await this.getDailyEntry(date, effectiveUserId);
-    const habitCompletions = dailyEntry?.habitCompletions as Record<string, boolean> || {};
-    const currentlyCompleted = habitCompletions[habitId.toString()] || false;
-
-    // Only process experience if state is actually changing
-    const isStateChanging = currentlyCompleted !== completed;
-
-    let newExperience = habit.experience;
-    let newStreak = habit.streak;
-    let newLongestStreak = habit.longestStreak;
-    let newTotalCompletions = habit.totalCompletions;
-    let newBadges = [...(habit.badges || [])];
-
-    if (completed && isStateChanging) {
-      // Only award XP if transitioning from incomplete to complete
-      const baseXP = 20;
-      const difficultyMultiplier = (habit.difficultyRating || 3) * 0.3 + 0.4; // 0.7x to 1.9x
-      const streakMultiplier = Math.min(1 + (habit.streak * 0.1), 2.0); // Up to 2x
-      const earnedXP = Math.floor(baseXP * difficultyMultiplier * streakMultiplier);
-
-      newExperience += earnedXP;
-      newTotalCompletions += 1;
-
-      // Update streak - build consecutive day chains
-      const previousDate = this.getPreviousDate(date);
-      if (habit.lastCompleted === previousDate) {
-        // Continuing a streak
-        newStreak += 1;
-      } else if (habit.lastCompleted === date) {
-        // Same day completion, don't change streak
-        newStreak = habit.streak;
+    const { updatedHabit, tierPromotionNeeded } = await db.transaction(async (tx) => {
+      // Get habit with userId in single query if not provided
+      let habit: Habit | undefined;
+      if (userId) {
+        [habit] = await tx
+          .select()
+          .from(habits)
+          .where(and(eq(habits.id, habitId), eq(habits.userId, userId)));
       } else {
-        // Starting a new streak
-        newStreak = 1;
+        [habit] = await tx.select().from(habits).where(eq(habits.id, habitId));
+        if (habit) {
+          userId = habit.userId;
+        }
       }
 
-      newLongestStreak = Math.max(newLongestStreak, newStreak);
-
-      // Award badges
-      if (newTotalCompletions === 1 && !newBadges.includes("first_completion")) {
-        newBadges.push("first_completion");
+      if (!habit) {
+        throw new Error(`Habit with id ${habitId} not found for user ${userId}`);
       }
-      if (newStreak === 7 && !newBadges.includes("week_warrior")) {
-        newBadges.push("week_warrior");
+
+      const effectiveUserId = userId || habit.userId;
+
+      // Ensure we have a daily entry for this date and user
+      const [existingEntry] = await tx
+        .select()
+        .from(dailyEntries)
+        .where(and(eq(dailyEntries.date, date), eq(dailyEntries.userId, effectiveUserId)));
+
+      const habitCompletions = (existingEntry?.habitCompletions as Record<string, boolean>) || {};
+      const currentlyCompleted = !!habitCompletions[habitId.toString()];
+
+      // If nothing changes, short-circuit (idempotent)
+      if (currentlyCompleted === completed) {
+        return { updatedHabit: habit, tierPromotionNeeded: false };
       }
-      if (newStreak === 30 && !newBadges.includes("month_master")) {
-        newBadges.push("month_master");
+
+      const updatedCompletions = { ...habitCompletions, [habitId]: completed };
+
+      if (existingEntry) {
+        await tx
+          .update(dailyEntries)
+          .set({
+            habitCompletions: updatedCompletions,
+            updatedAt: new Date(),
+          })
+          .where(and(eq(dailyEntries.id, existingEntry.id), eq(dailyEntries.userId, effectiveUserId)));
+      } else {
+        await tx.insert(dailyEntries).values({
+          userId: effectiveUserId,
+          date,
+          habitCompletions: updatedCompletions,
+          subtaskCompletions: {},
+          punctualityScore: 3,
+          adherenceScore: 3,
+          notes: "",
+          isCompleted: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
       }
-      if (newStreak >= 5 && !newBadges.includes("streak_starter")) {
-        newBadges.push("streak_starter");
+
+      let newExperience = habit.experience;
+      let newStreak = habit.streak;
+      let newLongestStreak = habit.longestStreak;
+      let newTotalCompletions = habit.totalCompletions;
+      let newBadges = [...(habit.badges || [])];
+
+      if (completed) {
+        // Only award XP if transitioning from incomplete to complete
+        const baseXP = 20;
+        const difficultyMultiplier = (habit.difficultyRating || 3) * 0.3 + 0.4; // 0.7x to 1.9x
+        const streakMultiplier = Math.min(1 + (habit.streak * 0.1), 2.0); // Up to 2x
+        const earnedXP = Math.floor(baseXP * difficultyMultiplier * streakMultiplier);
+
+        newExperience += earnedXP;
+        newTotalCompletions += 1;
+
+        // Update streak - build consecutive day chains
+        const previousDate = this.getPreviousDate(date);
+        if (habit.lastCompleted === previousDate) {
+          newStreak += 1;
+        } else if (habit.lastCompleted === date) {
+          newStreak = habit.streak;
+        } else {
+          newStreak = 1;
+        }
+
+        newLongestStreak = Math.max(newLongestStreak, newStreak);
+
+        // Award badges
+        if (newTotalCompletions === 1 && !newBadges.includes("first_completion")) {
+          newBadges.push("first_completion");
+        }
+        if (newStreak === 7 && !newBadges.includes("week_warrior")) {
+          newBadges.push("week_warrior");
+        }
+        if (newStreak === 30 && !newBadges.includes("month_master")) {
+          newBadges.push("month_master");
+        }
+        if (newStreak >= 5 && !newBadges.includes("streak_starter")) {
+          newBadges.push("streak_starter");
+        }
+      } else {
+        // Only adjust totals if transitioning from complete to incomplete
+        newTotalCompletions = Math.max(0, newTotalCompletions - 1);
+
+        // Reset streak if not completed today and yesterday
+        if (habit.lastCompleted !== date && habit.lastCompleted !== this.getPreviousDate(date)) {
+          newStreak = 0;
+        }
       }
-    } else if (!completed && isStateChanging) {
-      // Only adjust totals if transitioning from complete to incomplete
-      newTotalCompletions = Math.max(0, newTotalCompletions - 1);
 
-      // Reset streak if not completed today and yesterday
-      if (habit.lastCompleted !== date && habit.lastCompleted !== this.getPreviousDate(date)) {
-        newStreak = 0;
+      const habitStartDate = habit.createdAt
+        ? habit.createdAt.toISOString().split('T')[0]
+        : date;
+      const totalDays = this.getDaysBetween(habitStartDate, date) + 1;
+      const completionRate = Math.min(100, Math.floor((newTotalCompletions / totalDays) * 100));
+
+      if (habit.tags && habit.tags.length > 0) {
+        const skillDelta = this.getSkillPointsForDifficulty(habit.difficultyRating);
+        const delta = completed ? skillDelta : -skillDelta;
+        await this.applySkillPointDelta(effectiveUserId, habit.tags, delta, tx);
       }
-    }
 
-    // Calculate completion rate
-    // If createdAt is null, use the current date as fallback
-    const habitStartDate = habit.createdAt
-      ? habit.createdAt.toISOString().split('T')[0]
-      : date;
-    const totalDays = this.getDaysBetween(habitStartDate, date) + 1;
-    const completionRate = Math.min(100, Math.floor((newTotalCompletions / totalDays) * 100));
+      const [updatedHabit] = await tx
+        .update(habits)
+        .set({
+          experience: newExperience,
+          streak: newStreak,
+          longestStreak: newLongestStreak,
+          totalCompletions: newTotalCompletions,
+          completionRate,
+          badges: newBadges,
+          lastCompleted: completed ? date : habit.lastCompleted
+        })
+        .where(and(eq(habits.id, habitId), eq(habits.userId, effectiveUserId)))
+        .returning();
 
-    // Only update habit if state is actually changing to prevent unnecessary writes
-    if (!isStateChanging) {
-      return habit;
-    }
+      const tierPromotionNeeded = completed && newExperience % 100 < 20;
 
-    if (habit.tags && habit.tags.length > 0) {
-      const skillDelta = this.getSkillPointsForDifficulty(habit.difficultyRating);
-      const delta = completed ? skillDelta : -skillDelta;
-      await this.applySkillPointDelta(effectiveUserId, habit.tags, delta);
-    }
+      return { updatedHabit: updatedHabit || habit, tierPromotionNeeded };
+    });
 
-    const [updatedHabit] = await db
-      .update(habits)
-      .set({
-        experience: newExperience,
-        streak: newStreak,
-        longestStreak: newLongestStreak,
-        totalCompletions: newTotalCompletions,
-        completionRate,
-        badges: newBadges,
-        lastCompleted: completed ? date : habit.lastCompleted
-      })
-      .where(and(eq(habits.id, habitId), eq(habits.userId, effectiveUserId)))
-      .returning();
-
-    // Skip expensive tier promotion calculation on every update
-    // Only check tier promotion on level boundaries (every 100 XP)
-    if (completed && newExperience % 100 < 20) {
-      return await this.calculateTierPromotion(habitId, effectiveUserId);
+    if (tierPromotionNeeded) {
+      return await this.calculateTierPromotion(updatedHabit.id, updatedHabit.userId);
     }
 
     return updatedHabit;
