@@ -18,7 +18,7 @@ import {
 import { useHabits } from "@/hooks/use-habits";
 import { useDailyEntry, useCreateDailyEntry, useUpdateDailyEntry } from "@/hooks/use-daily-entries";
 import { useMotivationalMessage } from "@/hooks/use-ai";
-import { getCurrentDateKey, formatDate } from "@/lib/utils";
+import { getTodayKey, getYesterdayKey, formatDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -38,6 +38,7 @@ import { getMockHabits, getMockDailyEntry, getMockStreak } from "@/lib/mockData"
 import { useDebounce, usePendingProtection } from '@/hooks/use-debounce';
 import { SubtaskManager } from "@/components/subtask-manager";
 import { getHabitTagConfig } from "@/lib/habit-tags";
+import { useTimeZone } from "@/hooks/use-timezone";
 
 interface TodayViewProps {
   isGuestMode?: boolean;
@@ -45,12 +46,13 @@ interface TodayViewProps {
 
 export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const { toast } = useToast();
-  const today = getCurrentDateKey();
-  const previousDateKey = useMemo(() => {
-    const date = new Date(`${today}T00:00:00`);
-    date.setDate(date.getDate() - 1);
-    return date.toISOString().split('T')[0];
-  }, [today]);
+  const timeZone = useTimeZone();
+  const today = useMemo(() => getTodayKey(timeZone), [timeZone]);
+  const previousDateKey = useMemo(() => getYesterdayKey(timeZone), [timeZone]);
+  const autoCompleteStorageKey = useMemo(
+    () => `autoCompleteRanFor:${previousDateKey}:${timeZone}`,
+    [previousDateKey, timeZone]
+  );
   const { user } = useAuth();
 
   const { data: habits, isLoading: habitsLoading, error: habitsError } = isGuestMode 
@@ -59,10 +61,10 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
 
   const { data: dailyEntry, isLoading: entryLoading } = isGuestMode
     ? { data: getMockDailyEntry(today), isLoading: false }
-    : useDailyEntry(today);
+    : useDailyEntry(today, { timeZone });
   const { data: previousEntry } = isGuestMode
     ? { data: null }
-    : useDailyEntry(previousDateKey);
+    : useDailyEntry(previousDateKey, { timeZone });
   const createDailyEntry = useCreateDailyEntry();
   const updateDailyEntry = useUpdateDailyEntry();
 
@@ -191,6 +193,12 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       return;
     }
 
+    // Only run once per local day to avoid extra writes
+    const alreadyRan = typeof window !== 'undefined'
+      ? window.localStorage.getItem(autoCompleteStorageKey) === 'true'
+      : false;
+    if (alreadyRan) return;
+
     if (autoFinalizeRef.current) return;
     autoFinalizeRef.current = true;
 
@@ -201,11 +209,14 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
           autoFinalizeRef.current = false;
         },
         onSuccess: () => {
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem(autoCompleteStorageKey, 'true');
+          }
           queryClient.invalidateQueries({ queryKey: ['/api/daily-entries'] });
         },
       }
     );
-  }, [isGuestMode, previousEntry, previousDateKey, updateDailyEntry]);
+  }, [autoCompleteStorageKey, isGuestMode, previousEntry, previousDateKey, updateDailyEntry]);
 
   // Generate motivational message when habits change
   useEffect(() => {
@@ -239,6 +250,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       const response = await fetch(`/api/ai/analyze-habit-difficulty/${habitId}`, {
         method: 'POST',
         credentials: 'include',
+        headers: { "x-timezone": timeZone },
       });
 
       if (response.ok) {

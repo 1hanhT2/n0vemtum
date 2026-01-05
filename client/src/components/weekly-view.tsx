@@ -24,6 +24,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import { useTimeZone } from "@/hooks/use-timezone";
 
 interface WeeklyViewProps {
   isGuestMode?: boolean;
@@ -31,15 +32,16 @@ interface WeeklyViewProps {
 
 export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
   const { toast } = useToast();
-  const weekDates = getWeekDates();
-  const weekStartDate = getWeekStartDate();
+  const timeZone = useTimeZone();
+  const weekDates = getWeekDates(new Date(), timeZone);
+  const weekStartDate = getWeekStartDate(new Date(), timeZone);
   
   const { data: habits, isLoading: habitsLoading } = isGuestMode 
     ? { data: getMockHabits(), isLoading: false }
     : useHabits();
   const { data: dailyEntries, isLoading: entriesLoading } = isGuestMode
     ? { data: [], isLoading: false }
-    : useDailyEntries(weekDates[0], weekDates[6]);
+    : useDailyEntries(weekDates[0], weekDates[6], timeZone);
   const { data: weeklyReview, error: weeklyReviewError, isLoading: weeklyReviewLoading } = isGuestMode
     ? { data: null, error: null, isLoading: false }
     : useWeeklyReview(weekStartDate);

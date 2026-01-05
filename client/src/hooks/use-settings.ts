@@ -1,18 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { Setting, InsertSetting } from "@shared/schema";
+import { detectClientTimeZone } from "@/lib/timezone";
 
 export function useSettings() {
+  const timeZone = detectClientTimeZone();
   return useQuery<Setting[]>({
-    queryKey: ["/api/settings"],
+    queryKey: ["/api/settings", timeZone],
   });
 }
 
 export function useSetting(key: string) {
+  const timeZone = detectClientTimeZone();
   return useQuery<Setting>({
-    queryKey: ["/api/settings", key],
+    queryKey: ["/api/settings", key, timeZone],
     queryFn: async () => {
-      const response = await fetch(`/api/settings/${key}`, { credentials: "include" });
+      const response = await fetch(`/api/settings/${key}`, { credentials: "include", headers: { "x-timezone": timeZone } });
       if (response.status === 404) return null;
       if (!response.ok) throw new Error('Failed to fetch setting');
       return response.json();

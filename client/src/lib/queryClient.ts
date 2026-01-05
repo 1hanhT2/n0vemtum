@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { detectClientTimeZone } from "@/lib/timezone";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -30,9 +31,10 @@ export async function apiRequest(
     body?: string;
   }
 ): Promise<Response> {
+  const timeZone = detectClientTimeZone();
   const res = await fetch(url, {
     method: options?.method || 'GET',
-    headers: options?.headers || {},
+    headers: { "x-timezone": timeZone, ...(options?.headers || {}) },
     body: options?.body,
     credentials: "include",
   });
@@ -47,8 +49,10 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    const timeZone = detectClientTimeZone();
     const res = await fetch(queryKey[0] as string, {
       credentials: "include",
+      headers: { "x-timezone": timeZone },
     });
 
     if (res.status === 401) {

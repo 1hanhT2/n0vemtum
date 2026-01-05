@@ -34,6 +34,7 @@ import { getRankForLevel } from "@shared/ranks";
 import { db } from "./db";
 import { eq, and, gte, lte, not, desc } from "drizzle-orm";
 import { generateHabitSuggestions } from "./ai";
+import { getTodayKey as getTodayKeyForZone, getYesterdayKey, normalizeTimeZone } from "@shared/time";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -42,8 +43,8 @@ export interface IStorage {
   getUserProgress(userId: string): Promise<{ level: number; xp: number; xpToNext: number } | undefined>;
 
   // Habits
-  getHabits(userId: string): Promise<Habit[]>;
-  getHabitById(id: number, userId: string): Promise<Habit | undefined>;
+  getHabits(userId: string, timeZone?: string): Promise<Habit[]>;
+  getHabitById(id: number, userId: string, timeZone?: string): Promise<Habit | undefined>;
   createHabit(habit: InsertHabit): Promise<Habit>;
   updateHabit(id: number, habit: Partial<InsertHabit>, userId: string): Promise<Habit>;
   updateHabitDifficulty(id: number, difficulty: number, analysis: string, userId: string): Promise<Habit>;
@@ -57,7 +58,7 @@ export interface IStorage {
   deleteSubtask(id: number, userId: string): Promise<void>;
 
   // Gamification
-  updateHabitProgress(habitId: number, completed: boolean, date: string, userId?: string): Promise<Habit>;
+  updateHabitProgress(habitId: number, completed: boolean, date: string, userId?: string, timeZone?: string): Promise<Habit>;
   levelUpHabit(habitId: number, userId: string): Promise<Habit>;
   awardBadge(habitId: number, badge: string, userId: string): Promise<Habit>;
   calculateTierPromotion(habitId: number, userId: string): Promise<Habit>;
@@ -107,9 +108,9 @@ export interface IStorage {
   resetUserData(userId: string): Promise<void>;
 
   // Challenges
-  getDailyChallenges(userId: string, date?: string): Promise<Challenge[]>;
-  completeChallenge(id: number, userId: string, completed?: boolean, date?: string): Promise<{ challenges: Challenge[]; progress?: { level: number; xp: number; xpToNext: number } }>;
-  reshuffleChallenges(userId: string, date?: string): Promise<Challenge[]>;
+  getDailyChallenges(userId: string, date?: string, timeZone?: string): Promise<Challenge[]>;
+  completeChallenge(id: number, userId: string, completed?: boolean, date?: string, timeZone?: string): Promise<{ challenges: Challenge[]; progress?: { level: number; xp: number; xpToNext: number } }>;
+  reshuffleChallenges(userId: string, date?: string, timeZone?: string): Promise<Challenge[]>;
 }
 
 export interface Challenge {
@@ -136,10 +137,6 @@ export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
-  }
-
-  private getTodayKey() {
-    return new Date().toISOString().split("T")[0];
   }
 
   private challengeSettingKey(date: string) {
@@ -314,13 +311,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Habits
-  async getHabits(userId: string): Promise<Habit[]> {
+  async getHabits(userId: string, timeZone = "UTC"): Promise<Habit[]> {
     await this.ensureInitialized();
+    const zone = normalizeTimeZone(timeZone);
     const userHabits = await db.select().from(habits).where(eq(habits.userId, userId)).orderBy(habits.order);
 
     // Check and reset streaks if habits haven't been completed recently
-    const today = new Date().toISOString().split('T')[0];
-    const yesterday = this.getPreviousDate(today);
+    const today = getTodayKeyForZone(zone);
+    const yesterday = getYesterdayKey(zone);
 
     const updatedHabits = await Promise.all(userHabits.map(async (habit) => {
       // If the habit wasn't completed yesterday or today, the streak should be reset
@@ -339,14 +337,15 @@ export class DatabaseStorage implements IStorage {
     return updatedHabits;
   }
 
-  async getHabitById(id: number, userId: string): Promise<Habit | undefined> {
+  async getHabitById(id: number, userId: string, timeZone = "UTC"): Promise<Habit | undefined> {
     await this.ensureInitialized();
+    const zone = normalizeTimeZone(timeZone);
     const [habit] = await db.select().from(habits).where(and(eq(habits.id, id), eq(habits.userId, userId)));
     if (!habit) return undefined;
 
     // Check and reset streak if habit hasn't been completed recently
-    const today = new Date().toISOString().split('T')[0];
-    const yesterday = this.getPreviousDate(today);
+    const today = getTodayKeyForZone(zone);
+    const yesterday = getYesterdayKey(zone);
 
     // If the habit wasn't completed yesterday or today, the streak should be reset
     if (habit.streak > 0 && habit.lastCompleted !== today && habit.lastCompleted !== yesterday) {
@@ -1029,13 +1028,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Add gamification methods before checkAchievements
-  async updateHabitProgress(habitId: number, completed: boolean, date: string, userId?: string): Promise<Habit> {
+  async updateHabitProgress(habitId: number, completed: boolean, date: string, userId?: string, timeZone = "UTC"): Promise<Habit> {
     await this.ensureInitialized();
+    const zone = normalizeTimeZone(timeZone);
 
     // Get habit with userId in single query if not provided
     let effectiveUserId: string;
     const habit = userId
-      ? await this.getHabitById(habitId, userId)
+      ? await this.getHabitById(habitId, userId, zone)
       : await db.select().from(habits).where(eq(habits.id, habitId)).then(([h]) => {
           if (!h) throw new Error(`Habit with id ${habitId} not found`);
           userId = h.userId;
@@ -1485,9 +1485,11 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getDailyChallenges(userId: string, date: string = this.getTodayKey()): Promise<Challenge[]> {
+  async getDailyChallenges(userId: string, date?: string, timeZone = "UTC"): Promise<Challenge[]> {
     await this.ensureInitialized();
-    const key = this.challengeSettingKey(date);
+    const zone = normalizeTimeZone(timeZone);
+    const effectiveDate = date || getTodayKeyForZone(zone);
+    const key = this.challengeSettingKey(effectiveDate);
     const existingSetting = await this.getSetting(key, userId);
     const difficultySetting = await this.getSetting("challengeDifficulty", userId);
     const typeSetting = await this.getSetting("challengeType", userId);
@@ -1508,9 +1510,9 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Generate new challenges
-    const userHabits = await this.getHabits(userId);
+    const userHabits = await this.getHabits(userId, zone);
     const aiSuggestions = await generateHabitSuggestions(userHabits, { difficulty, type: challengeType, personalization });
-    const challenges = this.normalizeChallenges(aiSuggestions, date).slice(0, 5);
+    const challenges = this.normalizeChallenges(aiSuggestions, effectiveDate).slice(0, 5);
 
     await this.setSetting({
       key,
@@ -1521,9 +1523,11 @@ export class DatabaseStorage implements IStorage {
     return challenges;
   }
 
-  async reshuffleChallenges(userId: string, date: string = this.getTodayKey()): Promise<Challenge[]> {
+  async reshuffleChallenges(userId: string, date?: string, timeZone = "UTC"): Promise<Challenge[]> {
     await this.ensureInitialized();
-    const existing = await this.getDailyChallenges(userId, date);
+    const zone = normalizeTimeZone(timeZone);
+    const effectiveDate = date || getTodayKeyForZone(zone);
+    const existing = await this.getDailyChallenges(userId, effectiveDate, zone);
     const completed = existing.filter((c) => c.completed);
     const maxId = existing.reduce((max, c) => Math.max(max, c.id || 0), 0);
     const difficultySetting = await this.getSetting("challengeDifficulty", userId);
@@ -1532,9 +1536,9 @@ export class DatabaseStorage implements IStorage {
     const difficulty = Math.max(0, Math.min(100, Number(difficultySetting?.value) || 50));
     const challengeType = typeSetting?.value || "balanced";
     const personalization = personalizationSetting?.value || "";
-    const userHabits = await this.getHabits(userId);
+    const userHabits = await this.getHabits(userId, zone);
     const aiSuggestions = await generateHabitSuggestions(userHabits, { difficulty, type: challengeType, force: true, personalization });
-    const fresh = this.normalizeChallenges(aiSuggestions, date);
+    const fresh = this.normalizeChallenges(aiSuggestions, effectiveDate);
 
     // Keep completed challenges, refresh the rest
     const usedNames = new Set(completed.map((c) => c.name.toLowerCase()));
@@ -1547,7 +1551,7 @@ export class DatabaseStorage implements IStorage {
     const challenges = [...completed, ...newOnes];
 
     await this.setSetting({
-      key: this.challengeSettingKey(date),
+      key: this.challengeSettingKey(effectiveDate),
       userId,
       value: JSON.stringify(challenges),
     });
@@ -1559,10 +1563,13 @@ export class DatabaseStorage implements IStorage {
     id: number | string,
     userId: string,
     completed = true,
-    date: string = this.getTodayKey()
+    date?: string,
+    timeZone = "UTC"
   ): Promise<{ challenges: Challenge[]; progress?: { level: number; xp: number; xpToNext: number } }> {
     await this.ensureInitialized();
-    const challenges = await this.getDailyChallenges(userId, date);
+    const zone = normalizeTimeZone(timeZone);
+    const effectiveDate = date || getTodayKeyForZone(zone);
+    const challenges = await this.getDailyChallenges(userId, effectiveDate, zone);
     const updated = challenges.map((challenge) => ({ ...challenge }));
     const target = updated.find((c) => c.id === id || String(c.id) === String(id));
     if (!target) {
@@ -1578,7 +1585,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     await this.setSetting({
-      key: this.challengeSettingKey(date),
+      key: this.challengeSettingKey(effectiveDate),
       userId,
       value: JSON.stringify(updated),
     });

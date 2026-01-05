@@ -1,12 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { Achievement } from "@shared/schema";
+import { detectClientTimeZone } from "@/lib/timezone";
 
 export function useAchievements() {
+  const timeZone = detectClientTimeZone();
   return useQuery<Achievement[]>({
-    queryKey: ["/api/achievements"],
+    queryKey: ["/api/achievements", timeZone],
     queryFn: async () => {
-      const response = await fetch("/api/achievements", { credentials: "include" });
+      const response = await fetch("/api/achievements", { credentials: "include", headers: { "x-timezone": timeZone } });
       if (!response.ok) throw new Error('Failed to fetch achievements');
       return response.json();
     },

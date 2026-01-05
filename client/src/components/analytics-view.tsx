@@ -13,23 +13,29 @@ import { Progress } from "@/components/ui/progress";
 import { habitTagConfig, type HabitTag } from "@/lib/habit-tags";
 import { habitTagOptions, goalPeriodOptions } from "@shared/schema";
 import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { useTimeZone } from "@/hooks/use-timezone";
+import { getDateKeyForZone } from "@/lib/utils";
 
 interface AnalyticsViewProps {
   isGuestMode?: boolean;
 }
 
 export function AnalyticsView({ isGuestMode = false }: AnalyticsViewProps) {
+  const timeZone = useTimeZone();
   const { data: habits, isLoading, error } = isGuestMode 
     ? { data: getMockHabits(), isLoading: false, error: null }
     : useHabits();
   const { data: goals = [], isLoading: goalsLoading } = isGuestMode
     ? { data: [], isLoading: false }
     : useGoals();
-  const endDate = new Date().toISOString().split('T')[0];
-  const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const endDate = useMemo(() => getDateKeyForZone(new Date(), timeZone), [timeZone]);
+  const startDate = useMemo(
+    () => getDateKeyForZone(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), timeZone),
+    [timeZone]
+  );
   const { data: dailyEntries = [], isLoading: entriesLoading } = isGuestMode
     ? { data: [], isLoading: false }
-    : useDailyEntries(startDate, endDate);
+    : useDailyEntries(startDate, endDate, timeZone);
   const createGoal = useCreateGoal();
   const deleteGoal = useDeleteGoal();
   const [goalTag, setGoalTag] = useState<HabitTag>("STR");
@@ -52,12 +58,14 @@ export function AnalyticsView({ isGuestMode = false }: AnalyticsViewProps) {
 
   const getGoalCount = (tag: HabitTag, period: (typeof goalPeriodOptions)[number]) => {
     const periodDays = period === "daily" ? 1 : period === "weekly" ? 7 : 30;
-    const rangeStart = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000);
+    const rangeStartKey = getDateKeyForZone(
+      new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000),
+      timeZone
+    );
     let count = 0;
 
     dailyEntries.forEach((entry) => {
-      const entryDate = new Date(`${entry.date}T00:00:00`);
-      if (entryDate < rangeStart) return;
+      if (entry.date < rangeStartKey) return;
       const completions = entry.habitCompletions as Record<string, boolean>;
       Object.entries(completions || {}).forEach(([habitId, completed]) => {
         if (!completed) return;

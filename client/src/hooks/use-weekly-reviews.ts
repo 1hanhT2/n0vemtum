@@ -1,19 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { WeeklyReview, InsertWeeklyReview } from "@shared/schema";
+import { detectClientTimeZone } from "@/lib/timezone";
 
 export function useWeeklyReviews() {
+  const timeZone = detectClientTimeZone();
   return useQuery<WeeklyReview[]>({
-    queryKey: ["/api/weekly-reviews"],
+    queryKey: ["/api/weekly-reviews", timeZone],
   });
 }
 
 export function useWeeklyReview(weekStartDate: string) {
+  const timeZone = detectClientTimeZone();
   return useQuery<WeeklyReview | null>({
-    queryKey: ["/api/weekly-reviews", weekStartDate],
+    queryKey: ["/api/weekly-reviews", weekStartDate, timeZone],
     queryFn: async () => {
       try {
-        const response = await fetch(`/api/weekly-reviews/${weekStartDate}`, { credentials: "include" });
+        const response = await fetch(`/api/weekly-reviews/${weekStartDate}`, { credentials: "include", headers: { "x-timezone": timeZone } });
         if (response.status === 404) return null;
         if (!response.ok) throw new Error('Failed to fetch weekly review');
         return response.json();

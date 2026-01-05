@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { ChatMessage } from "@shared/schema";
+import { detectClientTimeZone } from "@/lib/timezone";
 
 const messagesKeyPrefix = "/api/assistant/messages";
 const messagesQueryKey = "assistant-messages";
@@ -12,10 +13,11 @@ type AssistantResponse = {
 
 export function useAssistantMessages(limit = 50, options?: { enabled?: boolean }) {
   const url = `${messagesKeyPrefix}?limit=${limit}`;
+  const timeZone = detectClientTimeZone();
   return useQuery<ChatMessage[]>({
-    queryKey: [messagesQueryKey, limit],
+    queryKey: [messagesQueryKey, limit, timeZone],
     queryFn: async () => {
-      const response = await fetch(url, { credentials: "include" });
+      const response = await fetch(url, { credentials: "include", headers: { "x-timezone": timeZone } });
       if (!response.ok) {
         throw new Error("Failed to fetch assistant messages");
       }

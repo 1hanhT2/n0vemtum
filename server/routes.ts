@@ -17,6 +17,12 @@ import { z } from "zod";
 import { generateHabitSuggestions, generateWeeklyInsights, generateMotivationalMessage, analyzeHabitDifficulty, generateAssistantReply } from "./ai";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { validateDateParam, validateNumericParam, sanitizeBody } from "./validation";
+import { getDateKeyForZone, getTodayKey, getDateNDaysAgo, normalizeTimeZone } from "@shared/time";
+
+const getRequestTimeZone = (req: any): string => {
+  const header = req?.headers?.["x-timezone"];
+  return normalizeTimeZone(typeof header === "string" ? header : Array.isArray(header) ? header[0] : undefined);
+};
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication middleware
@@ -66,7 +72,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/habits", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const habits = await storage.getHabits(userId);
+      const timeZone = getRequestTimeZone(req);
+      const habits = await storage.getHabits(userId, timeZone);
       res.json(habits);
     } catch (error) {
       console.error("Failed to fetch habits:", error);
@@ -143,6 +150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const userId = req.user.claims.sub;
+      const timeZone = getRequestTimeZone(req);
       const { completed, date } = req.body;
       
       // Validate input
@@ -150,7 +158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid input: completed must be boolean and date must be string" });
       }
       
-      const habit = await storage.updateHabitProgress(id, completed, date, userId);
+      const habit = await storage.updateHabitProgress(id, completed, date, userId, timeZone);
       const progress = await storage.getUserProgress(userId);
       if (!progress) {
         res.json(habit);
@@ -513,6 +521,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/assistant/messages", isAuthenticated, sanitizeBody, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const timeZone = getRequestTimeZone(req);
       const content = typeof req.body?.content === "string" ? req.body.content.trim() : "";
       if (!content) {
         return res.status(400).json({ error: "Message content is required" });
@@ -525,8 +534,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       const userMessage = await storage.createChatMessage(userMessageData);
 
-      const endDate = new Date().toISOString().split('T')[0];
-      const startDate = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const endDate = getTodayKey(timeZone);
+      const startDate = getDateNDaysAgo(14, timeZone);
       const [
         habits,
         goals,
@@ -536,7 +545,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         weeklyReview,
         personalizationSetting,
       ] = await Promise.all([
-        storage.getHabits(userId),
+        storage.getHabits(userId, timeZone),
         storage.getGoals(userId),
         storage.getDailyEntries(userId, startDate, endDate),
         storage.getChatMessages(userId, 20),
@@ -634,8 +643,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/challenges", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const date = (req.query?.date as string) || new Date().toISOString().split("T")[0];
-      const challenges = await storage.getDailyChallenges(userId, date);
+      const timeZone = getRequestTimeZone(req);
+      const date = (req.query?.date as string) || getTodayKey(timeZone);
+      const challenges = await storage.getDailyChallenges(userId, date, timeZone);
       res.json({ date, challenges });
     } catch (error) {
       console.error("Failed to fetch challenges:", error);
@@ -649,8 +659,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rawId = req.params.id;
       const parsedId = parseInt(rawId);
       const id = Number.isNaN(parsedId) ? rawId : parsedId;
+      const timeZone = getRequestTimeZone(req);
       const { completed = true, date } = req.body || {};
-      const result = await storage.completeChallenge(id, userId, completed, date);
+      const result = await storage.completeChallenge(id, userId, completed, date, timeZone);
       res.json(result);
     } catch (error) {
       console.error("Failed to complete challenge:", error);
@@ -661,8 +672,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/challenges/reshuffle", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const date = (req.body?.date as string) || new Date().toISOString().split("T")[0];
-      const challenges = await storage.reshuffleChallenges(userId, date);
+      const timeZone = getRequestTimeZone(req);
+      const date = (req.body?.date as string) || getTodayKey(timeZone);
+      const challenges = await storage.reshuffleChallenges(userId, date, timeZone);
       res.json({ date, challenges });
     } catch (error) {
       console.error("Failed to reshuffle challenges:", error);
@@ -701,8 +713,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/ai/habit-suggestions", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const timeZone = getRequestTimeZone(req);
       const [habits, personalizationSetting] = await Promise.all([
-        storage.getHabits(userId),
+        storage.getHabits(userId, timeZone),
         storage.getSetting("personalizationProfile", userId),
       ]);
       const personalization = personalizationSetting?.value || "";
@@ -717,10 +730,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ai/weekly-insights", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const timeZone = getRequestTimeZone(req);
       const { startDate, endDate } = req.body;
       const [dailyEntries, habits, personalizationSetting] = await Promise.all([
         storage.getDailyEntries(userId, startDate, endDate),
-        storage.getHabits(userId),
+        storage.getHabits(userId, timeZone),
         storage.getSetting("personalizationProfile", userId),
       ]);
       const personalization = personalizationSetting?.value || "";
@@ -753,8 +767,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ai/analyze-habit-difficulty/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const timeZone = getRequestTimeZone(req);
       const habitId = parseInt(req.params.id);
-      const habit = await storage.getHabitById(habitId, userId);
+      const habit = await storage.getHabitById(habitId, userId, timeZone);
       
       if (!habit) {
         res.status(404).json({ error: "Habit not found" });
@@ -762,9 +777,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get user's completion data for this habit (last 30 days)
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const startDate = thirtyDaysAgo.toISOString().split('T')[0];
+      const startDate = getDateNDaysAgo(30, timeZone);
       
       const dailyEntries = await storage.getDailyEntries(userId, startDate);
       const completionData = dailyEntries.map(entry => ({

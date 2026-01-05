@@ -13,6 +13,8 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Eye, CheckCircle, 
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { getMockHabits } from "@/lib/mockData";
+import { useTimeZone } from "@/hooks/use-timezone";
+import { getDateKeyForZone } from "@/lib/utils";
 
 interface HistoryViewProps {
   isGuestMode?: boolean;
@@ -20,6 +22,7 @@ interface HistoryViewProps {
 
 export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
   const { toast } = useToast();
+  const timeZone = useTimeZone();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -28,12 +31,12 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
   const currentYear = currentDate.getFullYear();
   
   // Get start and end of current month for data fetching
-  const monthStart = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0];
-  const monthEnd = new Date(currentYear, currentMonth + 1, 0).toISOString().split('T')[0];
+  const monthStart = getDateKeyForZone(new Date(currentYear, currentMonth, 1), timeZone);
+  const monthEnd = getDateKeyForZone(new Date(currentYear, currentMonth + 1, 0), timeZone);
   
   const { data: dailyEntries = [], isLoading } = isGuestMode
     ? { data: [], isLoading: false }
-    : useDailyEntries(monthStart, monthEnd);
+    : useDailyEntries(monthStart, monthEnd, timeZone);
   const { data: habits = [] } = isGuestMode
     ? { data: getMockHabits(), isLoading: false }
     : useHabits();
@@ -98,7 +101,7 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
     const lastDay = new Date(currentYear, currentMonth + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay();
-    const today = new Date();
+    const todayKey = getDateKeyForZone(new Date(), timeZone);
 
     const days = [];
 
@@ -112,7 +115,7 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
       const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const hasData = dailyEntries?.some(entry => entry.date === dateKey);
       const entry = dailyEntries?.find(entry => entry.date === dateKey);
-      const isToday = today.getDate() === day && today.getMonth() === currentMonth && today.getFullYear() === currentYear;
+      const isToday = dateKey === todayKey;
       const stats = entry ? getCompletionStats(entry) : null;
 
       days.push(

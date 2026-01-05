@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { DailyEntry, InsertDailyEntry } from "@shared/schema";
-import { useDebounce } from "./use-debounce";
+import { detectClientTimeZone } from "@/lib/timezone";
 
-export function useDailyEntries(startDate?: string, endDate?: string) {
+export function useDailyEntries(startDate?: string, endDate?: string, timeZone?: string) {
+  const resolvedTimeZone = timeZone || detectClientTimeZone();
   const params = new URLSearchParams();
   if (startDate) params.set('start_date', startDate);
   if (endDate) params.set('end_date', endDate);
@@ -12,20 +13,21 @@ export function useDailyEntries(startDate?: string, endDate?: string) {
   const url = queryString ? `/api/daily-entries?${queryString}` : '/api/daily-entries';
   
   return useQuery<DailyEntry[]>({
-    queryKey: ["/api/daily-entries", startDate, endDate],
+    queryKey: ["/api/daily-entries", startDate, endDate, resolvedTimeZone],
     queryFn: async () => {
-      const response = await fetch(url, { credentials: "include" });
+      const response = await fetch(url, { credentials: "include", headers: { "x-timezone": resolvedTimeZone } });
       if (!response.ok) throw new Error('Failed to fetch daily entries');
       return response.json();
     },
   });
 }
 
-export function useDailyEntry(date: string, options?: { enabled?: boolean }) {
+export function useDailyEntry(date: string, options?: { enabled?: boolean; timeZone?: string }) {
+  const resolvedTimeZone = options?.timeZone || detectClientTimeZone();
   return useQuery<DailyEntry>({
-    queryKey: ["/api/daily-entries", date],
+    queryKey: ["/api/daily-entries", date, resolvedTimeZone],
     queryFn: async () => {
-      const response = await fetch(`/api/daily-entries/${date}`, { credentials: "include" });
+      const response = await fetch(`/api/daily-entries/${date}`, { credentials: "include", headers: { "x-timezone": resolvedTimeZone } });
       if (response.status === 404) return null;
       if (!response.ok) throw new Error('Failed to fetch daily entry');
       return response.json();

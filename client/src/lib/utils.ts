@@ -1,33 +1,37 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { getDateKeyForZone } from "@shared/time";
+export { getDateKeyForZone, getTodayKey, getYesterdayKey } from "@shared/time";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function getCurrentDateKey(): string {
-  return new Date().toISOString().split('T')[0];
-}
-
-export function getWeekStartDate(date: Date = new Date()): string {
+export function getWeekStartDate(date: Date = new Date(), timeZone = "UTC"): string {
   const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as first day
-  const monday = new Date(d.setDate(diff));
-  return monday.toISOString().split('T')[0];
+  const monday = new Date(d);
+  monday.setDate(diff);
+  return getDateKeyForZone(monday, timeZone);
 }
 
-export function getWeekDates(startDate: Date = new Date()): string[] {
-  const weekStart = getWeekStartDate(startDate);
-  const dates = [];
-  const start = new Date(weekStart);
-  
+export function getWeekDates(startDate: Date = new Date(), timeZone = "UTC"): string[] {
+  const d = new Date(startDate);
+  d.setHours(0, 0, 0, 0);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(d);
+  monday.setDate(diff);
+
+  const dates: string[] = [];
   for (let i = 0; i < 7; i++) {
-    const date = new Date(start);
-    date.setDate(start.getDate() + i);
-    dates.push(date.toISOString().split('T')[0]);
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + i);
+    dates.push(getDateKeyForZone(date, timeZone));
   }
-  
+
   return dates;
 }
 
