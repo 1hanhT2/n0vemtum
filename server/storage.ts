@@ -188,6 +188,8 @@ export class DatabaseStorage implements IStorage {
     4: 1.4,
     5: 2.0,
   };
+  private HABIT_DECAY_GRACE_DAYS = 1;
+  private HABIT_DECAY_MULTIPLIER = 0.25;
 
   private calculateUserProgressFromStats(stats: Record<string, number>, bonusXp = 0) {
     const baseStats = {
@@ -218,6 +220,20 @@ export class DatabaseStorage implements IStorage {
 
   private normalizeStatValue(value: number) {
     return Math.round(value * 10) / 10;
+  }
+
+  private addDays(dateStr: string, days: number): string {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split("T")[0];
+  }
+
+  private compareDateStrings(a: string, b: string): number {
+    return new Date(a).getTime() - new Date(b).getTime();
+  }
+
+  private maxDateString(a: string, b: string): string {
+    return this.compareDateStrings(a, b) >= 0 ? a : b;
   }
 
   private getSkillPointsForDifficulty(difficulty?: number | null) {
@@ -279,6 +295,36 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId));
   }
 
+  private async applyHabitDecay(habit: Habit, today: string): Promise<Habit> {
+    if (!habit.lastCompleted) return habit;
+
+    const decayEndDate = this.getPreviousDate(today);
+    if (this.compareDateStrings(decayEndDate, habit.lastCompleted) <= 0) return habit;
+
+    const decayStartDate = this.addDays(habit.lastCompleted, this.HABIT_DECAY_GRACE_DAYS + 1);
+    const nextDecayDate = habit.lastDecayAt ? this.addDays(habit.lastDecayAt, 1) : decayStartDate;
+    const effectiveStart = this.maxDateString(decayStartDate, nextDecayDate);
+
+    if (this.compareDateStrings(effectiveStart, decayEndDate) > 0) return habit;
+
+    const decayDays = this.getDaysBetween(effectiveStart, decayEndDate) + 1;
+    if (decayDays <= 0) return habit;
+
+    if (habit.tags && habit.tags.length > 0) {
+      const skillDelta = this.getSkillPointsForDifficulty(habit.difficultyRating);
+      const totalDelta = -(skillDelta * this.HABIT_DECAY_MULTIPLIER * decayDays);
+      await this.applySkillPointDelta(habit.userId, habit.tags, totalDelta);
+    }
+
+    const [updated] = await db
+      .update(habits)
+      .set({ lastDecayAt: decayEndDate })
+      .where(eq(habits.id, habit.id))
+      .returning();
+
+    return updated || habit;
+  }
+
   async getUserProgress(userId: string): Promise<{ level: number; xp: number; xpToNext: number } | undefined> {
     await this.ensureInitialized();
     const user = await this.getUser(userId);
@@ -327,17 +373,19 @@ export class DatabaseStorage implements IStorage {
     const yesterday = getYesterdayKey(zone);
 
     const updatedHabits = await Promise.all(userHabits.map(async (habit) => {
+      let currentHabit = habit;
       // If the habit wasn't completed yesterday or today, the streak should be reset
-      if (habit.streak > 0 && habit.lastCompleted !== today && habit.lastCompleted !== yesterday) {
+      if (currentHabit.streak > 0 && currentHabit.lastCompleted !== today && currentHabit.lastCompleted !== yesterday) {
         // Reset the streak in the database
         const [updated] = await db
           .update(habits)
           .set({ streak: 0 })
-          .where(eq(habits.id, habit.id))
+          .where(eq(habits.id, currentHabit.id))
           .returning();
-        return updated;
+        currentHabit = updated || currentHabit;
       }
-      return habit;
+
+      return await this.applyHabitDecay(currentHabit, today);
     }));
 
     return updatedHabits;
@@ -354,17 +402,18 @@ export class DatabaseStorage implements IStorage {
     const yesterday = getYesterdayKey(zone);
 
     // If the habit wasn't completed yesterday or today, the streak should be reset
-    if (habit.streak > 0 && habit.lastCompleted !== today && habit.lastCompleted !== yesterday) {
+    let currentHabit = habit;
+    if (currentHabit.streak > 0 && currentHabit.lastCompleted !== today && currentHabit.lastCompleted !== yesterday) {
       // Reset the streak in the database
       const [updated] = await db
         .update(habits)
         .set({ streak: 0 })
-        .where(eq(habits.id, habit.id))
+        .where(eq(habits.id, currentHabit.id))
         .returning();
-      return updated;
+      currentHabit = updated || currentHabit;
     }
 
-    return habit;
+    return await this.applyHabitDecay(currentHabit, today);
   }
 
   async createHabit(insertHabit: InsertHabit): Promise<Habit> {
@@ -1168,7 +1217,8 @@ export class DatabaseStorage implements IStorage {
           totalCompletions: newTotalCompletions,
           completionRate,
           badges: newBadges,
-          lastCompleted: completed ? date : habit.lastCompleted
+          lastCompleted: completed ? date : habit.lastCompleted,
+          lastDecayAt: completed ? date : habit.lastDecayAt,
         })
         .where(and(eq(habits.id, habitId), eq(habits.userId, effectiveUserId)))
         .returning();

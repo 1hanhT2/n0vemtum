@@ -64,6 +64,7 @@ export const habits = pgTable("habits", {
   tier: text("tier").notNull().default("bronze"), // bronze, silver, gold, platinum, diamond
   badges: text("badges").array().notNull().default([]), // earned badges for this habit
   lastCompleted: text("last_completed"), // YYYY-MM-DD
+  lastDecayAt: text("last_decay_at"), // YYYY-MM-DD
   createdAt: timestamp("created_at").defaultNow(),
 });
 
