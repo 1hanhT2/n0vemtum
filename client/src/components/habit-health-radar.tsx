@@ -201,13 +201,13 @@ export function HabitHealthRadar({ habits }: HabitHealthRadarProps) {
                 {overallScore < 40 && (
                   <p>• Focus on building consistency with easier habits first</p>
                 )}
-                {healthData.find(d => d.metric === 'Current Streaks')?.value < 30 && (
+                {(healthData.find(d => d.metric === 'Current Streaks')?.value ?? 0) < 30 && (
                   <p>• Work on maintaining daily streaks for better momentum</p>
                 )}
-                {healthData.find(d => d.metric === 'Completion Rate')?.value < 50 && (
+                {(healthData.find(d => d.metric === 'Completion Rate')?.value ?? 0) < 50 && (
                   <p>• Consider reducing habit difficulty or frequency</p>
                 )}
-                {healthData.find(d => d.metric === 'Consistency')?.value < 40 && (
+                {(healthData.find(d => d.metric === 'Consistency')?.value ?? 0) < 40 && (
                   <p>• Try habit stacking or environmental cues for consistency</p>
                 )}
                 {overallScore >= 80 && (

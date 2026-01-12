@@ -20,7 +20,9 @@ export function useUnlockAchievement() {
   
   return useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest("POST", `/api/achievements/${id}/unlock`, {});
+      const response = await apiRequest(`/api/achievements/${id}/unlock`, {
+        method: "POST",
+      });
       return response.json();
     },
     onSuccess: () => {

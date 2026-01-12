@@ -189,7 +189,7 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
 
     try {
       if (weeklyReview) {
-        await updateWeeklyReview.mutateAsync({ weekStartDate, ...reviewData });
+        await updateWeeklyReview.mutateAsync({ ...reviewData });
       } else {
         await createWeeklyReview.mutateAsync(reviewData);
       }

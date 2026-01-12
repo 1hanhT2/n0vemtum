@@ -188,11 +188,18 @@ function normalizeSuggestions(raw: any[]): any[] {
   }).filter(Boolean);
 }
 
+type WeeklyInsights = {
+  patterns: string;
+  strengths: string;
+  improvements: string;
+  motivation: string;
+};
+
 export async function generateWeeklyInsights(
   dailyEntries: DailyEntry[], 
   habits: Habit[],
   personalization?: string
-): Promise<string> {
+): Promise<WeeklyInsights> {
   const personalizationBlock = formatPersonalizationContext(personalization);
   const completionData = dailyEntries.map(entry => ({
     date: entry.date,
@@ -235,7 +242,7 @@ Output ONLY valid JSON with insights:
         return JSON.parse(objectMatch[0]);
       } catch (parseError) {
         // If JSON parsing fails, create structured response from text
-        const insights = {
+        const insights: WeeklyInsights = {
           patterns: extractInsight(response, 'patterns') || 'Consistent habit completion observed',
           strengths: extractInsight(response, 'strengths') || 'Good dedication to daily routines',
           improvements: extractInsight(response, 'improvements') || 'Continue building momentum',
@@ -254,7 +261,7 @@ Output ONLY valid JSON with insights:
         ) / (dailyEntries.length * habits.length)) * 100 
       : 0;
 
-    return JSON.stringify({
+    return {
       patterns: completionRate > 80 
         ? "Strong consistency pattern observed in your habit tracking."
         : "Room for improvement in maintaining daily consistency.",
@@ -265,7 +272,7 @@ Output ONLY valid JSON with insights:
       motivation: completionRate > 70 
         ? "Your dedication is paying off - keep up the excellent work!"
         : "Every day is a new opportunity to strengthen your habits."
-    });
+    };
   }
 }
 

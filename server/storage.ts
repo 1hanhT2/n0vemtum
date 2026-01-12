@@ -1,5 +1,6 @@
 import {
   habits,
+  skillPointsHistory,
   goals,
   chatMessages,
   dailyEntries,
@@ -10,6 +11,7 @@ import {
   users,
   subtasks,
   type Habit,
+  type SkillPointHistory,
   type InsertHabit,
   type Goal,
   type InsertGoal,
@@ -36,11 +38,14 @@ import { eq, and, gte, lte, not, desc } from "drizzle-orm";
 import { generateHabitSuggestions } from "./ai";
 import { getTodayKey as getTodayKeyForZone, getYesterdayKey, normalizeTimeZone } from "@shared/time";
 
+type DbExecutor = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
+
 export interface IStorage {
   // User operations (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   getUserProgress(userId: string): Promise<{ level: number; xp: number; xpToNext: number } | undefined>;
+  getSkillPointsHistory(userId: string, startDate?: string, endDate?: string): Promise<SkillPointHistory[]>;
 
   // Habits
   getHabits(userId: string, timeZone?: string): Promise<Habit[]>;
@@ -59,7 +64,7 @@ export interface IStorage {
 
   // Gamification
   updateHabitProgress(habitId: number, completed: boolean, date: string, userId?: string, timeZone?: string): Promise<Habit>;
-  levelUpHabit(habitId: number, userId: string): Promise<Habit>;
+  levelUpHabit(habitId: number, userId: string, timeZone?: string): Promise<Habit>;
   awardBadge(habitId: number, badge: string, userId: string): Promise<Habit>;
   calculateTierPromotion(habitId: number, userId: string): Promise<Habit>;
 
@@ -246,7 +251,8 @@ export class DatabaseStorage implements IStorage {
     userId: string,
     tags: string[],
     delta: number,
-    executor: typeof db = db
+    executor: DbExecutor = db,
+    context?: { reason?: string; date?: string }
   ): Promise<void> {
     if (!tags?.length || delta === 0) return;
 
@@ -271,13 +277,35 @@ export class DatabaseStorage implements IStorage {
 
     const nextStats = { ...(userRecord.stats as Record<string, number>) };
     const uniqueTags = Array.from(new Set(tags));
+    const historyRows: Array<{
+      userId: string;
+      tag: string;
+      delta: number;
+      value: number;
+      reason: string;
+      date: string;
+    }> = [];
+    const reason = context?.reason ?? "adjustment";
+    const entryDate = context?.date ?? getTodayKeyForZone("UTC");
 
     uniqueTags.forEach((tag) => {
       const statKey = statMap[tag];
       if (!statKey) return;
       const current = typeof nextStats[statKey] === "number" ? nextStats[statKey] : 10;
       const updated = this.normalizeStatValue(current + delta);
-      nextStats[statKey] = Math.max(10, updated);
+      const nextValue = Math.max(10, updated);
+      const appliedDelta = this.normalizeStatValue(nextValue - current);
+      nextStats[statKey] = nextValue;
+      if (appliedDelta !== 0) {
+        historyRows.push({
+          userId,
+          tag,
+          delta: appliedDelta,
+          value: nextValue,
+          reason,
+          date: entryDate,
+        });
+      }
     });
 
     const bonusXp = typeof userRecord.bonusXp === "number" ? Math.max(0, userRecord.bonusXp) : 0;
@@ -293,6 +321,10 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
+
+    if (historyRows.length > 0) {
+      await executor.insert(skillPointsHistory).values(historyRows);
+    }
   }
 
   private async applyHabitDecay(habit: Habit, today: string): Promise<Habit> {
@@ -313,7 +345,10 @@ export class DatabaseStorage implements IStorage {
     if (habit.tags && habit.tags.length > 0) {
       const skillDelta = this.getSkillPointsForDifficulty(habit.difficultyRating);
       const totalDelta = -(skillDelta * this.HABIT_DECAY_MULTIPLIER * decayDays);
-      await this.applySkillPointDelta(habit.userId, habit.tags, totalDelta);
+      await this.applySkillPointDelta(habit.userId, habit.tags, totalDelta, db, {
+        reason: "habit-decay",
+        date: decayEndDate,
+      });
     }
 
     const [updated] = await db
@@ -331,6 +366,25 @@ export class DatabaseStorage implements IStorage {
     if (!user) return undefined;
     const bonusXp = typeof (user as any).xp === "number" ? Math.max(0, (user as any).xp) : 0;
     return this.calculateUserProgressFromStats(user.stats as Record<string, number>, bonusXp);
+  }
+
+  async getSkillPointsHistory(userId: string, startDate?: string, endDate?: string): Promise<SkillPointHistory[]> {
+    await this.ensureInitialized();
+    const whereConditions = [eq(skillPointsHistory.userId, userId)];
+
+    if (startDate) {
+      whereConditions.push(gte(skillPointsHistory.date, startDate));
+    }
+
+    if (endDate) {
+      whereConditions.push(lte(skillPointsHistory.date, endDate));
+    }
+
+    return await db
+      .select()
+      .from(skillPointsHistory)
+      .where(and(...whereConditions))
+      .orderBy(desc(skillPointsHistory.date), desc(skillPointsHistory.createdAt), desc(skillPointsHistory.id));
   }
 
   private async initializeDefaults() {
@@ -1205,7 +1259,10 @@ export class DatabaseStorage implements IStorage {
       if (habit.tags && habit.tags.length > 0) {
         const skillDelta = this.getSkillPointsForDifficulty(habit.difficultyRating);
         const delta = completed ? skillDelta : -skillDelta;
-        await this.applySkillPointDelta(effectiveUserId, habit.tags, delta, tx);
+        await this.applySkillPointDelta(effectiveUserId, habit.tags, delta, tx, {
+          reason: completed ? "habit-completion" : "habit-undo",
+          date,
+        });
       }
 
       const [updatedHabit] = await tx
@@ -1235,7 +1292,7 @@ export class DatabaseStorage implements IStorage {
     return updatedHabit;
   }
 
-  async levelUpHabit(habitId: number, userId: string): Promise<Habit> {
+  async levelUpHabit(habitId: number, userId: string, timeZone = "UTC"): Promise<Habit> {
     await this.ensureInitialized();
 
     const habit = await this.getHabitById(habitId, userId);
@@ -1265,7 +1322,10 @@ export class DatabaseStorage implements IStorage {
     const tierPromotedHabit = await this.calculateTierPromotion(habitId, userId);
 
     if (tierPromotedHabit.tags && tierPromotedHabit.tags.length > 0) {
-      await this.applySkillPointDelta(userId, tierPromotedHabit.tags, 1);
+      await this.applySkillPointDelta(userId, tierPromotedHabit.tags, 1, db, {
+        reason: "tier-promotion",
+        date: getTodayKeyForZone(normalizeTimeZone(timeZone)),
+      });
     }
 
     return tierPromotedHabit;
@@ -1505,6 +1565,7 @@ export class DatabaseStorage implements IStorage {
       await db.delete(streaks);
       await db.delete(goals);
       await db.delete(chatMessages);
+      await db.delete(skillPointsHistory);
 
       // Reset achievements to unlocked state
       await db.update(achievements).set({
@@ -1547,6 +1608,7 @@ export class DatabaseStorage implements IStorage {
       await db.delete(streaks).where(eq(streaks.userId, userId));
       await db.delete(goals).where(eq(goals.userId, userId));
       await db.delete(chatMessages).where(eq(chatMessages.userId, userId));
+      await db.delete(skillPointsHistory).where(eq(skillPointsHistory.userId, userId));
 
       // Remove achievements entirely
       await db.delete(achievements).where(eq(achievements.userId, userId));

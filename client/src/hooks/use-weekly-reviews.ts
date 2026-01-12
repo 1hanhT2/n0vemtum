@@ -34,9 +34,10 @@ export function useWeeklyReview(weekStartDate: string) {
 
 export function useCreateWeeklyReview() {
   const queryClient = useQueryClient();
+  type WeeklyReviewInput = Omit<InsertWeeklyReview, "userId">;
   
   return useMutation({
-    mutationFn: async (review: InsertWeeklyReview) => {
+    mutationFn: async (review: WeeklyReviewInput) => {
       const response = await apiRequest("/api/weekly-reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -53,9 +54,10 @@ export function useCreateWeeklyReview() {
 
 export function useUpdateWeeklyReview() {
   const queryClient = useQueryClient();
+  type WeeklyReviewUpdate = Partial<Omit<InsertWeeklyReview, "userId">> & { weekStartDate: string };
   
   return useMutation({
-    mutationFn: async ({ weekStartDate, ...review }: Partial<InsertWeeklyReview> & { weekStartDate: string }) => {
+    mutationFn: async ({ weekStartDate, ...review }: WeeklyReviewUpdate) => {
       const response = await apiRequest(`/api/weekly-reviews/${weekStartDate}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

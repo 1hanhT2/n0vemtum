@@ -36,11 +36,11 @@ class AICache {
   // Clean up expired entries
   cleanup(): void {
     const now = Date.now();
-    for (const [key, item] of this.cache.entries()) {
+    this.cache.forEach((item, key) => {
       if (now - item.timestamp > item.ttl) {
         this.cache.delete(key);
       }
-    }
+    });
   }
 }
 

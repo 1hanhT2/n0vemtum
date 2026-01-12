@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, index, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -65,6 +65,17 @@ export const habits = pgTable("habits", {
   badges: text("badges").array().notNull().default([]), // earned badges for this habit
   lastCompleted: text("last_completed"), // YYYY-MM-DD
   lastDecayAt: text("last_decay_at"), // YYYY-MM-DD
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const skillPointsHistory = pgTable("skill_points_history", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  tag: text("tag").notNull(), // STR/AGI/INT/VIT/PER
+  delta: real("delta").notNull(),
+  value: real("value").notNull(),
+  reason: text("reason").notNull().default(""),
+  date: text("date").notNull(), // YYYY-MM-DD
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -220,6 +231,7 @@ export const insertSubtaskSchema = createInsertSchema(subtasks).omit({
 
 export type InsertHabit = z.infer<typeof insertHabitSchema>;
 export type Habit = typeof habits.$inferSelect;
+export type SkillPointHistory = typeof skillPointsHistory.$inferSelect;
 
 export type InsertGoal = z.infer<typeof insertGoalSchema>;
 export type Goal = typeof goals.$inferSelect;

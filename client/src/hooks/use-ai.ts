@@ -5,7 +5,7 @@ export function useHabitSuggestions(habitIds?: number[]) {
   // Create a stable key based on habit IDs to prevent unnecessary refetches
   const habitKey = habitIds?.sort().join(',') || 'no-habits';
   
-  return useQuery({
+  return useQuery<{ name: string; emoji: string; xp?: number; type?: string }[]>({
     queryKey: ["/api/ai/habit-suggestions", habitKey],
     staleTime: 30 * 60 * 1000, // 30 minutes - suggestions don't change often
     gcTime: 60 * 60 * 1000, // Keep in cache for 1 hour
@@ -34,9 +34,13 @@ export function useMotivationalMessage() {
       // Round completion rate to reduce cache misses for tiny differences
       const roundedRate = Math.round(completionRate * 100) / 100;
       
-      const response = await apiRequest("POST", "/api/ai/motivation", {
-        completionRate: roundedRate,
-        currentStreak,
+      const response = await apiRequest("/api/ai/motivation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          completionRate: roundedRate,
+          currentStreak,
+        }),
       });
       return response.json();
     },
@@ -50,9 +54,13 @@ export function useCachedMotivationalMessage(completionRate: number, currentStre
   return useQuery({
     queryKey: ["/api/ai/motivation", roundedRate, currentStreak],
     queryFn: async () => {
-      const response = await apiRequest("POST", "/api/ai/motivation", {
-        completionRate: roundedRate,
-        currentStreak,
+      const response = await apiRequest("/api/ai/motivation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          completionRate: roundedRate,
+          currentStreak,
+        }),
       });
       return response.json();
     },

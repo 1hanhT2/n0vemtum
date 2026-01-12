@@ -51,7 +51,11 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
   const createHabit = useCreateHabit();
   const deleteHabit = useDeleteHabit();
   const { data: aiSuggestions, isLoading: suggestionsLoading } = isGuestMode
-    ? { data: ["Try morning journaling", "Practice gratitude daily", "Take evening walks"], isLoading: false }
+    ? { data: [
+        { name: "Try morning journaling", emoji: "📝" },
+        { name: "Practice gratitude daily", emoji: "🙏" },
+        { name: "Take evening walks", emoji: "🚶" },
+      ], isLoading: false }
     : useHabitSuggestions();
   const queryClient = useQueryClient();
   const { data: userSettings } = useQuery<any[]>({
@@ -363,7 +367,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
     }
   };
 
-  const themes = [
+  const themes: Array<{ key: ThemeKey; name: string; color: string }> = [
     { key: 'blue', name: 'Blue', color: 'bg-blue-500' },
     { key: 'green', name: 'Green', color: 'bg-green-500' },
     { key: 'purple', name: 'Purple', color: 'bg-purple-500' },

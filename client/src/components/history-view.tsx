@@ -8,13 +8,15 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDailyEntries } from "@/hooks/use-daily-entries";
 import { useHabits } from "@/hooks/use-habits";
-import { formatDate } from "@/lib/utils";
+import { useSkillPointsHistory } from "@/hooks/use-skill-points-history";
+import { formatDate, formatDateShort } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Eye, CheckCircle, XCircle, Clock, BarChart3, TrendingUp, History as HistoryIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { getMockHabits } from "@/lib/mockData";
+import { getMockHabits, getMockSkillPointsHistory } from "@/lib/mockData";
 import { useTimeZone } from "@/hooks/use-timezone";
 import { getDateKeyForZone } from "@/lib/utils";
+import { getHabitTagConfig } from "@/lib/habit-tags";
 
 interface HistoryViewProps {
   isGuestMode?: boolean;
@@ -38,8 +40,11 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
     ? { data: [], isLoading: false }
     : useDailyEntries(monthStart, monthEnd, timeZone);
   const { data: habits = [] } = isGuestMode
-    ? { data: getMockHabits(), isLoading: false }
+    ? { data: getMockHabits() }
     : useHabits();
+  const { data: skillPointsHistory = [], isLoading: isSkillHistoryLoading } = isGuestMode
+    ? { data: getMockSkillPointsHistory(monthStart, monthEnd), isLoading: false }
+    : useSkillPointsHistory(monthStart, monthEnd, timeZone);
 
   const selectedEntry = useMemo(() => {
     if (!selectedDate) return null;
@@ -94,6 +99,30 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
     if (score >= 4) return "text-green-600 dark:text-green-400";
     if (score >= 3) return "text-yellow-600 dark:text-yellow-400";
     return "text-red-600 dark:text-red-400";
+  };
+
+  const formatSkillValue = (value: number) => {
+    return Number.isInteger(value) ? value.toString() : value.toFixed(1);
+  };
+
+  const formatSkillDelta = (delta: number) => {
+    const formatted = formatSkillValue(Math.abs(delta));
+    return `${delta >= 0 ? "+" : "-"}${formatted}`;
+  };
+
+  const getSkillReasonLabel = (reason?: string) => {
+    switch (reason) {
+      case "habit-completion":
+        return "Habit completed";
+      case "habit-undo":
+        return "Habit unchecked";
+      case "habit-decay":
+        return "Decay applied";
+      case "tier-promotion":
+        return "Tier promotion";
+      default:
+        return "Adjustment";
+    }
   };
 
   const renderCalendar = () => {
@@ -234,6 +263,78 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Skill Points History */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <BarChart3 className="w-5 h-5" />
+            <span>Skill Points History</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isSkillHistoryLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <Skeleton key={index} className="h-14 w-full" />
+              ))}
+            </div>
+          ) : skillPointsHistory.length > 0 ? (
+            <ScrollArea className="h-64 pr-4 settings-scroll">
+              <div className="space-y-3">
+                {skillPointsHistory.map((entry) => {
+                  const tagConfig = getHabitTagConfig(entry.tag);
+                  const deltaClass = entry.delta >= 0
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-red-600 dark:text-red-400";
+
+                  return (
+                    <div
+                      key={entry.id}
+                      className="flex items-center justify-between rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/70 p-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Badge
+                          variant="outline"
+                          className={tagConfig?.className ?? "bg-gray-100 text-gray-600 border-gray-200 dark:text-gray-300"}
+                        >
+                          {tagConfig?.label ?? entry.tag}
+                        </Badge>
+                        <div>
+                          <div className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                            {getSkillReasonLabel(entry.reason)}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatDateShort(entry.date)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-sm font-semibold ${deltaClass}`}>
+                          {formatSkillDelta(entry.delta)}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          Total {formatSkillValue(entry.value)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          ) : (
+            <div className="text-center py-6">
+              <BarChart3 className="w-10 h-10 mx-auto text-gray-400 mb-3" />
+              <h3 className="text-base font-medium text-gray-700 dark:text-gray-300 mb-1">
+                No Skill Changes Yet
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Complete habits to start building your skill point history.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Calendar Grid */}
       <Card>
@@ -405,7 +506,8 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {habits.map((habit, index) => {
-                          const isCompleted = selectedEntry.habitCompletions?.[habit.id] || false;
+                          const completionMap = selectedEntry.habitCompletions as Record<string, boolean> | undefined;
+                          const isCompleted = completionMap?.[habit.id.toString()] || false;
                           return (
                             <motion.div 
                               key={habit.id} 

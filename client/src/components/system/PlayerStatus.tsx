@@ -9,6 +9,14 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useRanks } from "@/hooks/use-ranks";
 
+type NormalizedChallenge = {
+  key: string;
+  label: string;
+  xp: number;
+  completed: boolean;
+  id: number | string;
+};
+
 export function PlayerStatus() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -35,7 +43,7 @@ export function PlayerStatus() {
     },
   });
 
-  const normalizedChallenges = useMemo(() => {
+  const normalizedChallenges = useMemo<NormalizedChallenge[]>(() => {
     return (challengesData?.challenges || []).map((challenge: any, idx: number) => {
       if (typeof challenge === "string") {
         return { key: challenge, label: challenge, xp: 15, completed: false, id: idx + 1 };

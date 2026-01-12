@@ -54,6 +54,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch user progress" });
     }
   });
+
+  app.get('/api/skill-points/history', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { start_date, end_date } = req.query;
+      const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+      const startDate = typeof start_date === "string" && datePattern.test(start_date) ? start_date : undefined;
+      const endDate = typeof end_date === "string" && datePattern.test(end_date) ? end_date : undefined;
+
+      if (start_date && !startDate) {
+        res.status(400).json({ error: "Invalid start_date format" });
+        return;
+      }
+      if (end_date && !endDate) {
+        res.status(400).json({ error: "Invalid end_date format" });
+        return;
+      }
+
+      const history = await storage.getSkillPointsHistory(userId, startDate, endDate);
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching skill points history:", error);
+      res.status(500).json({ message: "Failed to fetch skill points history" });
+    }
+  });
   
   app.get('/api/ranks', isAuthenticated, async (req: any, res) => {
     try {
@@ -129,7 +154,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const userId = req.user.claims.sub;
-      const habit = await storage.levelUpHabit(id, userId);
+      const timeZone = getRequestTimeZone(req);
+      const habit = await storage.levelUpHabit(id, userId, timeZone);
       const progress = await storage.getUserProgress(userId);
       const user = await storage.getUser(userId);
       if (progress) {
