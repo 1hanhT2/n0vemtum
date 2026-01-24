@@ -228,13 +228,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   private addDays(dateStr: string, days: number): string {
-    const date = new Date(dateStr);
-    date.setDate(date.getDate() + days);
+    // Parse as UTC to avoid timezone issues
+    const date = new Date(dateStr + 'T00:00:00Z');
+    date.setUTCDate(date.getUTCDate() + days);
     return date.toISOString().split("T")[0];
   }
 
   private compareDateStrings(a: string, b: string): number {
-    return new Date(a).getTime() - new Date(b).getTime();
+    // Parse as UTC to avoid timezone issues with date-only strings
+    return new Date(a + 'T00:00:00Z').getTime() - new Date(b + 'T00:00:00Z').getTime();
   }
 
   private maxDateString(a: string, b: string): string {
@@ -252,7 +254,7 @@ export class DatabaseStorage implements IStorage {
     tags: string[],
     delta: number,
     executor: DbExecutor = db,
-    context?: { reason?: string; date?: string }
+    context?: { reason?: string; date?: string; recordEvenIfNoChange?: boolean }
   ): Promise<void> {
     if (!tags?.length || delta === 0) return;
 
@@ -287,6 +289,7 @@ export class DatabaseStorage implements IStorage {
     }> = [];
     const reason = context?.reason ?? "adjustment";
     const entryDate = context?.date ?? getTodayKeyForZone("UTC");
+    const recordEvenIfNoChange = context?.recordEvenIfNoChange ?? false;
 
     uniqueTags.forEach((tag) => {
       const statKey = statMap[tag];
@@ -296,13 +299,15 @@ export class DatabaseStorage implements IStorage {
       const nextValue = Math.max(10, updated);
       const appliedDelta = this.normalizeStatValue(nextValue - current);
       nextStats[statKey] = nextValue;
-      if (appliedDelta !== 0) {
+      
+      // Record history if there was a change OR if explicitly requested (for decay at floor)
+      if (appliedDelta !== 0 || recordEvenIfNoChange) {
         historyRows.push({
           userId,
           tag,
-          delta: appliedDelta,
+          delta: appliedDelta !== 0 ? appliedDelta : delta, // Show intended delta if at floor
           value: nextValue,
-          reason,
+          reason: appliedDelta === 0 && recordEvenIfNoChange ? `${reason} (at min)` : reason,
           date: entryDate,
         });
       }
@@ -342,20 +347,30 @@ export class DatabaseStorage implements IStorage {
     const decayDays = this.getDaysBetween(effectiveStart, decayEndDate) + 1;
     if (decayDays <= 0) return habit;
 
-    if (habit.tags && habit.tags.length > 0) {
-      const skillDelta = this.getSkillPointsForDifficulty(habit.difficultyRating);
-      const totalDelta = -(skillDelta * this.HABIT_DECAY_MULTIPLIER * decayDays);
-      await this.applySkillPointDelta(habit.userId, habit.tags, totalDelta, db, {
-        reason: "habit-decay",
-        date: decayEndDate,
-      });
-    }
+    // Wrap all decay operations in a transaction for consistency
+    const updated = await db.transaction(async (tx) => {
+      if (habit.tags && habit.tags.length > 0) {
+        const skillDeltaPerDay = this.getSkillPointsForDifficulty(habit.difficultyRating) * this.HABIT_DECAY_MULTIPLIER;
+        
+        // Apply decay for each individual day to create proper history entries
+        for (let i = 0; i < decayDays; i++) {
+          const decayDate = this.addDays(effectiveStart, i);
+          await this.applySkillPointDelta(habit.userId, habit.tags, -skillDeltaPerDay, tx, {
+            reason: "habit-decay",
+            date: decayDate,
+            recordEvenIfNoChange: true, // Record decay even when stats are at floor
+          });
+        }
+      }
 
-    const [updated] = await db
-      .update(habits)
-      .set({ lastDecayAt: decayEndDate })
-      .where(eq(habits.id, habit.id))
-      .returning();
+      const [updatedHabit] = await tx
+        .update(habits)
+        .set({ lastDecayAt: decayEndDate })
+        .where(eq(habits.id, habit.id))
+        .returning();
+
+      return updatedHabit;
+    });
 
     return updated || habit;
   }
@@ -1425,16 +1440,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   private getPreviousDate(dateStr: string): string {
-    const date = new Date(dateStr);
-    date.setDate(date.getDate() - 1);
+    // Parse as UTC to avoid timezone issues
+    const date = new Date(dateStr + 'T00:00:00Z');
+    date.setUTCDate(date.getUTCDate() - 1);
     return date.toISOString().split('T')[0];
   }
 
   private getDaysBetween(startDate: string, endDate: string): number {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    // Parse date strings as UTC to avoid timezone issues
+    const start = new Date(startDate + 'T00:00:00Z');
+    const end = new Date(endDate + 'T00:00:00Z');
+    const diffTime = end.getTime() - start.getTime();
+    // Use Math.round to handle any floating point precision issues
+    return Math.round(Math.abs(diffTime) / (1000 * 60 * 60 * 24));
   }
 
   private ACHIEVEMENT_BASE_XP: Record<string, number> = {

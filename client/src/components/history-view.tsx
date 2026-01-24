@@ -111,18 +111,30 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
   };
 
   const getSkillReasonLabel = (reason?: string) => {
-    switch (reason) {
+    if (!reason) return "Adjustment";
+    
+    // Handle "(at min)" suffix for decay at floor
+    const isAtMin = reason.endsWith("(at min)");
+    const baseReason = isAtMin ? reason.replace(" (at min)", "") : reason;
+    
+    let label: string;
+    switch (baseReason) {
       case "habit-completion":
-        return "Habit completed";
+        label = "Habit completed";
+        break;
       case "habit-undo":
-        return "Habit unchecked";
+        label = "Habit unchecked";
+        break;
       case "habit-decay":
-        return "Decay applied";
+        label = isAtMin ? "Decay (at minimum)" : "Decay applied";
+        break;
       case "tier-promotion":
-        return "Tier promotion";
+        label = "Tier promotion";
+        break;
       default:
-        return "Adjustment";
+        label = "Adjustment";
     }
+    return label;
   };
 
   const renderCalendar = () => {
