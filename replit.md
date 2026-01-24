@@ -139,6 +139,12 @@ Preferred communication style: Simple, everyday language.
   - Added proper error handling for localStorage operations
   - Fixed memory leak potential in debounced functions
   - Corrected hardcoded user ID in badge system
+✓ Fixed skill points decay and history features:
+  - Decay now records individual history entries for each day of missed habits
+  - Decay operations wrapped in transactions for data consistency
+  - Fixed date calculations to use UTC consistently (avoiding timezone issues)
+  - History entries now recorded even when stats are at minimum floor (10)
+  - Frontend displays "Decay (at minimum)" for decay events at stat floor
 
 ## Changelog
 
@@ -148,4 +154,5 @@ Changelog:
 - January 21, 2025: Fixed AI insights display, completed achievement system implementation
 - January 21, 2025: Implemented comprehensive request protection and rate limiting to handle button spam
 - January 21, 2025: Resolved all runtime errors and stabilized application with proper hook implementations
+- January 24, 2026: Fixed skill points decay and history recording with individual day entries and transaction consistency
 ```
