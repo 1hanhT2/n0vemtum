@@ -1,0 +1,52 @@
+Here are **layout and aesthetic** improvements to elevate the visual design:
+
+## Feature Grid (Image 4)
+
+**Grid Structure**
+- **Kill the 3×2 symmetry** — it's too predictable. Shift to a **bento-box layout**: Make "Protocol Definition" and "AI Analysis" **2× height cards** on the left/right, with four standard cards in the middle. This mirrors the "System" dashboard complexity shown in the interface images.
+- **Overlap the cards slightly** with negative margins to create depth layers, or **stagger them vertically** (odd cards 20px higher than even) to break the rigid grid line.
+
+**Card Aesthetic**
+- **Depth treatment**: Current cards are flat white slabs. Add **subtle frosted glass** (backdrop-filter: blur) with 1px borders that are **teal-tinted at the corners only** (gradient border effect) — suggesting a high-tech interface panel.
+- **Icon upgrade**: Replace gray circle backgrounds with **holographic-style hexagons** or **subtle animated glow rings** in teal (`rgba(teal, 0.15)`). The line icons are too thin; stroke them at 2px or fill them with a gradient.
+- **Typography hierarchy**: Reduce body text size by 10% and increase title weight. Add **monospace subtitles** (e.g., "MODULE 01") above each title in small teal caps to reinforce the terminal aesthetic.
+
+**Background**
+- Switch from flat gray to **noise-textured cream** (the warm off-white from Image 3) with a **subtle topographic/dot grid pattern** at 3% opacity — suggests you're looking at a technical blueprint.
+
+---
+
+## Testimonial Section (Image 5)
+
+**Layout Corrections**
+- **Full-width bleed**: Extend the background to viewport edges but **narrow the content** to max 720px. The current container feels like it's floating in space without purpose.
+- **Asymmetric composition**: Move the large teal quote mark to the **side margin** (left or right) rather than floating above, and scale it to 40% opacity as a textural element behind the quote, not an UI element.
+- **Vertical rhythm**: Increase padding top/bottom by 50%. Testimonials need breathing room to feel impactful.
+
+**Aesthetic Alignment**
+- **Background clash fix**: That cool gray (`#d1d5db` vibe) fights the warm ivory (`#f5f5f0`) from the hero section. Shift to **deep charcoal** (`#1a1a1a`) with **teal accent lighting** (radial gradient from center, subtle) to match the dark dashboard aesthetic from the app screenshots.
+- **Glassmorphism card**: Place the quote inside a **dark glass panel** (translucent black with blur) instead of solid white — maintains the "System" UI language from the logged-in view.
+- **Pagination dots**: Replace boring circles with **horizontal progress bars** or **hexagonal indicators** that fill with teal gradually (micro-animation suggestion).
+
+**Avatar Treatment**
+- The gray "S8" circle is 2015 design. Replace with a **generative geometric portrait** (abstract nodes/connections pattern) inside a **clipped hexagon or squircle** with a **teal status ring** around it (60% complete stroke) to suggest the user is "in progress."
+
+---
+
+## Cross-Section Consistency
+
+**Color Palette Lock**
+You have **three competing backgrounds** across screenshots: dark navy/black (app), warm cream (hero), cool gray (testimonial). **Consolidate to two**:
+1. **Warm ivory/cream** (`#f7f5f0`) for marketing sections
+2. **Deep navy/charcoal** (`#0f1115`) for "System" interface elements and contrast sections
+
+**Border Language**
+Add **1px hairlines** (`rgba(teal, 0.2)`) to divide sections rather than color blocking — suggests a technical interface with panel divisions.
+
+**Spacing System**
+Establish a **8px grid rhythm**. The feature grid cards feel like they're using arbitrary padding. Tighten internal padding to 32px consistent, and ensure 64px between card groups.
+
+**Visual Texture**
+Add a **scan-line effect** or **subtle grid overlay** (CSS `linear-gradient` pattern) to the feature section to suggest you're looking at a digital interface, not a printed brochure.
+
+**Critical fix**: Align the testimonial background with either the warm hero or dark app interface — the current gray is the weakest visual element in the flow.

@@ -149,26 +149,28 @@ export function Landing() {
              <SystemLogo variant="wordmark" className="scale-90 origin-left" />
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
-            <a href="#features" className="text-gray-600 dark:text-white/60 hover:text-teal-dark dark:hover:text-primary transition-colors">
+            <a href="#features" data-testid="link-nav-modules" className="text-gray-600 dark:text-white/60 hover-elevate px-2 py-1 rounded transition-colors">
               Modules
             </a>
-            <a href="#stats" className="text-gray-600 dark:text-white/60 hover:text-teal-dark dark:hover:text-primary transition-colors">
+            <a href="#stats" data-testid="link-nav-metrics" className="text-gray-600 dark:text-white/60 hover-elevate px-2 py-1 rounded transition-colors">
               Metrics
             </a>
-            <a href="#testimonials" className="text-gray-600 dark:text-white/60 hover:text-teal-dark dark:hover:text-primary transition-colors">
+            <a href="#testimonials" data-testid="link-nav-logs" className="text-gray-600 dark:text-white/60 hover-elevate px-2 py-1 rounded transition-colors">
               Logs
             </a>
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-full text-gray-600 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+              data-testid="button-theme-toggle"
+              className="p-2 rounded-full text-gray-600 dark:text-white/60 hover-elevate transition-colors"
               aria-label="Toggle theme"
             >
               {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
             <Button
               onClick={handleLogin}
+              data-testid="button-login-header"
               variant="default"
-              className="bg-teal text-white hover:bg-teal-dark dark:bg-primary dark:text-[#0b0d12] dark:hover:bg-primary/90 rounded-full px-6 shadow-none transition-all"
+              className="bg-teal text-white dark:bg-primary dark:text-[#0b0d12] rounded-full px-6 shadow-none"
             >
               Initialize Log in
             </Button>
@@ -196,16 +198,18 @@ export function Landing() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20">
             <Button
               onClick={handleLogin}
+              data-testid="button-begin-initialization"
               size="lg"
-              className="bg-teal hover:bg-teal-dark dark:bg-primary dark:text-[#0b0d12] dark:hover:bg-primary/90 text-white rounded-full px-8 py-6 text-lg shadow-sm transition-all hover:shadow-md dark:shadow-[0_0_20px_rgba(137,247,216,0.3)]"
+              className="bg-teal text-white dark:bg-primary dark:text-[#0b0d12] rounded-full px-8 py-6 text-lg shadow-sm dark:shadow-[0_0_20px_rgba(137,247,216,0.3)]"
             >
               Begin Initialization
             </Button>
             <Button
               onClick={() => setLocation("/demo")}
+              data-testid="button-observe-simulation"
               variant="outline"
               size="lg"
-              className="border-gray-300 dark:border-white/20 text-gray-700 dark:text-white hover:border-gray-400 dark:hover:bg-white/5 hover:bg-gray-50 rounded-full px-8 py-6 text-lg bg-transparent"
+              className="border-gray-300 dark:border-white/20 text-gray-700 dark:text-white rounded-full px-8 py-6 text-lg bg-transparent"
             >
               Observe Simulation
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -238,7 +242,8 @@ export function Landing() {
                           tabIndex={0}
                           onClick={() => handleHabitSelect(i)}
                           onKeyDown={(event) => handleKeySelect(event, i)}
-                          className={`flex items-center justify-between p-3 rounded-lg border shadow-sm cursor-pointer transition-all ${isActive ? 'border-primary/60 ring-2 ring-primary/30 dark:border-primary/60 bg-white/70 dark:bg-white/10' : 'border-gray-100 dark:border-white/5 bg-white dark:bg-white/5 hover:border-primary/40 dark:hover:border-primary/40'}`}
+                          data-testid={`card-habit-${i}`}
+                          className={`flex items-center justify-between p-3 rounded-lg border shadow-sm cursor-pointer transition-all hover-elevate ${isActive ? 'border-primary/60 ring-2 ring-primary/30 dark:border-primary/60 bg-white/70 dark:bg-white/10' : 'border-gray-100 dark:border-white/5 bg-white dark:bg-white/5'}`}
                           aria-pressed={isActive}
                         >
                           <div className="flex items-center gap-3">
@@ -248,6 +253,7 @@ export function Landing() {
                                 e.stopPropagation();
                                 handleHabitToggle(i);
                               }}
+                              data-testid={`button-habit-toggle-${i}`}
                               className={`w-7 h-7 rounded-full flex items-center justify-center border focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors ${habit.done ? 'bg-teal dark:bg-primary border-teal dark:border-primary text-white dark:text-[#0b0d12]' : 'border-gray-300 dark:border-white/30 text-gray-400 dark:text-white/50'}`}
                               aria-pressed={habit.done}
                               aria-label={`Mark ${habit.name} as ${habit.done ? "not done" : "done"}`}
@@ -299,6 +305,7 @@ export function Landing() {
                         max={100}
                         value={activeHabit.compliance}
                         onChange={(event) => handleComplianceChange(Number(event.target.value))}
+                        data-testid="input-compliance-slider"
                         className="mt-3 w-full accent-primary cursor-pointer compliance-slider"
                         aria-label="Adjust compliance rate"
                       />
@@ -312,7 +319,7 @@ export function Landing() {
 
         <div className="container mx-auto max-w-6xl mt-24 border-t border-gray-200 dark:border-white/10 pt-12">
           <p className="text-xs font-medium text-gray-400 dark:text-white/70 text-center uppercase tracking-widest mb-8">Utilized by operatives at</p>
-          <div className="flex flex-wrap items-center justify-center gap-10 md:gap-16 opacity-40 grayscale dark:opacity-100 dark:grayscale-0 transition-all hover:opacity-60 hover:grayscale-0 dark:invert">
+          <div className="flex flex-wrap items-center justify-center gap-10 md:gap-16 opacity-40 grayscale dark:opacity-100 dark:grayscale-0 transition-all dark:invert">
             <SiUber className="h-6 w-auto" />
             <SiAirbnb className="h-6 w-auto" />
             <SiDropbox className="h-8 w-auto" />
@@ -323,8 +330,11 @@ export function Landing() {
         </div>
       </section>
 
+      {/* Section Divider */}
+      <div className="section-divider"></div>
+
       {/* Stats Section */}
-      <section id="stats" className="py-24 px-6 bg-white dark:bg-white/5 border-y border-gray-100 dark:border-white/5">
+      <section id="stats" className="py-24 px-6 bg-[#f7f5f0] dark:bg-[#0f1115]">
         <div className="container mx-auto max-w-6xl">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[ 
@@ -332,118 +342,160 @@ export function Landing() {
               { label: "Protocols Tracked", value: "12k+", desc: "Daily commitments" },
               { label: "Success Rate", value: "95%", desc: "Goal completion" },
               { label: "System Rating", value: "4.9", desc: "Average score" }
-            ].map((item) => (
-              <div key={item.label} className="text-center md:text-left p-6 border-r last:border-r-0 border-gray-100 dark:border-white/10">
+            ].map((item, idx) => (
+              <div key={item.label} className={`text-center md:text-left p-6 ${idx < 3 ? 'border-r border-teal/10 dark:border-primary/10' : ''}`}>
                 <div className="text-4xl font-serif dark:font-mono font-medium text-teal dark:text-primary mb-2">{item.value}</div>
                 <div className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide">{item.label}</div>
-                <div className="text-sm text-gray-500 dark:text-white/70 mt-1">{item.desc}</div>
+                <div className="text-xs text-gray-500 dark:text-white/50 mt-1">{item.desc}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
+      {/* Section Divider */}
+      <div className="section-divider"></div>
+
       {/* Features Grid */}
-      <section id="features" className="py-32 px-6 relative overflow-hidden">
-        {/* Decorative Grid */}
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03] dark:opacity-[0.05] pointer-events-none"></div>
+      <section id="features" className="py-32 px-6 relative overflow-hidden noise-texture bg-[#f7f5f0] dark:bg-[#0f1115]">
+        {/* Dot grid pattern overlay */}
+        <div className="absolute inset-0 dot-grid-pattern pointer-events-none"></div>
+        {/* Scan lines overlay */}
+        <div className="absolute inset-0 scan-lines pointer-events-none"></div>
 
         <div className="container mx-auto max-w-6xl relative z-10">
           <div className="text-center mb-20">
+            <p className="text-xs font-mono text-teal dark:text-primary uppercase tracking-[0.2em] mb-4">System Modules</p>
             <h2 className="text-4xl font-serif dark:font-bold text-gray-900 dark:text-white mb-6">
               Everything required to <br/> maintain momentum.
             </h2>
-            <p className="text-lg text-gray-600 dark:text-white/60 max-w-2xl mx-auto">
+            <p className="text-base text-gray-600 dark:text-white/60 max-w-2xl mx-auto">
               A complete toolkit designed to help you analyze your behavior and optimize your output.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Bento Grid Layout */}
+          <div className="bento-grid">
             {[
               {
                 icon: Target,
+                module: "01",
                 title: "Protocol Definition",
-                desc: "Establish up to 23 habits with custom difficulty levels and track your daily adherence with visual feedback."
+                desc: "Establish up to 23 habits with custom difficulty levels and track your daily adherence with visual feedback.",
+                tall: true
               },
               {
                 icon: Trophy,
+                module: "02",
                 title: "Achievement Matrix",
                 desc: "Unlock 50+ badges, ascend through 10 tiers, and build lasting consistency."
               },
               {
                 icon: Brain,
+                module: "03",
                 title: "AI Analysis",
-                desc: "Receive personalized weekly intelligence and habit adjustments powered by advanced algorithms."
+                desc: "Receive personalized weekly intelligence and habit adjustments powered by advanced algorithms.",
+                tall: true
               },
               {
                 icon: BarChart3,
+                module: "04",
                 title: "Advanced Analytics",
                 desc: "Monitor completion rates, habit health scores, and long-term trends with precision visualization."
               },
               {
                 icon: TrendingUp,
+                module: "05",
                 title: "Progress Tracking",
                 desc: "Monitor daily, weekly, and monthly progress with streak counters and status indicators."
               },
               {
                 icon: Shield,
+                module: "06",
                 title: "Secure Database",
                 desc: "Your data is encrypted and secure. We never share your personal information with external entities."
               }
             ].map((feature, idx) => (
-              <div key={idx} className="group p-8 rounded-2xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 hover:border-teal/30 dark:hover:border-primary/50 hover:shadow-lg hover:shadow-teal/5 dark:hover:shadow-primary/10 transition-all duration-300 backdrop-blur-sm">
-                <div className="w-12 h-12 bg-cream dark:bg-white/10 rounded-lg flex items-center justify-center mb-6 group-hover:bg-teal dark:group-hover:bg-primary group-hover:text-white dark:group-hover:text-black transition-colors">
-                  <feature.icon className="h-6 w-6 text-gray-700 dark:text-white/80 group-hover:text-white dark:group-hover:text-black transition-colors" />
+              <div 
+                key={idx}
+                data-testid={`card-feature-${idx}`}
+                className={`group p-8 rounded-xl frosted-card hover-elevate transition-all duration-300 ${feature.tall ? 'bento-tall flex flex-col justify-between' : ''}`}
+              >
+                <div>
+                  <p className="text-[10px] font-mono text-teal dark:text-primary uppercase tracking-[0.15em] mb-4">Module {feature.module}</p>
+                  <div className="hex-icon mb-6">
+                    <feature.icon className="h-6 w-6 text-teal dark:text-primary relative z-10" strokeWidth={2} />
+                  </div>
+                  <h3 className="text-lg font-serif dark:font-mono font-medium text-gray-900 dark:text-white mb-3">{feature.title}</h3>
+                  <p className="text-gray-600 dark:text-white/50 leading-relaxed text-sm">
+                    {feature.desc}
+                  </p>
                 </div>
-                <h3 className="text-xl font-serif dark:font-mono font-medium text-gray-900 dark:text-white mb-3">{feature.title}</h3>
-                <p className="text-gray-600 dark:text-white/50 leading-relaxed text-sm">
-                  {feature.desc}
-                </p>
+                {feature.tall && (
+                  <div className="mt-6 pt-4 border-t border-gray-200/50 dark:border-white/5">
+                    <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-white/40 font-mono">
+                      <div className="w-2 h-2 rounded-full bg-teal dark:bg-primary animate-pulse"></div>
+                      <span>Active</span>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </div>
       </section>
 
+      {/* Section Divider */}
+      <div className="section-divider"></div>
+
       {/* Testimonials */}
-      <section id="testimonials" className="py-24 px-6 bg-teal-light/20 dark:bg-[#0b0d12] border-y border-teal/10 dark:border-white/10 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20 pointer-events-none"></div>
-        <div className="container mx-auto max-w-4xl text-center relative z-10">
-          <h2 className="text-3xl font-serif dark:font-mono text-gray-900 dark:text-white mb-16">
+      <section id="testimonials" className="py-36 px-6 bg-[#1a1a1a] relative overflow-hidden">
+        {/* Teal radial accent lighting */}
+        <div className="absolute inset-0 bg-[radial-gradient(800px_600px_at_50%_40%,rgba(45,212,191,0.08),transparent_60%)] pointer-events-none"></div>
+        
+        {/* Large decorative quote mark on the side */}
+        <div className="absolute left-4 md:left-[10%] top-1/2 -translate-y-1/2 text-[20rem] font-serif text-teal/5 dark:text-primary/10 leading-none pointer-events-none select-none hidden lg:block">"</div>
+        
+        <div className="container mx-auto max-w-[720px] text-center relative z-10">
+          <p className="text-xs font-mono text-teal dark:text-primary uppercase tracking-[0.2em] mb-4">Community Logs</p>
+          <h2 className="text-3xl font-serif text-white mb-20">
             Logs from the community.
           </h2>
 
-          <div className="relative bg-white dark:bg-white/5 p-10 md:p-14 rounded-2xl shadow-sm dark:shadow-2xl border border-gray-100 dark:border-white/10 backdrop-blur-md">
-            <div className="absolute top-0 left-0 transform -translate-x-1/2 -translate-y-1/2 bg-teal dark:bg-primary text-white dark:text-black w-12 h-12 flex items-center justify-center rounded-full text-2xl font-serif">"</div>
-
-            <blockquote className="text-2xl font-serif dark:font-sans dark:font-light text-gray-800 dark:text-white leading-relaxed mb-8">
-              {testimonials[currentTestimonial].quote}
+          {/* Dark glass panel */}
+          <div className="relative dark-glass p-10 md:p-14 rounded-2xl">
+            <blockquote className="text-xl md:text-2xl font-serif font-light text-white/90 leading-relaxed mb-10">
+              "{testimonials[currentTestimonial].quote}"
             </blockquote>
 
             <div className="flex items-center justify-center gap-4">
-              <div className="w-12 h-12 bg-gray-200 dark:bg-white/10 rounded-full flex items-center justify-center text-gray-600 dark:text-white font-bold text-sm">
-                {testimonials[currentTestimonial].avatar}
+              {/* Geometric avatar with status ring */}
+              <div className="status-ring">
+                <div className="geo-avatar">
+                  <span className="text-teal dark:text-primary font-mono font-bold text-sm relative z-10">
+                    {testimonials[currentTestimonial].avatar}
+                  </span>
+                </div>
               </div>
               <div className="text-left">
-                <div className="font-bold text-gray-900 dark:text-white text-sm">
+                <div className="font-bold text-white text-sm">
                   {testimonials[currentTestimonial].name}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-white/40 uppercase tracking-wide">
+                <div className="text-xs text-white/40 uppercase tracking-wide">
                   {testimonials[currentTestimonial].role}, {testimonials[currentTestimonial].company}
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-center gap-2 mt-10">
+            {/* Progress bar pagination indicators */}
+            <div className="flex justify-center gap-3 mt-12">
               {testimonials.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentTestimonial(index)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    index === currentTestimonial
-                      ? 'bg-teal dark:bg-primary w-6'
-                      : 'bg-gray-300 dark:bg-white/20'
-                  }`}
+                  data-testid={`button-testimonial-${index}`}
+                  className={`progress-indicator ${index === currentTestimonial ? 'active' : ''}`}
+                  aria-label={`View testimonial ${index + 1}`}
                 />
               ))}
             </div>
@@ -463,8 +515,9 @@ export function Landing() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               onClick={handleLogin}
+              data-testid="button-cta-initialize"
               size="lg"
-              className="bg-teal hover:bg-teal-dark dark:bg-primary dark:text-black dark:hover:bg-primary/90 text-white rounded-full px-10 py-7 text-lg shadow-lg hover:shadow-xl dark:shadow-[0_0_20px_rgba(137,247,216,0.2)] transition-all"
+              className="bg-teal text-white dark:bg-primary dark:text-black rounded-full px-10 py-7 text-lg shadow-lg dark:shadow-[0_0_20px_rgba(137,247,216,0.2)]"
             >
               Initialize Free Account
             </Button>
@@ -485,9 +538,9 @@ export function Landing() {
             © 2025 The System. All rights reserved.
           </div>
           <div className="flex gap-6 text-sm text-gray-500 dark:text-white/40">
-            <a href="#" className="hover:text-teal dark:hover:text-primary transition-colors">Privacy</a>
-            <a href="#" className="hover:text-teal dark:hover:text-primary transition-colors">Terms</a>
-            <a href="#" className="hover:text-teal dark:hover:text-primary transition-colors">Contact</a>
+            <a href="#" data-testid="link-privacy" className="hover-elevate px-2 py-1 rounded transition-colors">Privacy</a>
+            <a href="#" data-testid="link-terms" className="hover-elevate px-2 py-1 rounded transition-colors">Terms</a>
+            <a href="#" data-testid="link-contact" className="hover-elevate px-2 py-1 rounded transition-colors">Contact</a>
           </div>
         </div>
       </footer>
