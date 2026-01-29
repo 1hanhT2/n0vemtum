@@ -1,0 +1,36 @@
+Here are specific UI improvements for your gamified habit tracker, organized by impact:
+
+## 1. **Privacy & First Impressions**
+- **Remove/redact the email** in the welcome header—display the user's first name or username instead ("Welcome back, Thanh"). Showing full emails feels invasive and clutters the hero space.
+- **Shorten the subtitle**: "The system awaits your growth" is cooler than the current lengthy tagline.
+
+## 2. **Typography Hierarchy**
+- **Increase contrast on secondary text**: Stats like "0/5 completed" and "5 remaining" are too dim (gray-on-gray). Bump them to at least 70% opacity white.
+- **Fix the "Level 11" crown**: The mint green number competes with the background. Add a subtle glow or stroke to make it pop without increasing size.
+- **The habit analysis text** (first image) is a dense wall. Break it into:
+  - **Status tag** (e.g., "High Difficulty")
+  - **Bullet points** or **collapsible insight** rather than a paragraph block.
+
+## 3. **Layout & Spacing**
+- **Today's Progress bar**: The 0/5 completion feels disconnected from the "Progress Overview" cards above it. **Consolidate these**—move the progress bar inside the Overview card or directly beneath it with tighter spacing.
+- **Status Window (Right sidebar)**:
+  - The RPG stats (STR/AGI/INT) are cool but cramped. Give them breathing room or arrange in a 3x2 grid instead of 2x2+1 orphan.
+  - **EXP bar**: Add milestone markers (Level 12 threshold) so users see how close they are to the next tier.
+- **Subtasks**: The radio buttons for "Masturbation," "Video games," "Scrolling" need more vertical padding—currently look squished.
+
+## 4. **Visual Polish**
+- **Bronze Tier badge**: The orange circle is flat. Add a metallic gradient or subtle rim light to match the "gamified" aesthetic.
+- **Empty states**: "Current Streak: 0" burns morale. Instead of showing a sad zero, hide streaks until ≥1 or show a "Start Streak" encouragement.
+- **The "Avoid over-stimulation" card**:  
+  - Move the trend arrow (top right) next to the success rate for context
+  - The flame icon for "Current: 0" reads as "on fire" (positive) but means failure here. Use a snowflake or pause icon instead.
+
+## 5. **Interaction Improvements**
+- **Quick-add subtask**: The "+ Add subtask" button is too subtle. Make it a secondary button style with an icon, not just text.
+- **Today's Habits section**: Currently collapsed/empty in the screenshot. Show preview chips of pending habits so users don't have to scroll to see what's left.
+
+## 6. **Color Strategy**
+- **Success rate coloring**: 8% success rate in red feels punitive. Use a gradient from amber (low) to emerald (high) so low completion shows as "warming up" not "failure."
+- **Badge tier colors**: Bronze/Silver/Gold progression isn't reflected in the UI yet. Add subtle tier tints to habit cards (bronze = warm brown border, etc.).
+
+**Priority fix**: Start with the email replacement and contrast adjustments—these immediately elevate the premium feel without redesigning the gamification system.
