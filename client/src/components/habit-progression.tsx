@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { resolveBadgeIcon } from "@/lib/badgeIcons";
+import { DifficultyBadge } from "@/components/habit-difficulty-display";
 
 interface HabitProgressionProps {
   habit: {
@@ -34,42 +35,52 @@ export function HabitStatsRow({ habit }: { habit: HabitProgressionProps['habit']
   const badges = habit.badges || [];
   const totalCompletions = habit.totalCompletions || 0;
 
+  const hasActivity = streak > 0 || totalCompletions > 0 || badges.length > 0;
+
   return (
-    <div className="flex items-center gap-2 flex-wrap">
+    <div className="flex items-center gap-1.5 flex-wrap">
       <Badge variant="outline" className="text-xs" data-testid={`badge-level-${habit.id}`}>
         Lv. {level}
       </Badge>
       <Badge variant="outline" className="text-xs capitalize" data-testid={`badge-tier-${habit.id}`}>
         {tier}
       </Badge>
-      {streak > 0 && (
-        <span className="flex items-center gap-1 text-xs text-muted-foreground" data-testid={`text-streak-${habit.id}`}>
-          <Flame className="w-3 h-3 text-orange-500" />
-          {streak}d
-        </span>
-      )}
-      {totalCompletions > 0 && (
-        <span className="text-xs text-muted-foreground" data-testid={`text-completions-${habit.id}`}>
-          {totalCompletions} done
-        </span>
-      )}
-      {badges.length > 0 && (
-        <div className="flex items-center gap-0.5">
-          {badges.slice(0, 4).map((badge) => {
-            const Icon = resolveBadgeIcon(badge);
-            return (
-              <span
-                key={badge}
-                title={badge.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-              >
-                <Icon className="h-3.5 w-3.5 text-amber-500" />
-              </span>
-            );
-          })}
-          {badges.length > 4 && (
-            <span className="text-xs text-muted-foreground ml-0.5">+{badges.length - 4}</span>
+      <DifficultyBadge difficultyRating={habit.difficultyRating} habitId={habit.id} />
+
+      {hasActivity && (
+        <>
+          <span className="w-px h-3.5 bg-border mx-0.5" />
+
+          {streak > 0 && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground" data-testid={`text-streak-${habit.id}`}>
+              <Flame className="w-3 h-3 text-orange-500" />
+              {streak}d
+            </span>
           )}
-        </div>
+          {totalCompletions > 0 && (
+            <span className="text-xs text-muted-foreground" data-testid={`text-completions-${habit.id}`}>
+              {totalCompletions} done
+            </span>
+          )}
+          {badges.length > 0 && (
+            <div className="flex items-center gap-0.5">
+              {badges.slice(0, 4).map((badge) => {
+                const Icon = resolveBadgeIcon(badge);
+                return (
+                  <span
+                    key={badge}
+                    title={badge.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  >
+                    <Icon className="h-3.5 w-3.5 text-amber-500" />
+                  </span>
+                );
+              })}
+              {badges.length > 4 && (
+                <span className="text-xs text-muted-foreground ml-0.5">+{badges.length - 4}</span>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

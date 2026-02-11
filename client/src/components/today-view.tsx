@@ -27,7 +27,7 @@ import { Sparkles, RefreshCw, CheckCircle2, Target, PartyPopper, Settings, Sun, 
 import { queryClient } from "@/lib/queryClient";
 import { useStreak } from "@/hooks/use-streaks";
 import { useLevelUpHabit, useUpdateHabitProgress } from "@/hooks/use-gamification";
-import { DifficultyBadge, AiAnalysisNote } from "@/components/habit-difficulty-display";
+import { ReanalyzeButton, AiAnalysisNote } from "@/components/habit-difficulty-display";
 import { HabitStatsRow, HabitProgressBar, LevelUpButton } from "@/components/habit-progression";
 import { GamificationSummary } from "@/components/gamification-summary";
 import { LevelUpNotification } from "@/components/level-up-notification";
@@ -743,13 +743,13 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                     />
 
                     <div className="flex-1 min-w-0 space-y-2">
-                      <label
-                        htmlFor={`habit-${habit.id}`}
-                        className={`cursor-pointer block ${
-                          habitCompletions[habit.id] ? 'opacity-50' : ''
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-2">
+                        <label
+                          htmlFor={`habit-${habit.id}`}
+                          className={`cursor-pointer flex items-center gap-2 flex-wrap flex-1 min-w-0 ${
+                            habitCompletions[habit.id] ? 'opacity-50' : ''
+                          }`}
+                        >
                           <span className={`text-base font-medium text-foreground transition-all ${
                             habitCompletions[habit.id] ? 'line-through text-muted-foreground' : ''
                           }`}>{habit.name}</span>
@@ -765,19 +765,18 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                               </span>
                             );
                           })}
-                        </div>
-                      </label>
-
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {hasGamification && (
-                          <HabitStatsRow habit={habit} />
-                        )}
-                        <DifficultyBadge
-                          habit={difficultyHabit}
+                        </label>
+                        <ReanalyzeButton
+                          habitId={habit.id}
+                          hasDifficulty={!!difficultyHabit.difficultyRating}
                           onAnalyze={handleAnalyzeHabit}
                           isAnalyzing={analyzingHabit === habit.id}
                         />
                       </div>
+
+                      {hasGamification && (
+                        <HabitStatsRow habit={habit} />
+                      )}
 
                       {hasGamification && (
                         <HabitProgressBar habit={habit} />
