@@ -1,9 +1,9 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Shield, Zap, Brain, Activity, Eye, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useMemo } from "react";
+import { useMemo, useRef, useEffect } from "react";
+import gsap from "gsap";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -147,13 +147,44 @@ export function PlayerStatus() {
     { key: 'perception', label: 'PER', icon: Eye, color: 'text-purple-500 dark:text-purple-400' },
   ];
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const xpBarRef = useRef<HTMLDivElement>(null);
+  const statsGridRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    gsap.fromTo(
+      containerRef.current,
+      { opacity: 0, y: 16, scale: 0.97 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "power3.out" }
+    );
+    return () => { gsap.killTweensOf(containerRef.current); };
+  }, []);
+
+  useEffect(() => {
+    if (!xpBarRef.current) return;
+    gsap.fromTo(
+      xpBarRef.current,
+      { width: "0%" },
+      { width: `${xpPercentage}%`, duration: 1.2, delay: 0.3, ease: "power2.out" }
+    );
+    return () => { gsap.killTweensOf(xpBarRef.current); };
+  }, [xpPercentage]);
+
+  useEffect(() => {
+    if (!statsGridRef.current) return;
+    const tiles = statsGridRef.current.querySelectorAll("[data-stat-tile]");
+    gsap.fromTo(
+      tiles,
+      { opacity: 0, y: 8 },
+      { opacity: 1, y: 0, duration: 0.35, stagger: 0.06, delay: 0.4, ease: "power2.out" }
+    );
+    return () => { gsap.killTweensOf(tiles); };
+  }, []);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className="space-y-4"
-    >
+    <div ref={containerRef} className="space-y-4" style={{ opacity: 0 }}>
+
       <div className="panel bg-card text-foreground">
         <div className="p-6 pb-2 border-b border-border relative z-10">
           <div className="flex justify-between items-end">
@@ -181,19 +212,18 @@ export function PlayerStatus() {
               <span>{xp} / {xpToNext}</span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <motion.div
+              <div
+                ref={xpBarRef}
                 className="h-full bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-500 dark:to-blue-400"
-                initial={{ width: 0 }}
-                animate={{ width: `${xpPercentage}%` }}
-                transition={{ duration: 1, ease: "easeOut" }}
+                style={{ width: 0 }}
               />
             </div>
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-3 gap-2">
+          <div ref={statsGridRef} className="grid grid-cols-3 gap-2">
              {statConfig.map((stat) => (
-               <div key={stat.key} className="bg-muted/40 dark:bg-muted rounded-md p-2 border border-border flex items-center justify-between gap-1 group hover-elevate transition-colors" style={{ fontSize: 'clamp(0.65rem, 1.5vw, 0.875rem)' }}>
+               <div key={stat.key} data-stat-tile className="bg-muted/40 dark:bg-muted rounded-md p-2 border border-border flex items-center justify-between gap-1 group hover-elevate transition-colors" style={{ fontSize: 'clamp(0.65rem, 1.5vw, 0.875rem)', opacity: 0 }}>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <stat.icon className={`flex-shrink-0 ${stat.color}`} style={{ width: 'clamp(0.75rem, 1.8vw, 1rem)', height: 'clamp(0.75rem, 1.8vw, 1rem)' }} />
                     <span className="font-mono text-foreground/80">{stat.label}</span>
@@ -271,6 +301,6 @@ export function PlayerStatus() {
           </>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
