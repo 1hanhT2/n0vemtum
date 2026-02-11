@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+
 import ReactMarkdown from "react-markdown";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -107,13 +107,9 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
                   </div>
                 </div>
               )}
-              <AnimatePresence initial={false}>
                 {messages.map((message) => (
-                  <motion.div
+                  <div
                     key={message.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
                     className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     {message.role !== "user" && (
@@ -154,9 +150,8 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
                         <User className="h-4 w-4" />
                       </div>
                     )}
-                  </motion.div>
+                  </div>
                 ))}
-              </AnimatePresence>
               <div ref={bottomRef} />
             </div>
           </ScrollArea>

@@ -11,7 +11,7 @@ import { useHabits } from "@/hooks/use-habits";
 import { useSkillPointsHistory } from "@/hooks/use-skill-points-history";
 import { formatDate, formatDateShort } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Eye, CheckCircle, XCircle, Clock, BarChart3, TrendingUp, History as HistoryIcon } from "lucide-react";
-import { motion } from "framer-motion";
+
 import { useToast } from "@/hooks/use-toast";
 import { getMockHabits, getMockSkillPointsHistory } from "@/lib/mockData";
 import { useTimeZone } from "@/hooks/use-timezone";
@@ -160,7 +160,7 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
       const stats = entry ? getCompletionStats(entry) : null;
 
       days.push(
-        <motion.div
+        <div
           key={day}
           className={`h-16 p-2 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer transition-all ${
             isToday 
@@ -169,8 +169,6 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
                 ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/30' 
                 : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
           }`}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
           onClick={() => hasData && openDetailsModal(dateKey)}
         >
           <div className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">
@@ -404,12 +402,10 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
                 const stats = getCompletionStats(entry);
                 
                 return (
-                  <motion.div 
+                  <div 
                     key={entry.date} 
                     className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                     onClick={() => openDetailsModal(entry.date)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                   >
                     <div className="flex items-center space-x-4">
                       <CalendarIcon className="w-5 h-5 text-gray-400" />
@@ -436,7 +432,7 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
                       </Badge>
                       <Eye className="w-4 h-4 text-gray-400" />
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
@@ -521,16 +517,13 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
                           const completionMap = selectedEntry.habitCompletions as Record<string, boolean> | undefined;
                           const isCompleted = completionMap?.[habit.id.toString()] || false;
                           return (
-                            <motion.div 
+                            <div 
                               key={habit.id} 
                               className={`flex items-center justify-between p-3 rounded-lg border ${
                                 isCompleted 
                                   ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
                                   : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
                               }`}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: index * 0.1 }}
                             >
                               <div className="flex items-center space-x-3">
                                 <span className="text-xl">{habit.emoji}</span>
@@ -548,7 +541,7 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
                                   {isCompleted ? "Completed" : "Skipped"}
                                 </Badge>
                               </div>
-                            </motion.div>
+                            </div>
                           );
                         })}
                       </div>

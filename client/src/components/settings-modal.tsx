@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHabits, useUpdateHabit, useCreateHabit, useDeleteHabit } from "@/hooks/use-habits";
 import { useHabitSuggestions } from "@/hooks/use-ai";
 import { useAuth } from "@/hooks/useAuth";
-import { motion } from "framer-motion";
+
 import { useToast } from "@/hooks/use-toast";
 import { X, Plus, Trash2, Sparkles, User, Mail, Calendar, Hash, Moon, Palette, Settings } from "lucide-react";
 import { getMockHabits } from "@/lib/mockData";
@@ -543,7 +543,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
                     </div>
                     <div className="space-y-2 max-h-32 overflow-y-auto settings-scroll pr-1">
                       {aiSuggestions.map((suggestion: { name: string; emoji: string }, index: number) => (
-                        <motion.button
+                        <button
                           key={index}
                           onClick={() => addSuggestedHabit(suggestion)}
                           className="w-full flex items-center justify-between p-3 bg-card hover-elevate rounded-md border border-border transition-all"
@@ -553,7 +553,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
                             <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{suggestion.name}</span>
                           </div>
                           <Plus className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                        </motion.button>
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -634,10 +634,8 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
                     <div className="text-sm font-medium text-gray-700 dark:text-white mb-3">Accent Color</div>
                     <div className="grid grid-cols-5 gap-3">
                       {themes.map((theme) => (
-                        <motion.button
+                        <button
                           key={theme.key}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
                           onClick={() => setSelectedTheme(theme.key)}
                           className={`relative p-3 rounded-md border-2 transition-all duration-200 ${
                             selectedTheme === theme.key
@@ -652,7 +650,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
                             </div>
                           )}
                           <div className="text-xs font-medium text-gray-700 dark:text-white mt-2">{theme.name}</div>
-                        </motion.button>
+                        </button>
                       ))}
                     </div>
                   </div>

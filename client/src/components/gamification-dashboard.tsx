@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Crown, Star, Award, Target, Flame, Medal } from "lucide-react";
-import { motion } from "framer-motion";
+
 import { resolveBadgeIcon } from "@/lib/badgeIcons";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -159,11 +159,8 @@ export function GamificationDashboard({ habits }: GamificationDashboardProps) {
                 .sort((a, b) => b.level - a.level || b.completionRate - a.completionRate)
                 .slice(0, 3)
                 .map((habit, index) => (
-                  <motion.div
+                  <div
                     key={habit.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
                     className="flex items-center space-x-3 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg"
                   >
                     <div className="text-lg">
@@ -189,7 +186,7 @@ export function GamificationDashboard({ habits }: GamificationDashboardProps) {
                     <Badge className={getTierColor(habit.tier)}>
                       {habit.tier}
                     </Badge>
-                  </motion.div>
+                  </div>
                 ))}
             </div>
           </CardContent>
@@ -208,11 +205,8 @@ export function GamificationDashboard({ habits }: GamificationDashboardProps) {
           <div className="grid grid-cols-4 md:grid-cols-8 gap-4">
             {habits.flatMap(habit => 
               habit.badges.map((badge, index) => (
-                <motion.div
+                <div
                   key={`${habit.id}-${badge}-${index}`}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: index * 0.05 }}
                   className="text-center p-2 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg"
                   title={`${habit.name}: ${badge.replace(/_/g, ' ')}`}
                 >
@@ -225,7 +219,7 @@ export function GamificationDashboard({ habits }: GamificationDashboardProps) {
                   <div className="text-xs text-gray-600 dark:text-gray-400 leading-tight">
                     {badge.replace(/_/g, ' ').slice(0, 8)}
                   </div>
-                </motion.div>
+                </div>
               ))
             )}
           </div>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
+
 import { useThrottle } from '@/hooks/use-debounce';
 import { Flame, Check } from "lucide-react";
 import { resolveTierIcon } from "@/lib/badgeIcons";
@@ -46,11 +46,7 @@ export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitC
   const TierIcon = resolveTierIcon(habit.tier);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="w-full"
+    <div className="w-full"
     >
       <Card className={`p-4 transition-colors duration-200 ${
         checked 
@@ -104,6 +100,6 @@ export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitC
           </div>
         </div>
       </Card>
-    </motion.div>
+    </div>
   );
 }

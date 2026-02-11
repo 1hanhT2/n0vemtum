@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAchievements } from "@/hooks/use-achievements";
-import { motion } from "framer-motion";
+
 import { resolveBadgeIcon } from "@/lib/badgeIcons";
 import { PartyPopper } from "lucide-react";
 
@@ -25,10 +25,7 @@ export function AchievementToast() {
         toast({
           title: "Achievement Unlocked!",
           description: (
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="flex items-center space-x-3"
+            <div className="flex items-center space-x-3"
             >
               <div className="w-10 h-10 rounded-lg bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center">
                 {(() => {
@@ -45,7 +42,7 @@ export function AchievementToast() {
                   {achievement.description}
                 </div>
               </div>
-            </motion.div>
+            </div>
           ),
           duration: 5000,
         });

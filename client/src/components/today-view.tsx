@@ -19,7 +19,7 @@ import { useHabits } from "@/hooks/use-habits";
 import { useDailyEntry, useCreateDailyEntry, useUpdateDailyEntry } from "@/hooks/use-daily-entries";
 import { useMotivationalMessage } from "@/hooks/use-ai";
 import { getTodayKey, getYesterdayKey, formatDate } from "@/lib/utils";
-import { motion } from "framer-motion";
+import gsap from "gsap";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -155,6 +155,30 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const autoCompleteRef = useRef(false);
   const autoFinalizeRef = useRef(false);
+  const todayContainerRef = useRef<HTMLDivElement>(null);
+  const habitListRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!todayContainerRef.current) return;
+    gsap.fromTo(
+      todayContainerRef.current,
+      { opacity: 0, y: 16 },
+      { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }
+    );
+    return () => { gsap.killTweensOf(todayContainerRef.current); };
+  }, []);
+
+  useEffect(() => {
+    if (!habitListRef.current || !habits?.length) return;
+    const items = habitListRef.current.querySelectorAll("[data-habit-item]");
+    if (items.length === 0) return;
+    gsap.fromTo(
+      items,
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 0.35, stagger: 0.06, delay: 0.15, ease: "power2.out" }
+    );
+    return () => { gsap.killTweensOf(items); };
+  }, [habits?.length]);
 
   const filterCompletionsToHabits = useCallback(
     (completions: Record<number, boolean> = {}) => {
@@ -642,11 +666,10 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+    <div
+      ref={todayContainerRef}
       className="space-y-6"
+      style={{ opacity: 0 }}
     >
       <div className="mb-8 space-y-6">
         <div className="space-y-1">
@@ -715,7 +738,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
-          <div className="space-y-3">
+          <div ref={habitListRef} className="space-y-3">
             {habits?.map((habit) => {
               const difficultyHabit = {
                 id: habit.id,
@@ -728,8 +751,9 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
               const hasGamification = habit.level !== undefined;
 
               return (
-                <motion.div
+                <div
                   key={habit.id}
+                  data-habit-item
                   className="p-4 rounded-md border border-border hover-elevate transition-all"
                 >
                   <div className="space-y-2">
@@ -797,7 +821,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                       isGuestMode={isGuestMode}
                     />
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>
@@ -913,7 +937,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         ) : (
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <motion.div>
+              <div>
                 <Button
                   size="lg"
                   disabled={createDailyEntry.isPending || updateDailyEntry.isPending || isCompletingDay}
@@ -929,7 +953,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                     )
                   }
                 </Button>
-              </motion.div>
+              </div>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
@@ -984,6 +1008,6 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
           onClose={() => setTierPromotion(null)}
         />
       )}
-    </motion.div>
+    </div>
   );
 }

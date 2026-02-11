@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSubtasks, useCreateSubtask, useDeleteSubtask } from "@/hooks/use-subtasks";
 import type { Subtask } from "@shared/schema";
-import { motion, AnimatePresence } from "framer-motion";
+
 
 interface SubtaskManagerProps {
   habitId: number;
@@ -58,13 +58,9 @@ export function SubtaskManager({
     <div className="space-y-2">
       {activeSubtasks.length > 0 && (
         <>
-          <AnimatePresence>
             {activeSubtasks.map((subtask) => (
-              <motion.div
+              <div
                 key={subtask.id}
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
                 className="flex items-center gap-2 pl-2 group"
               >
                 <Checkbox
@@ -88,9 +84,8 @@ export function SubtaskManager({
                     <Trash2 className="h-3 w-3" />
                   </Button>
                 )}
-              </motion.div>
+              </div>
             ))}
-          </AnimatePresence>
 
           <div className="pl-2 text-xs text-muted-foreground">
             {completedCount} / {activeSubtasks.length} completed
