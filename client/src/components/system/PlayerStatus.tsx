@@ -193,12 +193,12 @@ export function PlayerStatus() {
           {/* Stats Grid */}
           <div className="grid grid-cols-3 gap-2">
              {statConfig.map((stat) => (
-               <div key={stat.key} className="bg-muted/40 dark:bg-muted rounded-md p-2 border border-border flex items-center justify-between group hover-elevate transition-colors">
-                  <div className="flex items-center gap-2">
-                    <stat.icon className={`w-4 h-4 ${stat.color}`} />
-                    <span className="text-sm font-mono text-foreground/80">{stat.label}</span>
+               <div key={stat.key} className="bg-muted/40 dark:bg-muted rounded-md p-2 border border-border flex items-center justify-between gap-1 group hover-elevate transition-colors">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <stat.icon className={`w-4 h-4 flex-shrink-0 ${stat.color}`} />
+                    <span className="text-sm font-mono text-foreground/80 truncate">{stat.label}</span>
                   </div>
-                  <span className="font-mono font-bold">{formatStatValue((stats as any)[stat.key] ?? 10)}</span>
+                  <span className="font-mono font-bold flex-shrink-0">{formatStatValue((stats as any)[stat.key] ?? 10)}</span>
                </div>
              ))}
           </div>
