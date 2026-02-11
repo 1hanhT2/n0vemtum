@@ -28,6 +28,14 @@ interface HabitProgressionProps {
   onLevelUp?: (habitId: number) => void;
 }
 
+const tierStyle: Record<string, string> = {
+  bronze: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
+  silver: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-700",
+  gold: "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800",
+  platinum: "bg-cyan-100 text-cyan-800 border-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-300 dark:border-cyan-800",
+  diamond: "bg-violet-100 text-violet-800 border-violet-200 dark:bg-violet-900/30 dark:text-violet-300 dark:border-violet-800",
+};
+
 export function HabitStatsRow({ habit }: { habit: HabitProgressionProps['habit'] }) {
   const level = habit.level || 1;
   const streak = habit.streak || 0;
@@ -39,10 +47,10 @@ export function HabitStatsRow({ habit }: { habit: HabitProgressionProps['habit']
 
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
-      <Badge variant="outline" className="text-xs" data-testid={`badge-level-${habit.id}`}>
+      <Badge className="text-xs bg-primary/10 text-primary border-primary/20 dark:bg-primary/20 dark:text-blue-300 dark:border-primary/30" data-testid={`badge-level-${habit.id}`}>
         Lv. {level}
       </Badge>
-      <Badge variant="outline" className="text-xs capitalize" data-testid={`badge-tier-${habit.id}`}>
+      <Badge className={`text-xs capitalize ${tierStyle[tier] || tierStyle.bronze}`} data-testid={`badge-tier-${habit.id}`}>
         {tier}
       </Badge>
       <DifficultyBadge difficultyRating={habit.difficultyRating} habitId={habit.id} />
@@ -52,13 +60,13 @@ export function HabitStatsRow({ habit }: { habit: HabitProgressionProps['habit']
           <span className="w-px h-3.5 bg-border mx-0.5" />
 
           {streak > 0 && (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground" data-testid={`text-streak-${habit.id}`}>
-              <Flame className="w-3 h-3 text-orange-500" />
+            <Badge className="text-xs bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800" data-testid={`text-streak-${habit.id}`}>
+              <Flame className="w-3 h-3 mr-0.5" />
               {streak}d
-            </span>
+            </Badge>
           )}
           {totalCompletions > 0 && (
-            <span className="text-xs text-muted-foreground" data-testid={`text-completions-${habit.id}`}>
+            <span className="text-xs text-muted-foreground font-mono" data-testid={`text-completions-${habit.id}`}>
               {totalCompletions} done
             </span>
           )}
