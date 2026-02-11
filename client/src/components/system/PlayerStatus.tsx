@@ -154,25 +154,24 @@ export function PlayerStatus() {
       transition={{ duration: 0.5 }}
       className="space-y-4"
     >
-      <div className="panel bg-card text-foreground shadow-sm">
+      <div className="panel bg-card text-foreground">
         <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-           <Crown className="w-32 h-32" />
         </div>
 
         <div className="p-6 pb-2 border-b border-border relative z-10">
           <div className="flex justify-between items-end">
             <div>
-               <div className="text-xs font-mono text-teal-600 dark:text-[#89f7d8] tracking-widest uppercase mb-1">Status Window</div>
-               <div className="font-serif dark:font-inter font-bold text-2xl tracking-wide flex items-center gap-2">
-                 {(user as any)?.username || "Hunter"}
-                 <span className="text-sm font-mono font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-full border border-border">
+               <div className="text-xs font-mono text-blue-600 dark:text-blue-400 tracking-widest uppercase mb-1">Status</div>
+               <div className="font-bold text-2xl tracking-wide flex items-center gap-2">
+                 {(user as any)?.username || "User"}
+                 <span className="text-sm font-mono font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-md border border-border">
                    {userClass}
                  </span>
                </div>
             </div>
             <div className="text-right">
               <div className="text-sm text-muted-foreground font-mono uppercase tracking-wider text-[10px] mb-1">Level</div>
-              <div className="text-3xl font-bold text-teal-600 dark:text-[#89f7d8] font-mono leading-none">{level}</div>
+              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 font-mono leading-none">{level}</div>
             </div>
           </div>
         </div>
@@ -186,7 +185,7 @@ export function PlayerStatus() {
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-gradient-to-r from-teal-500 to-teal-400 dark:from-[#89f7d8] dark:to-[#7aa7ff]"
+                className="h-full bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-500 dark:to-blue-400"
                 initial={{ width: 0 }}
                 animate={{ width: `${xpPercentage}%` }}
                 transition={{ duration: 1, ease: "easeOut" }}
@@ -195,7 +194,7 @@ export function PlayerStatus() {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
              {statConfig.map((stat) => (
                <div key={stat.key} className="bg-muted/40 dark:bg-muted rounded-lg p-3 border border-border flex items-center justify-between group hover:border-primary/40 transition-colors">
                   <div className="flex items-center gap-2">
@@ -215,7 +214,7 @@ export function PlayerStatus() {
         </div>
       </div>
 
-      <div className="bg-card border border-border rounded-xl shadow-sm p-4">
+      <div className="bg-card border border-border rounded-md p-4">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
             <Sparkles className="w-4 h-4" />

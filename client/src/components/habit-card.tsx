@@ -62,9 +62,9 @@ export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitC
       transition={{ duration: 0.3 }}
       className="w-full"
     >
-      <Card className={`p-4 transition-all duration-200 hover:shadow-lg border-2 ${
+      <Card className={`p-4 transition-all duration-200 border-2 ${
         checked 
-          ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800 shadow-lg' 
+          ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800' 
           : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
       }`}>
         <div className="flex items-center space-x-4">
@@ -75,7 +75,7 @@ export function HabitCard({ habit, date, isCompleted = false, onToggle }: HabitC
             onClick={() => handleToggle(!checked)}
             className={`w-12 h-12 rounded-full border-2 transition-all duration-200 touch-target flex items-center justify-center ${
               checked
-                ? 'bg-green-500 border-green-500 text-white shadow-lg'
+                ? 'bg-green-500 border-green-500 text-white'
                 : 'border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500'
             }`}
           >

@@ -819,7 +819,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
           </CardHeader>
           <CardContent>
             <div className="text-center mb-4">
-              <span className="text-4xl font-serif font-bold text-primary">{punctualityScore[0]}</span>
+              <span className="text-4xl font-bold text-primary">{punctualityScore[0]}</span>
               <span className="text-lg text-muted-foreground ml-2">/ 5</span>
             </div>
             <div className="space-y-2 text-sm text-muted-foreground">
@@ -873,7 +873,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
               </div>
             </div>
             <div className="text-center">
-              <span className="text-2xl font-serif font-bold text-primary">{adherenceScore[0]}</span>
+              <span className="text-2xl font-bold text-primary">{adherenceScore[0]}</span>
             </div>
           </CardContent>
         </Card>
@@ -911,7 +911,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                 <div className="flex justify-center mb-2">
                   <PartyPopper className="h-10 w-10 text-green-600" />
                 </div>
-                <h3 className="text-lg font-serif font-semibold text-green-800 mb-2">Day Completed!</h3>
+                <h3 className="text-lg font-semibold text-green-800 mb-2">Day Completed!</h3>
                 <p className="text-green-700">Your progress has been saved and locked successfully.</p>
               </div>
             </CardContent>
@@ -925,7 +925,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
               >
                 <Button
                   disabled={createDailyEntry.isPending || updateDailyEntry.isPending || isCompletingDay}
-                  className="bg-teal hover:bg-teal-dark text-white px-8 py-6 rounded-full font-medium text-lg shadow-lg hover:shadow-xl transition-all"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 rounded-full font-medium text-lg shadow-lg hover:shadow-xl transition-all"
                 >
                   {createDailyEntry.isPending || updateDailyEntry.isPending || isCompletingDay
                     ? "Saving..."

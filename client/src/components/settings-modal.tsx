@@ -378,7 +378,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="w-screen h-screen max-w-[100vw] max-h-[100vh] sm:max-w-3xl sm:h-[90vh] sm:max-h-[90vh] overflow-hidden p-0 sm:p-0 rounded-none sm:rounded-3xl"
+        className="w-screen h-screen max-w-[100vw] max-h-[100vh] sm:max-w-3xl sm:h-[90vh] sm:max-h-[90vh] overflow-hidden p-0 sm:p-0 rounded-none sm:rounded-md"
         aria-describedby="settings-description"
       >
         <div className="h-full flex flex-col bg-card min-h-0">
@@ -474,7 +474,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
                     {habitSettings.map((habit) => (
                       <div
                         key={habit.id}
-                        className="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900/40"
+                        className="space-y-3 rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900/40"
                       >
                         <div className="flex items-center space-x-3">
                           <Input
@@ -511,7 +511,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
                                   key={tag}
                                   type="button"
                                   onClick={() => toggleHabitTag(habit.id, tag as HabitTag)}
-                                  className={`px-2 py-1 rounded-full border text-xs font-mono transition-colors ${
+                                  className={`px-2 py-1 rounded-md border text-xs font-mono transition-colors ${
                                     isSelected
                                       ? config.className
                                       : "border-border text-muted-foreground bg-muted/40 hover:bg-muted"
@@ -545,10 +545,8 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
                       {aiSuggestions.map((suggestion: { name: string; emoji: string }, index: number) => (
                         <motion.button
                           key={index}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
                           onClick={() => addSuggestedHabit(suggestion)}
-                          className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 hover:from-purple-100 hover:to-blue-100 dark:hover:from-gray-700 dark:hover:to-gray-600 rounded-xl border border-purple-200 dark:border-gray-600 transition-all"
+                          className="w-full flex items-center justify-between p-3 bg-card hover-elevate rounded-md border border-border transition-all"
                         >
                           <div className="flex items-center space-x-3">
                             <span className="text-lg">{suggestion.emoji}</span>
@@ -563,7 +561,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
 
                 {/* Challenge Preferences */}
                 {!isGuestMode && (
-                  <div className="border border-border rounded-xl p-4 space-y-4">
+                  <div className="border border-border rounded-md p-4 space-y-4">
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-primary" />
                       <h3 className="text-lg font-semibold text-foreground">Daily Challenge Settings</h3>
@@ -609,7 +607,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
 
                   {/* Dark/Light Mode Toggle */}
                   <div className="mb-4">
-                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-xl transition-all duration-200 hover:dark:bg-gray-700">
+                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-md transition-all duration-200 hover:dark:bg-gray-700">
                       <div className="flex items-center space-x-3">
                         <span className="inline-flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-white">
                           <Moon className="h-4 w-4" />
@@ -641,7 +639,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                           onClick={() => setSelectedTheme(theme.key)}
-                          className={`relative p-3 rounded-xl border-2 transition-all duration-200 ${
+                          className={`relative p-3 rounded-md border-2 transition-all duration-200 ${
                             selectedTheme === theme.key
                               ? 'border-primary'
                               : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-400 hover:dark:bg-gray-800'
@@ -704,7 +702,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
                           onChange={(e) => setPersonalizationProfile(e.target.value)}
                           maxLength={personalizationMaxLength}
                           placeholder="Example: I am a night owl, I can only work out after 7 PM. I prefer short routines, 10-20 minutes. I am recovering from a knee injury, so avoid intense cardio. I like direct, no-fluff feedback. My main goal is stress reduction and better sleep."
-                          className="min-h-[160px]"
+                          className="min-h-[120px] bg-gray-900 text-green-400 dark:bg-black dark:text-green-400 font-mono text-sm border-gray-700 dark:border-gray-800"
                         />
                         <p className="text-xs text-muted-foreground">
                           Used to tailor difficulty ratings, daily challenges, assistant responses, and weekly analysis.
@@ -718,7 +716,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
             </Tabs>
 
             {/* Action Buttons */}
-            <div className="mt-6 flex flex-col sm:flex-row sm:space-x-3 gap-3 sm:gap-0 bg-card pt-4 px-6 pb-6 border-t border-border rounded-3xl">
+            <div className="mt-6 flex flex-col sm:flex-row sm:space-x-3 gap-3 sm:gap-0 bg-card pt-4 px-6 pb-6 border-t border-border rounded-md">
               <Button
                 onClick={handleSaveSettings}
                 disabled={updateHabit.isPending}

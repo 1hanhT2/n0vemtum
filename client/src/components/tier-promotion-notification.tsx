@@ -72,7 +72,7 @@ export function TierPromotionNotification({
           onClick={(e) => e.stopPropagation()}
           className="relative"
         >
-          <Card className={`w-96 bg-gradient-to-br ${tierGradient} border-0 text-white shadow-2xl`}>
+          <Card className={`w-96 bg-gradient-to-br ${tierGradient} border-0 text-white`}>
             <CardContent className="p-8 text-center space-y-6">
               {/* Celebration Animation */}
               <div className="relative">

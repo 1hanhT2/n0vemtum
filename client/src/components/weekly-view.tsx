@@ -241,7 +241,7 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
 
       {/* Statistics Cards */}
       <div className="grid md:grid-cols-3 gap-6">
-        <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
+        <Card className="rounded-md shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
           <CardContent className="pt-4 sm:pt-6">
             <div className="flex justify-center mb-2">
               <CalendarRange className="h-7 w-7 text-blue-600 dark:text-blue-400" />
@@ -256,7 +256,7 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
           </CardContent>
         </Card>
         
-        <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
+        <Card className="rounded-md shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
           <CardContent className="pt-4 sm:pt-6">
             <div className="flex justify-center mb-2">
               <CheckCircle2 className="h-7 w-7 text-green-600 dark:text-green-400" />
@@ -271,7 +271,7 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
           </CardContent>
         </Card>
         
-        <Card className="rounded-2xl shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
+        <Card className="rounded-md shadow-lg text-center bg-card dark:bg-gray-900 border-border dark:border-gray-700 transition-all duration-200 hover:dark:bg-gray-800 hover:shadow-xl">
           <CardContent className="pt-4 sm:pt-6">
             <div className="flex justify-center mb-2">
               <Star className="h-7 w-7 text-purple-600 dark:text-purple-400 fill-purple-600/20 dark:fill-purple-400/20" />
@@ -289,7 +289,7 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
 
       {/* Charts Section */}
       <div className="grid md:grid-cols-2 gap-6">
-        <Card className="rounded-2xl shadow-lg">
+        <Card className="rounded-md shadow-lg">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">Daily Scores</CardTitle>
           </CardHeader>
@@ -312,7 +312,7 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl shadow-lg">
+        <Card className="rounded-md shadow-lg">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">Habit Completion</CardTitle>
           </CardHeader>
@@ -431,7 +431,7 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
       </Card>
 
       {/* Reflection Questions */}
-      <Card className="rounded-2xl shadow-lg">
+      <Card className="rounded-md shadow-lg">
         <CardHeader>
           <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
             <span className="mr-2">🤔</span>

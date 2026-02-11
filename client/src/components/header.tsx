@@ -18,7 +18,7 @@ export function Header({
   onViewChange,
 }: HeaderProps) {
   return (
-    <header className="fixed top-0 w-full z-50 bg-cream/95 dark:bg-[#0b0d12]/95 backdrop-blur-sm border-b border-gray-200 dark:border-white/10">
+    <header className="fixed top-0 w-full z-50 bg-background/95 dark:bg-[#0A0A0A]/95 backdrop-blur-sm border-b border-gray-200 dark:border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-3 py-3 lg:py-0">
           <div className="flex items-center gap-4 lg:h-20">
@@ -44,7 +44,7 @@ export function Header({
               onClick={onSettingsClick}
               variant="ghost"
               size="icon"
-              className="ml-auto sm:ml-0 w-9 h-9 hover:bg-teal-light/50 text-gray-500 hover:text-teal-dark dark:text-white/65 dark:hover:text-white dark:hover:bg-white/10 rounded-full transition-colors"
+              className="ml-auto sm:ml-0 text-gray-500 dark:text-white/65 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
             >
               <Settings className="h-5 w-5" />
             </Button>

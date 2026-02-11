@@ -146,13 +146,13 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
         
         {/* Quick Stats */}
         <div className="mt-4 grid grid-cols-2 gap-4">
-          <div className="text-center p-3 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl border border-yellow-200 dark:border-yellow-800">
+          <div className="text-center p-3 rounded-md border border-amber-200 dark:border-amber-800/40 bg-card">
             <div className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
               {unlockedAchievements.length}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-300">Unlocked</div>
           </div>
-          <div className="text-center p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl border border-gray-200 dark:border-gray-600">
+          <div className="text-center p-3 rounded-md border border-border bg-card">
             <div className="text-lg font-bold text-gray-600 dark:text-gray-400">
               {lockedAchievements.length}
             </div>
@@ -163,7 +163,7 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
 
       {/* Current Streaks */}
       <div className="grid md:grid-cols-2 gap-6">
-        <Card className="rounded-2xl shadow-lg bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border-orange-200 dark:border-orange-800">
+        <Card className="rounded-md border-border">
           <CardHeader>
             <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
               <Flame className="mr-2 h-5 w-5 text-orange-500" />
@@ -180,7 +180,7 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl shadow-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-purple-200 dark:border-purple-800">
+        <Card className="rounded-md border-border">
           <CardHeader>
             <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
               <Medal className="mr-2 h-5 w-5 text-purple-500" />
@@ -200,7 +200,7 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
 
       {/* Rank Ladder */}
       {ranks.length > 0 && (
-        <Card className="rounded-2xl shadow-lg">
+        <Card className="rounded-md">
           <CardHeader>
             <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-2">
               <Crown className="h-5 w-5 text-amber-500" />
@@ -268,7 +268,7 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
 
       {/* Unlocked Achievements */}
       {unlockedAchievements.length > 0 && (
-        <Card className="rounded-2xl shadow-lg">
+        <Card className="rounded-md">
           <CardHeader>
             <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white">
               Unlocked Achievements ({unlockedAchievements.length})
@@ -281,7 +281,7 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
                   key={achievement.id}
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className="text-center p-4 rounded-xl bg-gradient-to-b from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border border-yellow-200 dark:border-yellow-800"
+                  className="text-center p-4 rounded-md bg-card border border-amber-200 dark:border-amber-700/40"
                 >
                   <div className="flex justify-center mb-2">
                     {(() => {
@@ -309,7 +309,7 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
       )}
 
       {/* Locked Achievements */}
-      <Card className="rounded-2xl shadow-lg">
+      <Card className="rounded-md">
         <CardHeader>
           <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white">
             Available Achievements ({lockedAchievements.length})
@@ -322,7 +322,7 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
                 key={achievement.id}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="text-center p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 opacity-75"
+                className="text-center p-4 rounded-md bg-card border border-border opacity-75"
               >
                 <div className="flex justify-center mb-2 grayscale">
                   {(() => {
@@ -351,7 +351,7 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl shadow-lg">
+      <Card className="rounded-md">
         <CardHeader>
           <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white">
             Task Ranks

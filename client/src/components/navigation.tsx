@@ -25,7 +25,7 @@ export function Navigation({ currentView, onViewChange, className, listClassName
       <div className="w-full overflow-x-auto scrollbar-hide">
         <div
           className={cn(
-            "flex w-full items-center justify-between bg-card border border-border rounded-full p-1 shadow-sm mx-auto sm:mx-0 sm:w-max sm:justify-start",
+            "flex w-full items-center justify-between bg-card border border-border rounded-md p-1 mx-auto sm:mx-0 sm:w-max sm:justify-start",
             listClassName,
           )}
         >
@@ -34,12 +34,13 @@ export function Navigation({ currentView, onViewChange, className, listClassName
             return (
               <button
                 key={item.value}
+                data-testid={`nav-${item.value}`}
                 onClick={() => onViewChange(item.value)}
                 className={cn(
-                  "flex items-center gap-2 whitespace-nowrap rounded-full font-medium text-sm transition-all duration-200 px-3 sm:px-4 lg:px-5 py-2",
+                  "flex items-center gap-2 whitespace-nowrap rounded-md font-medium text-sm transition-all duration-200 px-3 sm:px-4 lg:px-5 py-2",
                   currentView === item.value
                     ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
+                    : "text-muted-foreground hover-elevate",
                 )}
               >
                 <Icon className="h-4 w-4" />

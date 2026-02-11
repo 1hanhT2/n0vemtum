@@ -98,7 +98,7 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
             <div className="space-y-6">
               {messages.length === 0 && (
                 <div className="flex flex-col items-center text-center text-sm text-muted-foreground py-10">
-                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
+                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-md bg-muted">
                     <Bot className="h-5 w-5" />
                   </div>
                   <div className="font-medium text-foreground">Start a conversation</div>
@@ -117,12 +117,12 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
                     className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     {message.role !== "user" && (
-                      <div className="mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-muted">
+                      <div className="mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-md bg-muted">
                         <Bot className="h-4 w-4" />
                       </div>
                     )}
                     <div
-                      className={`relative max-w-[85%] rounded-3xl px-4 py-3 text-sm leading-relaxed ${
+                      className={`relative max-w-[85%] rounded-md px-4 py-3 text-sm leading-relaxed ${
                         message.role === "user"
                           ? "bg-primary/10 text-foreground"
                           : "bg-muted text-foreground border border-border"
@@ -138,7 +138,7 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
                         <button
                           type="button"
                           onClick={() => copyToClipboard(message.content, message.id)}
-                          className="absolute -right-2 -top-2 rounded-xl border border-border bg-card/90 p-2 text-muted-foreground shadow-sm hover:text-foreground"
+                          className="absolute -right-2 -top-2 rounded-md border border-border bg-card/90 p-2 text-muted-foreground shadow-sm hover:text-foreground"
                           title="Copy"
                         >
                           {copiedId === message.id ? (
@@ -150,7 +150,7 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
                       )}
                     </div>
                     {message.role === "user" && (
-                      <div className="mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-muted">
+                      <div className="mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-md bg-muted">
                         <User className="h-4 w-4" />
                       </div>
                     )}
@@ -162,10 +162,10 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
           </ScrollArea>
 
           <div className="space-y-2">
-            <div className="flex items-center gap-2 rounded-3xl border border-border bg-muted/30 p-2">
+            <div className="flex items-center gap-2 rounded-md border border-border bg-muted/30 p-2">
               <button
                 type="button"
-                className="grid h-10 w-10 place-items-center rounded-2xl text-muted-foreground hover:text-foreground"
+                className="grid h-10 w-10 place-items-center rounded-md text-muted-foreground hover:text-foreground"
                 title="Attach (coming soon)"
                 disabled
               >
