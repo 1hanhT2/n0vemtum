@@ -77,18 +77,6 @@ export function Home({ isGuestMode = false }: HomeProps) {
           </div>
         )}
         
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold mb-2">
-            {isGuestMode ? "Demo Dashboard" : `Welcome back, ${(user as any)?.firstName || (user as any)?.email || 'there'}`}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {isGuestMode 
-              ? "Explore the full habit tracking experience with sample data" 
-              : "Track your habits. Build momentum. Stay consistent."
-            }
-          </p>
-        </div>
-
         {/* Mobile Status Window */}
         <div className="lg:hidden mb-8">
           <PlayerStatus />
