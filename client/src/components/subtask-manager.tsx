@@ -55,7 +55,7 @@ export function SubtaskManager({
   if (isLoading) return null;
 
   return (
-    <div className="mt-3 space-y-2">
+    <div className="space-y-2">
       {activeSubtasks.length > 0 && (
         <>
           <AnimatePresence>
@@ -65,7 +65,7 @@ export function SubtaskManager({
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="flex items-center gap-2 pl-6 group"
+                className="flex items-center gap-2 pl-2 group"
               >
                 <Checkbox
                   data-testid={`checkbox-subtask-${subtask.id}`}
@@ -92,14 +92,14 @@ export function SubtaskManager({
             ))}
           </AnimatePresence>
 
-          <div className="pl-6 text-xs text-muted-foreground">
+          <div className="pl-2 text-xs text-muted-foreground">
             {completedCount} / {activeSubtasks.length} completed
           </div>
         </>
       )}
 
       {!isDayCompleted && (
-        <div className="pl-6">
+        <div className="pl-2">
           {isAdding ? (
             <div className="flex items-center gap-2" data-testid="div-add-subtask-form">
               <Input

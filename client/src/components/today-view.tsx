@@ -27,8 +27,8 @@ import { Sparkles, RefreshCw, CheckCircle2, Target, PartyPopper, Settings, Sun, 
 import { queryClient } from "@/lib/queryClient";
 import { useStreak } from "@/hooks/use-streaks";
 import { useLevelUpHabit, useUpdateHabitProgress } from "@/hooks/use-gamification";
-import { HabitDifficultyDisplay } from "@/components/habit-difficulty-display";
-import { HabitProgression } from "@/components/habit-progression";
+import { DifficultyBadge, AiAnalysisNote } from "@/components/habit-difficulty-display";
+import { HabitStatsRow, HabitProgressBar, LevelUpButton } from "@/components/habit-progression";
 import { GamificationSummary } from "@/components/gamification-summary";
 import { LevelUpNotification } from "@/components/level-up-notification";
 import { HabitHealthRadar } from "@/components/habit-health-radar";
@@ -716,84 +716,94 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         </CardHeader>
         <CardContent className="pt-6">
           <div className="space-y-3">
-            {habits?.map((habit) => (
-              <motion.div
-                key={habit.id}
-                className="p-4 rounded-md border border-border hover-elevate transition-all space-y-3"
-              >
-                <div className="flex items-center gap-3">
-                  <Checkbox
-                    id={`habit-${habit.id}`}
-                    data-testid={`checkbox-habit-${habit.id}`}
-                    checked={habitCompletions[habit.id] || false}
-                    onCheckedChange={(checked) => handleHabitToggle(habit.id, !!checked)}
-                    disabled={isDayCompleted}
-                    className="w-5 h-5 border-2"
-                  />
-                  <label
-                    htmlFor={`habit-${habit.id}`}
-                    className={`flex-1 cursor-pointer ${
-                      habitCompletions[habit.id] ? 'opacity-50' : ''
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{habit.emoji}</span>
-                      <span className={`text-base font-medium text-foreground transition-all ${
-                        habitCompletions[habit.id] ? 'line-through text-muted-foreground' : ''
-                      }`}>{habit.name}</span>
-                    </div>
-                    {habit.tags && habit.tags.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {habit.tags.map((tag) => {
-                          const config = getHabitTagConfig(tag);
-                          if (!config) return null;
-                          return (
-                            <span
-                              key={`${habit.id}-${tag}`}
-                              className={`px-2 py-0.5 rounded-md border text-xs font-mono ${config.className}`}
-                            >
-                              {config.label}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </label>
-                </div>
+            {habits?.map((habit) => {
+              const difficultyHabit = {
+                id: habit.id,
+                name: habit.name,
+                emoji: habit.emoji,
+                difficultyRating: habit.difficultyRating || undefined,
+                aiAnalysis: habit.aiAnalysis || undefined,
+                lastAnalyzed: habit.lastAnalyzed ? habit.lastAnalyzed.toString() : undefined,
+              };
+              const hasGamification = habit.level !== undefined;
 
-                <div className="space-y-4">
-                  <HabitDifficultyDisplay
-                    habit={{
-                      id: habit.id,
-                      name: habit.name,
-                      emoji: habit.emoji,
-                      difficultyRating: habit.difficultyRating || undefined,
-                      aiAnalysis: habit.aiAnalysis || undefined,
-                      lastAnalyzed: habit.lastAnalyzed ? habit.lastAnalyzed.toString() : undefined,
-                    }}
-                    onAnalyze={handleAnalyzeHabit}
-                    isAnalyzing={analyzingHabit === habit.id}
-                  />
-
-                  {/* Only show progression if gamification data exists */}
-                  {habit.level !== undefined && (
-                    <HabitProgression
-                      habit={habit}
-                      onLevelUp={(habitId) => levelUpHabit.mutate(habitId)}
+              return (
+                <motion.div
+                  key={habit.id}
+                  className="p-4 rounded-md border border-border hover-elevate transition-all"
+                >
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id={`habit-${habit.id}`}
+                      data-testid={`checkbox-habit-${habit.id}`}
+                      checked={habitCompletions[habit.id] || false}
+                      onCheckedChange={(checked) => handleHabitToggle(habit.id, !!checked)}
+                      disabled={isDayCompleted}
+                      className="w-5 h-5 border-2 mt-0.5"
                     />
-                  )}
-                </div>
 
-                {/* Subtasks */}
-                <SubtaskManager
-                  habitId={habit.id}
-                  subtaskCompletions={subtaskCompletions}
-                  onSubtaskToggle={handleSubtaskToggle}
-                  isDayCompleted={isDayCompleted}
-                  isGuestMode={isGuestMode}
-                />
-              </motion.div>
-            ))}
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <label
+                        htmlFor={`habit-${habit.id}`}
+                        className={`cursor-pointer block ${
+                          habitCompletions[habit.id] ? 'opacity-50' : ''
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`text-base font-medium text-foreground transition-all ${
+                            habitCompletions[habit.id] ? 'line-through text-muted-foreground' : ''
+                          }`}>{habit.name}</span>
+                          {habit.tags && habit.tags.length > 0 && habit.tags.map((tag) => {
+                            const config = getHabitTagConfig(tag);
+                            if (!config) return null;
+                            return (
+                              <span
+                                key={`${habit.id}-${tag}`}
+                                className={`px-1.5 py-0.5 rounded-md border text-xs font-mono ${config.className}`}
+                              >
+                                {config.label}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </label>
+
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {hasGamification && (
+                          <HabitStatsRow habit={habit} />
+                        )}
+                        <DifficultyBadge
+                          habit={difficultyHabit}
+                          onAnalyze={handleAnalyzeHabit}
+                          isAnalyzing={analyzingHabit === habit.id}
+                        />
+                      </div>
+
+                      {hasGamification && (
+                        <HabitProgressBar habit={habit} />
+                      )}
+
+                      <AiAnalysisNote analysis={difficultyHabit.aiAnalysis} />
+
+                      {hasGamification && (
+                        <LevelUpButton
+                          habit={habit}
+                          onLevelUp={(habitId) => levelUpHabit.mutate(habitId)}
+                        />
+                      )}
+
+                      <SubtaskManager
+                        habitId={habit.id}
+                        subtaskCompletions={subtaskCompletions}
+                        onSubtaskToggle={handleSubtaskToggle}
+                        isDayCompleted={isDayCompleted}
+                        isGuestMode={isGuestMode}
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
