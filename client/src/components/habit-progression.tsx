@@ -29,12 +29,19 @@ interface HabitProgressionProps {
 }
 
 const tierStyle: Record<string, string> = {
-  bronze: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
-  silver: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-700",
-  gold: "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800",
-  platinum: "bg-cyan-100 text-cyan-800 border-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-300 dark:border-cyan-800",
-  diamond: "bg-violet-100 text-violet-800 border-violet-200 dark:bg-violet-900/30 dark:text-violet-300 dark:border-violet-800",
+  bronze: "bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700",
+  silver: "bg-gray-200 text-gray-700 border-gray-300 dark:bg-gray-700/40 dark:text-gray-200 dark:border-gray-600",
+  gold: "bg-yellow-100 text-yellow-700 border-yellow-400 dark:bg-yellow-900/30 dark:text-yellow-200 dark:border-yellow-700",
+  platinum: "bg-sky-100 text-sky-800 border-sky-300 dark:bg-sky-900/30 dark:text-sky-200 dark:border-sky-700",
+  diamond: "bg-violet-100 text-violet-800 border-violet-300 dark:bg-violet-900/30 dark:text-violet-200 dark:border-violet-700",
 };
+
+function getLevelStyle(level: number): string {
+  if (level <= 3) return "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700";
+  if (level <= 6) return "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700";
+  if (level <= 9) return "bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700";
+  return "bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-700";
+}
 
 export function HabitStatsRow({ habit }: { habit: HabitProgressionProps['habit'] }) {
   const level = habit.level || 1;
@@ -47,7 +54,7 @@ export function HabitStatsRow({ habit }: { habit: HabitProgressionProps['habit']
 
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
-      <Badge className="text-xs bg-primary/10 text-primary border-primary/20 dark:bg-primary/20 dark:text-blue-300 dark:border-primary/30" data-testid={`badge-level-${habit.id}`}>
+      <Badge className={`text-xs ${getLevelStyle(level)}`} data-testid={`badge-level-${habit.id}`}>
         Lv. {level}
       </Badge>
       <Badge className={`text-xs capitalize ${tierStyle[tier] || tierStyle.bronze}`} data-testid={`badge-tier-${habit.id}`}>
