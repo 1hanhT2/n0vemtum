@@ -732,24 +732,22 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                   key={habit.id}
                   className="p-4 rounded-md border border-border hover-elevate transition-all"
                 >
-                  <div className="flex items-start gap-3">
-                    <Checkbox
-                      id={`habit-${habit.id}`}
-                      data-testid={`checkbox-habit-${habit.id}`}
-                      checked={habitCompletions[habit.id] || false}
-                      onCheckedChange={(checked) => handleHabitToggle(habit.id, !!checked)}
-                      disabled={isDayCompleted}
-                      className="w-5 h-5 border-2 mt-0.5"
-                    />
-
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <label
-                          htmlFor={`habit-${habit.id}`}
-                          className={`cursor-pointer flex items-center gap-2 flex-wrap flex-1 min-w-0 ${
-                            habitCompletions[habit.id] ? 'opacity-50' : ''
-                          }`}
-                        >
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        id={`habit-${habit.id}`}
+                        data-testid={`checkbox-habit-${habit.id}`}
+                        checked={habitCompletions[habit.id] || false}
+                        onCheckedChange={(checked) => handleHabitToggle(habit.id, !!checked)}
+                        disabled={isDayCompleted}
+                        className="w-5 h-5 border-2 flex-shrink-0"
+                      />
+                      <label
+                        htmlFor={`habit-${habit.id}`}
+                        className={`cursor-pointer flex items-center gap-2 flex-wrap flex-1 min-w-0 ${
+                          habitCompletions[habit.id] ? 'opacity-50' : ''
+                        }`}
+                      >
                           <span className={`text-base font-medium text-foreground transition-all ${
                             habitCompletions[habit.id] ? 'line-through text-muted-foreground' : ''
                           }`}>{habit.name}</span>
@@ -766,39 +764,38 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                             );
                           })}
                         </label>
-                        <ReanalyzeButton
-                          habitId={habit.id}
-                          hasDifficulty={!!difficultyHabit.difficultyRating}
-                          onAnalyze={handleAnalyzeHabit}
-                          isAnalyzing={analyzingHabit === habit.id}
-                        />
-                      </div>
-
-                      {hasGamification && (
-                        <HabitStatsRow habit={habit} />
-                      )}
-
-                      {hasGamification && (
-                        <HabitProgressBar habit={habit} />
-                      )}
-
-                      <AiAnalysisNote analysis={difficultyHabit.aiAnalysis} />
-
-                      {hasGamification && (
-                        <LevelUpButton
-                          habit={habit}
-                          onLevelUp={(habitId) => levelUpHabit.mutate(habitId)}
-                        />
-                      )}
-
-                      <SubtaskManager
+                      <ReanalyzeButton
                         habitId={habit.id}
-                        subtaskCompletions={subtaskCompletions}
-                        onSubtaskToggle={handleSubtaskToggle}
-                        isDayCompleted={isDayCompleted}
-                        isGuestMode={isGuestMode}
+                        hasDifficulty={!!difficultyHabit.difficultyRating}
+                        onAnalyze={handleAnalyzeHabit}
+                        isAnalyzing={analyzingHabit === habit.id}
                       />
                     </div>
+
+                    {hasGamification && (
+                      <HabitStatsRow habit={habit} />
+                    )}
+
+                    {hasGamification && (
+                      <HabitProgressBar habit={habit} />
+                    )}
+
+                    <AiAnalysisNote analysis={difficultyHabit.aiAnalysis} />
+
+                    {hasGamification && (
+                      <LevelUpButton
+                        habit={habit}
+                        onLevelUp={(habitId) => levelUpHabit.mutate(habitId)}
+                      />
+                    )}
+
+                    <SubtaskManager
+                      habitId={habit.id}
+                      subtaskCompletions={subtaskCompletions}
+                      onSubtaskToggle={handleSubtaskToggle}
+                      isDayCompleted={isDayCompleted}
+                      isGuestMode={isGuestMode}
+                    />
                   </div>
                 </motion.div>
               );
