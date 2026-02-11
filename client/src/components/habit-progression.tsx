@@ -1,22 +1,11 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import {
   Trophy,
-  Star,
   Flame,
-  Target,
-  Award,
-  TrendingUp,
-  Crown,
-  Zap,
-  Shield,
-  Gem,
-  PartyPopper,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { resolveBadgeIcon } from "@/lib/badgeIcons";
 
 interface HabitProgressionProps {
@@ -39,259 +28,76 @@ interface HabitProgressionProps {
 }
 
 export function HabitProgression({ habit, onLevelUp }: HabitProgressionProps) {
-  const [showDetails, setShowDetails] = useState(false);
-  const [celebrating, setCelebrating] = useState(false);
-
-  const getTierIcon = (tierValue: string) => {
-    switch (tierValue) {
-      case "bronze": return <Shield className="w-4 h-4 text-amber-600" />;
-      case "silver": return <Shield className="w-4 h-4 text-gray-400" />;
-      case "gold": return <Crown className="w-4 h-4 text-yellow-500" />;
-      case "platinum": return <Star className="w-4 h-4 text-blue-400" />;
-      case "diamond": return <Gem className="w-4 h-4 text-purple-500" />;
-      default: return <Shield className="w-4 h-4 text-gray-400" />;
-    }
-  };
-
-  const getTierColor = (tierValue: string) => {
-    switch (tierValue) {
-      case "bronze": return "from-amber-500 to-amber-700";
-      case "silver": return "from-gray-400 to-gray-600";
-      case "gold": return "from-yellow-400 to-yellow-600";
-      case "platinum": return "from-blue-400 to-blue-600";
-      case "diamond": return "from-purple-400 to-purple-600";
-      default: return "from-gray-400 to-gray-600";
-    }
-  };
-
-  const getDifficultyMultiplier = (rating?: number) => {
-    if (!rating) return 1;
-    return rating * 0.2 + 0.6; // 0.8x to 1.6x multiplier
-  };
-
-  const calculateNextLevelXP = (level: number, difficulty?: number) => {
-    const baseXP = 100;
-    const multiplier = getDifficultyMultiplier(difficulty);
-    return Math.floor(baseXP * Math.pow(1.2, level - 1) * multiplier);
-  };
-
-  // Use defaults for missing gamification data
   const level = habit.level || 1;
   const experience = habit.experience || 0;
   const experienceToNext = habit.experienceToNext || 100;
   const streak = habit.streak || 0;
-  const longestStreak = habit.longestStreak || 0;
-  const completionRate = habit.completionRate || 0;
-  const totalCompletions = habit.totalCompletions || 0;
   const tier = habit.tier || "bronze";
   const badges = habit.badges || [];
+  const totalCompletions = habit.totalCompletions || 0;
 
   const experiencePercentage = experienceToNext > 0 ? (experience / experienceToNext) * 100 : 0;
 
-  const handleCelebration = () => {
-    setCelebrating(true);
-    setTimeout(() => setCelebrating(false), 2000);
-  };
-
   return (
-    <Card className="relative overflow-hidden">
-      <div className={`absolute inset-0 bg-gradient-to-r ${getTierColor(tier)} opacity-10`} />
-      
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <div className={`p-2 rounded-full bg-gradient-to-r ${getTierColor(tier)} text-white`}>
-                {getTierIcon(tier)}
-              </div>
-              {streak > 0 && (
-                <div className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {streak}
-                </div>
-              )}
-            </div>
-            <div>
-              <CardTitle className="text-lg flex items-center space-x-2">
-                <span>{habit.emoji} {habit.name}</span>
-                <Badge variant="outline" className="text-xs">
-                  Level {level}
-                </Badge>
-              </CardTitle>
-              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                <span className="capitalize">{tier} Tier</span>
-                <span>•</span>
-                <span>{completionRate}% Success Rate</span>
-              </div>
-            </div>
-          </div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowDetails(!showDetails)}
-          >
-            <TrendingUp className="w-4 h-4" />
-          </Button>
-        </div>
-      </CardHeader>
-
-    <CardContent className="space-y-4">
-        {/* Level Progress */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600 dark:text-gray-400">Level Progress</span>
-            <span className="font-medium">{Math.round(experiencePercentage)}%</span>
-          </div>
-          <Progress value={experiencePercentage} className="h-2" />
-          {experiencePercentage >= 100 && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="text-center"
-            >
-              <Button
-                onClick={() => {
-                  onLevelUp?.(habit.id);
-                  handleCelebration();
-                }}
-                className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600"
-              >
-                <Trophy className="w-4 h-4 mr-2" />
-                Level Up!
-              </Button>
-            </motion.div>
-          )}
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-4 gap-4 text-center">
-          <div className="space-y-1 relative">
-            <div className="flex items-center justify-center">
-              <Flame className="w-4 h-4 text-orange-500" />
-            </div>
-            <div className="text-sm font-bold text-orange-500">{streak}</div>
-            <div className="text-xs text-gray-500">Current</div>
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center justify-center">
-              <Target className="w-4 h-4 text-blue-500" />
-            </div>
-            <div className="text-sm font-medium">{longestStreak}</div>
-            <div className="text-xs text-gray-500">Best</div>
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center justify-center">
-              <Zap className="w-4 h-4 text-purple-500" />
-            </div>
-            <div className="text-sm font-medium">{completionRate}%</div>
-            <div className="text-xs text-gray-500">Success</div>
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center justify-center">
-              <Award className="w-4 h-4 text-green-500" />
-            </div>
-            <div className="text-sm font-medium">{totalCompletions}</div>
-            <div className="text-xs text-gray-500">Total</div>
-          </div>
-        </div>
-
-        {/* Badges */}
+    <div className="space-y-2">
+      <div className="flex items-center gap-3 flex-wrap">
+        <Badge variant="outline" className="text-xs" data-testid={`badge-level-${habit.id}`}>
+          Lv. {level}
+        </Badge>
+        <Badge variant="outline" className="text-xs capitalize" data-testid={`badge-tier-${habit.id}`}>
+          {tier}
+        </Badge>
+        {streak > 0 && (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground" data-testid={`text-streak-${habit.id}`}>
+            <Flame className="w-3 h-3 text-orange-500" />
+            {streak}d streak
+          </span>
+        )}
+        {totalCompletions > 0 && (
+          <span className="text-xs text-muted-foreground" data-testid={`text-completions-${habit.id}`}>
+            {totalCompletions} done
+          </span>
+        )}
         {badges.length > 0 && (
-          <div className="space-y-2">
-            <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Earned Badges
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {badges.map((badge, index) => (
-                <motion.div
+          <div className="flex items-center gap-0.5">
+            {badges.slice(0, 5).map((badge) => {
+              const Icon = resolveBadgeIcon(badge);
+              return (
+                <span
                   key={badge}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="p-1 rounded-md bg-amber-50 dark:bg-amber-900/20"
                   title={badge.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 >
-                  {(() => {
-                    const Icon = resolveBadgeIcon(badge);
-                    return <Icon className="h-5 w-5 text-amber-500" />;
-                  })()}
-                </motion.div>
-              ))}
-            </div>
+                  <Icon className="h-4 w-4 text-amber-500" />
+                </span>
+              );
+            })}
+            {badges.length > 5 && (
+              <span className="text-xs text-muted-foreground ml-1">+{badges.length - 5}</span>
+            )}
           </div>
         )}
+      </div>
 
-        {/* Detailed Stats */}
-        <AnimatePresence>
-          {showDetails && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="space-y-3 border-t pt-3"
-            >
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="space-y-2">
-                  <div className="font-medium text-gray-700 dark:text-gray-300">Progress Metrics</div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Completion Rate</span>
-                      <span>{completionRate}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Total Completions</span>
-                      <span>{totalCompletions}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Level Progress</span>
-                      <span>{Math.round(experiencePercentage)}%</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="font-medium text-gray-700 dark:text-gray-300">Streak Stats</div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Current Streak</span>
-                      <span>{streak} days</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Longest Streak</span>
-                      <span>{longestStreak} days</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Current Tier</span>
-                      <span className="capitalize">{tier}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </CardContent>
+      <div className="flex items-center gap-2">
+        <Progress value={experiencePercentage} className="h-1.5 flex-1" />
+        <span className="text-xs text-muted-foreground font-mono w-8 text-right">{Math.round(experiencePercentage)}%</span>
+      </div>
 
-      {/* Celebration Animation */}
-      <AnimatePresence>
-        {celebrating && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 flex items-center justify-center"
+      {experiencePercentage >= 100 && (
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+        >
+          <Button
+            size="sm"
+            onClick={() => onLevelUp?.(habit.id)}
+            data-testid={`button-levelup-${habit.id}`}
           >
-            <motion.div
-              initial={{ scale: 0, rotate: 0 }}
-              animate={{ scale: 1.2, rotate: 360 }}
-              transition={{ duration: 0.6 }}
-              className="text-6xl text-orange-400"
-            >
-              <PartyPopper className="w-16 h-16" />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </Card>
+            <Trophy className="w-3 h-3 mr-1" />
+            Level Up
+          </Button>
+        </motion.div>
+      )}
+    </div>
   );
 }
