@@ -4,7 +4,7 @@ import { useDailyEntries } from "@/hooks/use-daily-entries";
 import { useCreateGoal, useDeleteGoal, useGoals } from "@/hooks/use-goals";
 import { HabitHealthDashboard } from "@/components/habit-health-dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, LineChart } from "lucide-react";
+import { Activity, LineChart, Plus, Target } from "lucide-react";
 import { getMockHabits } from "@/lib/mockData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -135,11 +135,11 @@ export function AnalyticsView({ isGuestMode = false }: AnalyticsViewProps) {
             <CardTitle className="text-lg font-semibold">Tag Goals</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 flex-1 flex flex-col">
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div>
-                <div className="text-xs font-medium text-muted-foreground mb-2">Tag</div>
+            <div className="flex items-end gap-2 flex-wrap">
+              <div className="flex-1 min-w-[100px]">
+                <div className="text-xs font-medium text-muted-foreground mb-1.5">Tag</div>
                 <Select value={goalTag} onValueChange={(value) => setGoalTag(value as HabitTag)}>
-                  <SelectTrigger>
+                  <SelectTrigger data-testid="select-goal-tag">
                     <SelectValue placeholder="Select tag" />
                   </SelectTrigger>
                   <SelectContent>
@@ -151,13 +151,13 @@ export function AnalyticsView({ isGuestMode = false }: AnalyticsViewProps) {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <div className="text-xs font-medium text-muted-foreground mb-2">Period</div>
+              <div className="flex-1 min-w-[100px]">
+                <div className="text-xs font-medium text-muted-foreground mb-1.5">Period</div>
                 <Select
                   value={goalPeriod}
                   onValueChange={(value) => setGoalPeriod(value as (typeof goalPeriodOptions)[number])}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger data-testid="select-goal-period">
                     <SelectValue placeholder="Select period" />
                   </SelectTrigger>
                   <SelectContent>
@@ -169,26 +169,27 @@ export function AnalyticsView({ isGuestMode = false }: AnalyticsViewProps) {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <div className="text-xs font-medium text-muted-foreground mb-2">Target</div>
+              <div className="w-20">
+                <div className="text-xs font-medium text-muted-foreground mb-1.5">Target</div>
                 <Input
                   type="number"
                   min={1}
                   value={goalTarget}
                   onChange={(event) => setGoalTarget(event.target.value)}
+                  data-testid="input-goal-target"
                 />
               </div>
-            </div>
-            <div className="flex justify-end">
-              <Button onClick={handleCreateGoal} disabled={createGoal.isPending}>
-                {createGoal.isPending ? "Saving..." : "Add Goal"}
+              <Button onClick={handleCreateGoal} disabled={createGoal.isPending} size="icon" data-testid="button-add-goal">
+                <Plus />
               </Button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 flex-1">
               {goals.length === 0 && (
-                <div className="text-sm text-muted-foreground">
-                  No goals yet. Add one to track tag progress.
+                <div className="flex flex-col items-center justify-center py-8 text-center flex-1">
+                  <Target className="w-8 h-8 text-muted-foreground/40 mb-2" />
+                  <p className="text-sm text-muted-foreground">No goals yet</p>
+                  <p className="text-xs text-muted-foreground/60">Set a tag, period, and target above</p>
                 </div>
               )}
               {goals.map((goal) => {
