@@ -138,7 +138,7 @@ export function HabitHealthRadar({ habits }: HabitHealthRadarProps) {
             <Activity className="w-5 h-5" />
             <span>Habit Health Overview</span>
           </div>
-          <div className={`px-3 py-1 rounded-full ${healthStatus.bgColor} ${healthStatus.color} text-sm font-medium`}>
+          <div className={`px-3 py-1 rounded-md ${healthStatus.bgColor} ${healthStatus.color} text-sm font-medium`}>
             {overallScore}% - {healthStatus.status}
           </div>
         </CardTitle>

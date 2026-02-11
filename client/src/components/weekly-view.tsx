@@ -485,7 +485,7 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
               <Button
                 onClick={handleSaveReview}
                 disabled={createWeeklyReview.isPending || updateWeeklyReview.isPending}
-                className="gradient-bg text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl"
+                className="gradient-bg text-white px-6 py-3 rounded-md font-semibold shadow-lg hover:shadow-xl"
               >
                 {createWeeklyReview.isPending || updateWeeklyReview.isPending 
                   ? "Saving..." 

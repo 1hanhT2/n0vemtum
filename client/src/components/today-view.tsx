@@ -23,7 +23,7 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sparkles, RefreshCw, CheckCircle2, Target, PartyPopper, Settings, Sun } from "lucide-react";
+import { Sparkles, RefreshCw, CheckCircle2, Target, PartyPopper, Settings, Sun, FileText } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 import { useStreak } from "@/hooks/use-streaks";
 import { useLevelUpHabit, useUpdateHabitProgress } from "@/hooks/use-gamification";
@@ -652,14 +652,14 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Sun className="h-5 w-5 text-primary" />
-            <h2 className="text-3xl font-bold text-foreground">Today's Progress</h2>
+            <h2 className="text-2xl font-semibold text-foreground">Today's Progress</h2>
           </div>
           <p className="text-muted-foreground">{formatDate(today)}</p>
         </div>
 
         <GamificationSummary habits={habits || []} />
         {habits && (
-          <Card className="border border-border rounded-xl bg-card text-card-foreground p-6 shadow-sm">
+          <Card className="border border-border rounded-md bg-card text-card-foreground p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className={`w-2 h-2 rounded-full ${autoSaveStatus === 'saving' ? 'bg-yellow-500 animate-pulse' : autoSaveStatus === 'saved' ? 'bg-primary' : 'bg-muted-foreground/40'}`}></div>
@@ -693,12 +693,10 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
 
       {/* AI Motivational Message */}
       {motivationalMessage && (
-        <Card className="border border-primary/20 rounded-xl bg-card shadow-sm">
+        <Card className="border border-primary/20 rounded-md bg-card">
           <CardContent className="pt-6">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-5 h-5 text-primary" />
-              </div>
+              <Sparkles className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="font-semibold text-foreground mb-1">AI Coach</h3>
                 <p className="text-muted-foreground">{motivationalMessage}</p>
@@ -709,12 +707,10 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       )}
 
       {/* Core Routines Checklist */}
-          <Card className="border border-border rounded-xl bg-card text-card-foreground shadow-sm">
+          <Card className="border border-border rounded-md bg-card text-card-foreground">
             <CardHeader className="border-b border-border pb-4">
-          <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <div className="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-green-500" />
-            </div>
+          <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-muted-foreground" />
             Today's Habits
           </CardTitle>
         </CardHeader>
@@ -723,11 +719,9 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
             {habits?.map((habit) => (
               <motion.div
                 key={habit.id}
-                initial={{ scale: 1 }}
-                whileHover={{ scale: 1.005 }}
-                className="p-4 rounded-lg border border-border bg-muted/50 hover:bg-card hover:shadow-sm hover:border-primary/40 transition-all space-y-4"
+                className="p-4 rounded-md border border-border hover-elevate transition-all space-y-3"
               >
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center gap-3">
                   <Checkbox
                     id={`habit-${habit.id}`}
                     data-testid={`checkbox-habit-${habit.id}`}
@@ -742,7 +736,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                       habitCompletions[habit.id] ? 'opacity-50' : ''
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center gap-3">
                       <span className="text-xl">{habit.emoji}</span>
                       <span className={`text-base font-medium text-foreground transition-all ${
                         habitCompletions[habit.id] ? 'line-through text-muted-foreground' : ''
@@ -756,7 +750,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
                           return (
                             <span
                               key={`${habit.id}-${tag}`}
-                              className={`px-2 py-0.5 rounded-full border text-xs font-mono ${config.className}`}
+                              className={`px-2 py-0.5 rounded-md border text-xs font-mono ${config.className}`}
                             >
                               {config.label}
                             </span>
@@ -807,19 +801,17 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       {/* Scoring Section */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Auto-Calculated Score */}
-        <Card className="border border-border rounded-xl bg-card text-card-foreground shadow-sm">
+        <Card className="border border-border rounded-md bg-card text-card-foreground">
           <CardHeader className="border-b border-border pb-4">
-            <CardTitle className="text-lg font-sans font-semibold text-foreground flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                <Target className="w-5 h-5 text-blue-500" />
-              </div>
+            <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+              <Target className="w-5 h-5 text-muted-foreground" />
               Performance
             </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1 ml-10">Auto-calculated score</p>
+            <p className="text-sm text-muted-foreground mt-1">Auto-calculated score</p>
           </CardHeader>
           <CardContent>
             <div className="text-center mb-4">
-              <span className="text-4xl font-bold text-primary">{punctualityScore[0]}</span>
+              <span className="text-2xl font-bold text-primary">{punctualityScore[0]}</span>
               <span className="text-lg text-muted-foreground ml-2">/ 5</span>
             </div>
             <div className="space-y-2 text-sm text-muted-foreground">
@@ -848,13 +840,12 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         </Card>
 
         {/* Manual Override (Optional) */}
-        <Card className="rounded-xl shadow-sm bg-card text-card-foreground border border-border">
+        <Card className="rounded-md bg-card text-card-foreground border border-border">
           <CardHeader>
-            <CardTitle className="text-lg font-sans font-semibold text-foreground flex items-center">
-              <Settings className="mr-2 h-5 w-5 text-muted-foreground" />
+            <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+              <Settings className="h-5 w-5 text-muted-foreground" />
               Manual Adjustment
             </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">Override if needed for special circumstances</p>
           </CardHeader>
           <CardContent>
             <div className="mb-4">
@@ -873,22 +864,19 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
               </div>
             </div>
             <div className="text-center">
-              <span className="text-2xl font-bold text-primary">{adherenceScore[0]}</span>
+              <span className="text-lg font-bold text-primary">{adherenceScore[0]}</span>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Daily Notes */}
-      <Card className="rounded-xl shadow-sm bg-card text-card-foreground border border-border">
+      <Card className="rounded-md bg-card text-card-foreground border border-border">
         <CardHeader>
-          <CardTitle className="text-lg font-sans font-semibold text-foreground flex items-center">
-            <span className="mr-2">📝</span>
+          <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+            <FileText className="w-5 h-5 text-muted-foreground" />
             Daily Log & Notes
           </CardTitle>
-          <p className="text-sm text-muted-foreground mt-1">
-            Add your thoughts, wins, or observations for today
-          </p>
         </CardHeader>
         <CardContent>
           <Textarea
@@ -905,7 +893,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       {/* Complete Day Button */}
       <div className="text-center">
         {isDayCompleted ? (
-          <Card className="rounded-xl shadow-sm bg-green-50 border border-green-200">
+          <Card className="rounded-md bg-card border border-green-600/30">
             <CardContent className="pt-6">
               <div className="text-center">
                 <div className="flex justify-center mb-2">
@@ -919,13 +907,11 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         ) : (
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
+              <motion.div>
                 <Button
+                  size="lg"
                   disabled={createDailyEntry.isPending || updateDailyEntry.isPending || isCompletingDay}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 rounded-full font-medium text-lg shadow-lg hover:shadow-xl transition-all"
+                  className="px-8"
                 >
                   {createDailyEntry.isPending || updateDailyEntry.isPending || isCompletingDay
                     ? "Saving..."

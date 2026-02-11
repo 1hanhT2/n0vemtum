@@ -29,7 +29,7 @@ export function GamificationSummary({ habits }: GamificationSummaryProps) {
   
   if (gamifiedHabits.length === 0) {
     return (
-      <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
+      <Card className="bg-card border border-border">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Trophy className="w-5 h-5 text-yellow-500" />
@@ -65,7 +65,7 @@ export function GamificationSummary({ habits }: GamificationSummaryProps) {
     : 0;
 
   return (
-    <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
+    <Card className="bg-card border border-border">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <Trophy className="w-5 h-5 text-yellow-500" />
@@ -75,33 +75,27 @@ export function GamificationSummary({ habits }: GamificationSummaryProps) {
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center space-y-1">
-            <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
-              <Star className="w-5 h-5 text-yellow-500 mx-auto mb-1" />
-              <div className="text-lg font-bold">{totalLevel}</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">Total Levels</div>
-            </div>
+            <Star className="w-5 h-5 text-yellow-500 mx-auto mb-1" />
+            <div className="text-lg font-bold">{totalLevel}</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400">Total Levels</div>
           </div>
           
           <div className="text-center space-y-1">
-            <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
-              <Award className="w-5 h-5 text-purple-500 mx-auto mb-1" />
-              <div className="text-lg font-bold">{totalBadges}</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">Badges Earned</div>
-            </div>
+            <Award className="w-5 h-5 text-purple-500 mx-auto mb-1" />
+            <div className="text-lg font-bold">{totalBadges}</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400">Badges Earned</div>
           </div>
           
           <div className="text-center space-y-1">
-            <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
-              <Target className="w-5 h-5 text-green-500 mx-auto mb-1" />
-              <div className="text-lg font-bold">{averageCompletionRate}%</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">Avg Success</div>
-            </div>
+            <Target className="w-5 h-5 text-green-500 mx-auto mb-1" />
+            <div className="text-lg font-bold">{averageCompletionRate}%</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400">Avg Success</div>
           </div>
           
           <div className="text-center space-y-1">
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="p-2 bg-white dark:bg-gray-800 rounded-lg cursor-default">
+                <div className="cursor-default">
                   <Trophy className="w-5 h-5 text-orange-500 mx-auto mb-1" />
                   <div className="text-lg font-bold">{currentStreakOverall}</div>
                   <div className="text-xs text-gray-600 dark:text-gray-400">Current Streak</div>

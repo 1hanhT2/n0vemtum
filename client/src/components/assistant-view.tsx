@@ -52,7 +52,7 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
 
   if (isGuestMode) {
     return (
-      <Card className="border border-border rounded-xl bg-card text-card-foreground shadow-sm">
+      <Card className="border border-border rounded-md bg-card text-card-foreground">
         <CardContent className="p-8 text-center text-muted-foreground">
           Sign in to use the AI assistant and save your conversations.
         </CardContent>
@@ -67,7 +67,7 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
         <h2 className="text-2xl font-bold text-foreground">Assistant</h2>
       </div>
 
-      <Card className="border border-border rounded-xl bg-card text-card-foreground shadow-sm">
+      <Card className="border border-border rounded-md bg-card text-card-foreground">
         <CardHeader className="border-b border-border">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -77,7 +77,7 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <div className="rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground">
+              <div className="rounded-md border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground">
                 Model: {modelLabel}
               </div>
               <Button

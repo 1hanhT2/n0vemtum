@@ -53,15 +53,13 @@ export function Home({ isGuestMode = false }: HomeProps) {
         onViewChange={setCurrentView}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 lg:pt-24 pb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-24 pb-8">
         {isGuestMode && (
           <div className="mb-8">
             <div className="bg-card border border-border rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center">
-                    <Eye className="h-5 w-5 text-primary" />
-                  </div>
+                  <Eye className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium">Demo Mode Active</p>
                     <p className="text-sm text-muted-foreground">Sign in to save your progress and unlock all features</p>
@@ -69,7 +67,7 @@ export function Home({ isGuestMode = false }: HomeProps) {
                 </div>
                 <Button 
                   onClick={() => window.location.href = "/api/login"}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium rounded-md"
+                  data-testid="button-demo-sign-in"
                 >
                   <LogIn className="h-4 w-4 mr-2" />
                   Sign In
@@ -80,18 +78,10 @@ export function Home({ isGuestMode = false }: HomeProps) {
         )}
         
         <div className="mb-8">
-          <div className="flex flex-wrap items-center gap-3 mb-2">
-            <h1
-              className="font-bold leading-tight text-balance break-words max-w-full"
-              style={{
-                fontSize: "clamp(1.4rem, 4vw + 0.4rem, 2.6rem)",
-                overflowWrap: "anywhere"
-              }}
-            >
-              {isGuestMode ? "Demo Dashboard" : `Welcome back, ${(user as any)?.firstName || (user as any)?.email || 'there'}`}
-            </h1>
-          </div>
-          <p className="text-lg text-muted-foreground font-light">
+          <h1 className="text-2xl font-semibold mb-2">
+            {isGuestMode ? "Demo Dashboard" : `Welcome back, ${(user as any)?.firstName || (user as any)?.email || 'there'}`}
+          </h1>
+          <p className="text-sm text-muted-foreground">
             {isGuestMode 
               ? "Explore the full habit tracking experience with sample data" 
               : "Track your habits. Build momentum. Stay consistent."
@@ -107,9 +97,7 @@ export function Home({ isGuestMode = false }: HomeProps) {
         <div className="mt-8 grid lg:grid-cols-3 gap-8">
           {/* Main Content Area */}
           <div className="lg:col-span-2 space-y-8">
-             <div className="bg-transparent">
-               {renderCurrentView()}
-             </div>
+             {renderCurrentView()}
           </div>
 
           {/* Side Panel - System Stats */}

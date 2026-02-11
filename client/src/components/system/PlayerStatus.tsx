@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
-import { Shield, Zap, Brain, Activity, Eye, Crown, Sparkles } from "lucide-react";
+import { Shield, Zap, Brain, Activity, Eye, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -155,28 +155,25 @@ export function PlayerStatus() {
       className="space-y-4"
     >
       <div className="panel bg-card text-foreground">
-        <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-        </div>
-
         <div className="p-6 pb-2 border-b border-border relative z-10">
           <div className="flex justify-between items-end">
             <div>
-               <div className="text-xs font-mono text-blue-600 dark:text-blue-400 tracking-widest uppercase mb-1">Status</div>
+               <div className="text-xs font-mono text-blue-600 dark:text-blue-400 tracking-wider uppercase mb-1">Status</div>
                <div className="font-bold text-2xl tracking-wide flex items-center gap-2">
                  {(user as any)?.username || "User"}
-                 <span className="text-sm font-mono font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-md border border-border">
+                 <span className="text-sm font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-md border border-border">
                    {userClass}
                  </span>
                </div>
             </div>
             <div className="text-right">
-              <div className="text-sm text-muted-foreground font-mono uppercase tracking-wider text-[10px] mb-1">Level</div>
+              <div className="text-xs text-muted-foreground font-mono uppercase mb-1">Level</div>
               <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 font-mono leading-none">{level}</div>
             </div>
           </div>
         </div>
 
-        <div className="p-6 pt-6 space-y-6 relative z-10">
+        <div className="p-6 pt-6 space-y-4 relative z-10">
           {/* XP Bar */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs font-mono text-muted-foreground">
@@ -194,9 +191,9 @@ export function PlayerStatus() {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2">
              {statConfig.map((stat) => (
-               <div key={stat.key} className="bg-muted/40 dark:bg-muted rounded-lg p-3 border border-border flex items-center justify-between group hover:border-primary/40 transition-colors">
+               <div key={stat.key} className="bg-muted/40 dark:bg-muted rounded-md p-2 border border-border flex items-center justify-between group hover-elevate transition-colors">
                   <div className="flex items-center gap-2">
                     <stat.icon className={`w-4 h-4 ${stat.color}`} />
                     <span className="text-sm font-mono text-foreground/80">{stat.label}</span>
@@ -205,24 +202,13 @@ export function PlayerStatus() {
                </div>
              ))}
           </div>
-
-          <div className="pt-4 border-t border-border">
-             <div className="text-xs text-center text-muted-foreground font-mono uppercase tracking-widest">
-                System Active
-             </div>
-          </div>
         </div>
       </div>
 
       <div className="bg-card border border-border rounded-md p-4">
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-xs uppercase tracking-[0.1em] text-muted-foreground font-mono">Challenges</div>
-            <div className="text-sm text-foreground/90">AI one-off tasks to boost today</div>
-          </div>
+          <Sparkles className="w-4 h-4 text-primary" />
+          <div className="text-xs uppercase tracking-[0.1em] text-muted-foreground font-mono">Challenges</div>
         </div>
         {!user && (
           <p className="text-sm text-muted-foreground">Sign in to get personalized challenges.</p>
@@ -232,8 +218,7 @@ export function PlayerStatus() {
             {challengesLoading && <p className="text-sm text-muted-foreground">Fetching fresh challenges…</p>}
             {challengesError && <p className="text-sm text-muted-foreground">Couldn&apos;t load challenges right now.</p>}
             {!challengesLoading && !challengesError && (
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-muted-foreground">Daily challenges refresh each day.</span>
+              <div className="mb-2">
                 <Button
                   variant="ghost"
                   size="sm"

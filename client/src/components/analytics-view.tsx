@@ -196,10 +196,10 @@ export function AnalyticsView({ isGuestMode = false }: AnalyticsViewProps) {
                 const progress = Math.min(100, (count / Math.max(1, goal.targetCount)) * 100);
                 const tagMeta = habitTagConfig[goal.tag as HabitTag];
                 return (
-                  <div key={goal.id} className="space-y-2 rounded-xl border border-border p-4">
+                  <div key={goal.id} className="space-y-2 rounded-md border border-border p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 rounded-full border text-xs font-mono ${tagMeta.className}`}>
+                        <span className={`px-2 py-0.5 rounded-md border text-xs font-mono ${tagMeta.className}`}>
                           {tagMeta.label}
                         </span>
                         <span className="text-sm font-medium text-foreground">
@@ -259,7 +259,7 @@ export function AnalyticsView({ isGuestMode = false }: AnalyticsViewProps) {
                     const meta = habitTagConfig[entry.tag as HabitTag];
                     return (
                       <div key={entry.tag} className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className={`px-2 py-0.5 rounded-full border ${meta.className}`}>
+                        <span className={`px-2 py-0.5 rounded-md border ${meta.className}`}>
                           {meta.label}
                         </span>
                         <span>{entry.value} habits</span>
