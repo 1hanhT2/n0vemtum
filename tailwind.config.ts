@@ -6,8 +6,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
+        sans: ['"Inter"', "system-ui", "sans-serif"],
         serif: ['"Libre Baskerville"', "serif"],
-        mono: ['"IBM Plex Mono"', "monospace"],
+        mono: ['"JetBrains Mono"', '"IBM Plex Mono"', "monospace"],
       },
       borderRadius: {
         lg: "var(--radius)",
