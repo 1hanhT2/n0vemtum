@@ -71,25 +71,25 @@ export function Landing() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [habits, setHabits] = useState<Habit[]>([
     {
-      name: "Deep Work Protocol",
+      name: "Deep Work",
       streak: 12,
       done: true,
       compliance: 87,
-      insight: "Subject performs best with Deep Work when initiated before 0900. Keep the first 90 minutes interruption-free to maintain streak efficiency."
+      insight: "You perform best with Deep Work before 9 AM. Keep the first 90 minutes interruption-free to maintain streak efficiency."
     },
     {
-      name: "Physical Conditioning",
+      name: "Exercise",
       streak: 5,
       done: true,
       compliance: 73,
-      insight: "Recovery windows are improving. Slot conditioning after your longest meeting block to preserve consistency."
+      insight: "Recovery windows are improving. Schedule exercise after your longest meeting block to preserve consistency."
     },
     {
-      name: "Knowledge Acquisition",
+      name: "Reading",
       streak: 26,
       done: false,
       compliance: 64,
-      insight: "Reading velocity dips after 21:00. Move this block to early afternoon to retain recall quality."
+      insight: "Reading focus dips after 9 PM. Try moving this to early afternoon to improve retention."
     }
   ]);
   const [activeHabitIndex, setActiveHabitIndex] = useState(0);
@@ -119,25 +119,25 @@ export function Landing() {
 
   const testimonials = [
     {
-      name: "Subject 8921",
+      name: "Priya K.",
       role: "Product Manager",
       company: "Tech Startup",
-      quote: "The System transformed how I approach my daily protocols. The gamification keeps me compliant and the AI insights are optimal.",
-      initials: "S8"
+      quote: "The System changed how I structure my mornings. The gamification keeps me showing up, and the AI insights actually surface patterns I missed.",
+      initials: "PK"
     },
     {
-      name: "Subject 4412",
+      name: "Marcus T.",
       role: "Software Engineer",
       company: "Enterprise Co",
-      quote: "Finally, a tracking module that understands motivation. The achievement matrix makes building habits feel like a simulation I want to dominate.",
-      initials: "S4"
+      quote: "Finally, a habit tracker that respects the data. The achievement system makes consistency feel rewarding instead of tedious.",
+      initials: "MT"
     },
     {
-      name: "Subject 1102",
+      name: "Elena R.",
       role: "Designer",
       company: "Creative Agency",
-      quote: "The weekly analysis has been critical. I appreciate how The System analyzes my patterns and mandates improvements.",
-      initials: "S1"
+      quote: "The weekly analysis alone is worth it. I can see exactly where my habits slip and what to adjust. Clean, focused, no fluff.",
+      initials: "ER"
     }
   ];
 
@@ -190,14 +190,14 @@ export function Landing() {
             <span className="text-lg font-semibold tracking-tight text-gray-900 dark:text-white">System</span>
           </div>
           <nav className="hidden md:flex items-center gap-1 flex-wrap text-sm font-medium">
-            <a href="#features" data-testid="link-nav-modules" className="text-gray-600 dark:text-white/60 hover-elevate px-3 py-1.5 rounded-md transition-colors">
-              Modules
+            <a href="#features" data-testid="link-nav-features" className="text-gray-600 dark:text-white/60 hover-elevate px-3 py-1.5 rounded-md transition-colors">
+              Features
             </a>
             <a href="#stats" data-testid="link-nav-metrics" className="text-gray-600 dark:text-white/60 hover-elevate px-3 py-1.5 rounded-md transition-colors">
               Metrics
             </a>
-            <a href="#testimonials" data-testid="link-nav-logs" className="text-gray-600 dark:text-white/60 hover-elevate px-3 py-1.5 rounded-md transition-colors">
-              Logs
+            <a href="#testimonials" data-testid="link-nav-reviews" className="text-gray-600 dark:text-white/60 hover-elevate px-3 py-1.5 rounded-md transition-colors">
+              Reviews
             </a>
             <div className="w-px h-5 bg-gray-200 dark:bg-white/10 mx-2"></div>
             <Button
@@ -231,11 +231,11 @@ export function Landing() {
           </div>
 
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-[1.1] tracking-tight">
-            Optimize Your Existence.
+            Build the System. Master your discipline.
           </h1>
 
           <p className="text-lg text-gray-500 dark:text-white/50 max-w-xl mx-auto mb-10 leading-relaxed">
-            Submit your daily metrics. Analyze performance. Transcend limits through advanced gamification protocols.
+            Log daily metrics. Analyze performance data. Elevate your baseline through structured gamification.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-16">
@@ -244,15 +244,15 @@ export function Landing() {
               data-testid="button-begin-initialization"
               className="bg-blue-600 text-white dark:bg-blue-500"
             >
-              Begin Initialization
+              Initialize System
             </Button>
             <Button
               onClick={() => setLocation("/demo")}
-              data-testid="button-observe-simulation"
+              data-testid="button-view-demo"
               variant="outline"
               className="border-gray-200 dark:border-white/15 text-gray-700 dark:text-white/70"
             >
-              Observe Simulation
+              View Demo
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -264,11 +264,11 @@ export function Landing() {
               <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02]">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                  <span className="text-xs font-mono text-gray-400 dark:text-white/40 uppercase tracking-wider">Active Protocols</span>
+                  <span className="text-xs font-mono text-gray-400 dark:text-white/40 uppercase tracking-wider">Active Habits</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400" />
-                  <span className="text-xs font-mono text-gray-400 dark:text-white/40">Cycle: Wed, Oct 24</span>
+                  <span className="text-xs font-mono text-gray-400 dark:text-white/40">Today: Wed, Oct 24</span>
                 </div>
               </div>
 
@@ -329,7 +329,7 @@ export function Landing() {
                     </p>
                     <div className="mt-2 flex items-center gap-1.5 text-[10px] font-mono text-blue-600 dark:text-blue-400 uppercase tracking-wider">
                       <Brain className="h-3 w-3" />
-                      AI Oversight
+                      AI Insight
                     </div>
                   </div>
 
@@ -367,8 +367,8 @@ export function Landing() {
         <div className="container mx-auto max-w-5xl">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { label: "Active Subjects", value: "500", suffix: "+" },
-              { label: "Protocols Tracked", value: "12000", suffix: "+" },
+              { label: "Active Users", value: "500", suffix: "+" },
+              { label: "Habits Tracked", value: "12000", suffix: "+" },
               { label: "Success Rate", value: "95", suffix: "%" },
               { label: "System Rating", value: "4.9", suffix: "" }
             ].map((item) => (
@@ -399,20 +399,20 @@ export function Landing() {
               {
                 icon: Target,
                 module: "01",
-                title: "Protocol Definition",
-                desc: "Establish up to 23 habits with custom difficulty levels and track daily adherence."
+                title: "Habit Tracking",
+                desc: "Define up to 23 habits with custom difficulty levels and track daily completions."
               },
               {
                 icon: Trophy,
                 module: "02",
-                title: "Achievement Matrix",
-                desc: "Unlock 50+ badges, ascend through 10 tiers, and build lasting consistency."
+                title: "Achievements",
+                desc: "Unlock 50+ badges, progress through 10 tiers, and build lasting consistency."
               },
               {
                 icon: Brain,
                 module: "03",
-                title: "AI Analysis",
-                desc: "Receive personalized weekly intelligence powered by advanced algorithms."
+                title: "AI Insights",
+                desc: "Get personalized weekly analysis powered by pattern recognition."
               },
               {
                 icon: BarChart3,
@@ -429,8 +429,8 @@ export function Landing() {
               {
                 icon: Shield,
                 module: "06",
-                title: "Secure Database",
-                desc: "Your data is encrypted and secure. No sharing with external entities."
+                title: "Secure Data",
+                desc: "Your data is encrypted and private. No sharing with third parties."
               }
             ].map((feature, idx) => (
               <div
@@ -461,9 +461,9 @@ export function Landing() {
       {/* Testimonials */}
       <section id="testimonials" className="py-24 px-6 bg-[#111111] dark:bg-[#080808] relative overflow-hidden">
         <div className="container mx-auto max-w-2xl text-center relative z-10">
-          <span className="text-xs font-mono text-blue-400 uppercase tracking-[0.2em] mb-3 block">Community Logs</span>
+          <span className="text-xs font-mono text-blue-400 uppercase tracking-[0.2em] mb-3 block">User Feedback</span>
           <h2 className="text-2xl font-bold text-white mb-16">
-            What subjects are saying.
+            Trusted by builders and high-performers.
           </h2>
 
           <div className="relative border border-white/10 rounded-lg p-8 md:p-12 bg-white/[0.02]">
@@ -509,14 +509,14 @@ export function Landing() {
             Start building better habits.
           </h2>
           <p className="text-gray-500 dark:text-white/50 mb-8 max-w-md mx-auto">
-            Join the operatives optimizing their existence one habit at a time.
+            Join the builders who track, measure, and grow — one habit at a time.
           </p>
           <Button
             onClick={handleLogin}
             data-testid="button-cta-initialize"
             className="bg-blue-600 text-white dark:bg-blue-500"
           >
-            Initialize Free Account
+            Get Started Free
           </Button>
           <p className="mt-4 text-xs font-mono text-gray-400 dark:text-white/30 uppercase tracking-wider">
             No credit card required
