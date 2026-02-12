@@ -3,7 +3,7 @@ import { apiRequest } from "@/lib/queryClient";
 import type { Achievement } from "@shared/schema";
 import { detectClientTimeZone } from "@/lib/timezone";
 
-export function useAchievements() {
+export function useAchievements(options?: { enabled?: boolean }) {
   const timeZone = detectClientTimeZone();
   return useQuery<Achievement[]>({
     queryKey: ["/api/achievements", timeZone],
@@ -12,6 +12,7 @@ export function useAchievements() {
       if (!response.ok) throw new Error('Failed to fetch achievements');
       return response.json();
     },
+    enabled: options?.enabled ?? true,
   });
 }
 

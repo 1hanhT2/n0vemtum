@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Streak } from "@shared/schema";
 import { detectClientTimeZone } from "@/lib/timezone";
 
-export function useStreaks() {
+export function useStreaks(options?: { enabled?: boolean }) {
   const timeZone = detectClientTimeZone();
   return useQuery<Streak[]>({
     queryKey: ["/api/streaks", timeZone],
@@ -11,6 +11,7 @@ export function useStreaks() {
       if (!response.ok) throw new Error('Failed to fetch streaks');
       return response.json();
     },
+    enabled: options?.enabled ?? true,
   });
 }
 

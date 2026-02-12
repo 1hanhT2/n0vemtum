@@ -58,31 +58,19 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
   const unlockedGridRef = useRef<HTMLDivElement>(null);
   const lockedGridRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = usePrefersReducedMotion();
-  const { data: achievements, isLoading: achievementsLoading } = isGuestMode 
-    ? { data: getMockAchievements(), isLoading: false }
-    : useAchievements();
-  const { data: habits, isLoading: habitsLoading } = isGuestMode
-    ? { data: getMockHabits(), isLoading: false }
-    : useHabits();
-  const { data: streaks, isLoading: streaksLoading } = isGuestMode
-    ? { data: getMockStreaks(), isLoading: false }
-    : useStreaks();
-  const { data: rankInfo, isLoading: ranksLoading } = isGuestMode
-    ? { data: getMockRankInfo(), isLoading: false }
-    : useRanks();
+  const achievementsQuery = useAchievements({ enabled: !isGuestMode });
+  const habitsQuery = useHabits({ enabled: !isGuestMode });
+  const streaksQuery = useStreaks({ enabled: !isGuestMode });
+  const ranksQuery = useRanks({ enabled: !isGuestMode });
 
-  if (achievementsLoading || habitsLoading || streaksLoading || ranksLoading) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-20 w-full" />
-        <div className="grid md:grid-cols-2 gap-6">
-          <Skeleton className="h-40 w-full" />
-          <Skeleton className="h-40 w-full" />
-        </div>
-        <Skeleton className="h-64 w-full" />
-      </div>
-    );
-  }
+  const achievements = isGuestMode ? getMockAchievements() : achievementsQuery.data;
+  const habits = isGuestMode ? getMockHabits() : habitsQuery.data;
+  const streaks = isGuestMode ? getMockStreaks() : streaksQuery.data;
+  const rankInfo = isGuestMode ? getMockRankInfo() : ranksQuery.data;
+  const achievementsLoading = isGuestMode ? false : achievementsQuery.isLoading;
+  const habitsLoading = isGuestMode ? false : habitsQuery.isLoading;
+  const streaksLoading = isGuestMode ? false : streaksQuery.isLoading;
+  const ranksLoading = isGuestMode ? false : ranksQuery.isLoading;
 
   const dailyStreak = streaks?.find(s => s.type === 'daily_completion');
   const unlockedAchievements = achievements?.filter(a => a.isUnlocked) || [];
@@ -195,6 +183,19 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
       gsap.killTweensOf(cards);
     };
   }, [lockedAchievements.length, prefersReducedMotion]);
+
+  if (achievementsLoading || habitsLoading || streaksLoading || ranksLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-20 w-full" />
+        <div className="grid md:grid-cols-2 gap-6">
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-40 w-full" />
+        </div>
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} className="space-y-6" style={{ opacity: 0 }}>

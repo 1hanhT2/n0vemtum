@@ -2,9 +2,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { Habit, InsertHabit } from "@shared/schema";
 
-export function useHabits() {
+export function useHabits(options?: { enabled?: boolean }) {
   return useQuery<Habit[]>({
     queryKey: ["/api/habits"],
+    enabled: options?.enabled ?? true,
   });
 }
 
