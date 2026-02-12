@@ -127,26 +127,14 @@ export function Home({ isGuestMode = false }: HomeProps) {
               {renderCurrentView()}
             </div>
 
-            <div className="space-y-6 xl:hidden">
+            <div className="xl:hidden">
               <PlayerStatus />
-              <div className="app-tip-card">
-                <p className="app-mono text-[10px] text-[var(--app-muted)]">Execution Tip</p>
-                <p className="mt-2 text-sm text-[var(--app-ink)]">
-                  Keep Today and Weekly in the same cadence: execute during the day, then tighten process in weekly review.
-                </p>
-              </div>
             </div>
           </div>
 
           <aside className="hidden xl:block">
-            <div className="sticky top-6 space-y-6">
+            <div className="sticky top-6">
               <PlayerStatus />
-              <div className="app-tip-card">
-                <p className="app-mono text-[10px] text-[var(--app-muted)]">Execution Tip</p>
-                <p className="mt-2 text-sm text-[var(--app-ink)]">
-                  Treat habit tracking as product telemetry: review anomalies quickly and adjust system design weekly.
-                </p>
-              </div>
             </div>
           </aside>
         </section>

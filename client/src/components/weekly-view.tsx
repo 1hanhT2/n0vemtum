@@ -10,7 +10,7 @@ import { useWeeklyInsights } from "@/hooks/use-ai";
 import { getWeekDates, getWeekStartDate } from "@/lib/utils";
 import gsap from "gsap";
 import { useToast } from "@/hooks/use-toast";
-import { BarChart3, CalendarRange, CheckCircle2, Sparkles, Star } from "lucide-react";
+import { BarChart3, CalendarRange, CheckCircle2, RefreshCw, Star } from "lucide-react";
 import { getMockHabits } from "@/lib/mockData";
 import {
   ResponsiveContainer,
@@ -431,7 +431,7 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
       <Card>
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <CardTitle className="flex items-center space-x-2">
-            <Sparkles className="w-5 h-5 text-purple-500" />
+            <RefreshCw className="w-5 h-5 text-purple-500" />
             <span>AI Weekly Insights</span>
           </CardTitle>
           {aiInsights && (
@@ -444,12 +444,12 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
             >
               {weeklyInsightsMutation.isPending ? (
                 <>
-                  <Sparkles className="w-4 h-4 animate-spin" />
+                  <RefreshCw className="w-4 h-4 animate-spin" />
                   Generating…
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4" />
+                  <RefreshCw className="w-4 h-4" />
                   Refresh Insights
                 </>
               )}
@@ -526,12 +526,12 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
               >
                 {weeklyInsightsMutation.isPending ? (
                   <>
-                    <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
                     Generating Insights...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4 mr-2" />
+                    <RefreshCw className="w-4 h-4 mr-2" />
                     Generate AI Insights
                   </>
                 )}

@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,15 +16,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useHabits } from "@/hooks/use-habits";
 import { useDailyEntry, useCreateDailyEntry, useUpdateDailyEntry } from "@/hooks/use-daily-entries";
-import { useMotivationalMessage } from "@/hooks/use-ai";
 import { getTodayKey, getYesterdayKey, formatDate } from "@/lib/utils";
 import gsap from "gsap";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sparkles, RefreshCw, CheckCircle2, Target, PartyPopper, Settings, Sun, FileText } from "lucide-react";
+import { Sparkles, CheckCircle2, Target, PartyPopper, Sun, FileText } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
-import { useStreak } from "@/hooks/use-streaks";
 import { useLevelUpHabit, useUpdateHabitProgress } from "@/hooks/use-gamification";
 import { ReanalyzeButton, AiAnalysisNote } from "@/components/habit-difficulty-display";
 import { HabitStatsRow, HabitProgressBar, LevelUpButton } from "@/components/habit-progression";
@@ -34,7 +31,7 @@ import { LevelUpNotification } from "@/components/level-up-notification";
 import { HabitHealthRadar } from "@/components/habit-health-radar";
 import { TierPromotionNotification } from "@/components/tier-promotion-notification";
 import { TierExplanation } from "@/components/tier-explanation";
-import { getMockHabits, getMockDailyEntry, getMockStreak } from "@/lib/mockData";
+import { getMockHabits, getMockDailyEntry } from "@/lib/mockData";
 import { useDebounce, usePendingProtection } from '@/hooks/use-debounce';
 import { SubtaskManager } from "@/components/subtask-manager";
 import { getHabitTagConfig } from "@/lib/habit-tags";
@@ -133,11 +130,7 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   }, [today, updateDailyEntry, updateDailyEntry.isPending, createDailyEntry, createDailyEntry.isPending, toast, user]); // Dependencies that are stable
 
   const debouncedSave = useDebounce(debouncedSaveInternal, 1500);
-  const { data: currentStreak } = isGuestMode
-    ? { data: getMockStreak('daily_completion') }
-    : useStreak('daily_completion');
   const [analyzingHabit, setAnalyzingHabit] = useState<number | null>(null);
-  const motivationMutation = useMotivationalMessage();
   const levelUpHabit = useLevelUpHabit();
   const updateHabitProgress = useUpdateHabitProgress();
   const [levelUpHabitId, setLevelUpHabitId] = useState<number | null>(null);
@@ -152,7 +145,6 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const [punctualityScore, setPunctualityScore] = useState<number[]>([3]);
   const [adherenceScore, setAdherenceScore] = useState<number[]>([3]);
   const [notes, setNotes] = useState('');
-  const [motivationalMessage, setMotivationalMessage] = useState('');
   const [isDayCompleted, setIsDayCompleted] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const autoCompleteRef = useRef(false);
@@ -285,23 +277,6 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       }
     );
   }, [autoCompleteStorageKey, isGuestMode, previousEntry, previousDateKey, updateDailyEntry]);
-
-  // Generate motivational message when habits change
-  useEffect(() => {
-    if (habits && Object.keys(habitCompletions).length > 0) {
-      const completionRate = (Object.values(habitCompletions).filter(Boolean).length / habits.length) * 100;
-      const currentStreakValue = currentStreak?.currentStreak ?? 0;
-
-      motivationMutation.mutate(
-        { completionRate, currentStreak: currentStreakValue },
-        {
-          onSuccess: (data) => {
-            setMotivationalMessage(data.message);
-          },
-        }
-      );
-    }
-  }, [habitCompletions, habits]);
 
   const handleAnalyzeHabit = async (habitId: number) => {
     if (isGuestMode) {
@@ -600,51 +575,6 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const remainingHabits = totalHabits > 0 ? Math.max(0, totalHabits - completedHabitsCount) : 0;
   const progressBarWidth = totalHabits > 0 ? Math.min(100, (completedHabitsCount / totalHabits) * 100) : 0;
 
-  const handleScoreChange = (type: 'punctuality' | 'adherence', value: number[]) => {
-    if (isDayCompleted) return; // Prevent changes if day is completed
-    let newPunctuality = punctualityScore;
-    let newAdherence = adherenceScore;
-
-    if (type === 'punctuality') {
-      newPunctuality = value;
-      setPunctualityScore(value);
-    } else {
-      newAdherence = value;
-      setAdherenceScore(value);
-    }
-
-    // Save to temporary storage with updated scores
-    saveTemporaryCompletions(habitCompletions, subtaskCompletions, newPunctuality[0], newAdherence[0]);
-
-    if (isGuestMode) {
-      toast({
-        title: "Demo Mode",
-        description: "Sign in to save your score changes",
-        variant: "default",
-      });
-      return;
-    }
-
-    // Trigger auto-save
-    setAutoSaveStatus('saving');
-    debouncedSave({
-      habitCompletions,
-      subtaskCompletions,
-      punctualityScore: newPunctuality[0],
-      adherenceScore: newAdherence[0],
-      notes,
-    });
-
-    setTimeout(() => {
-      if (updateDailyEntry.isPending || createDailyEntry.isPending) {
-        setAutoSaveStatus('saving');
-      } else {
-        setAutoSaveStatus('saved');
-        setTimeout(() => setAutoSaveStatus('idle'), 2000);
-      }
-    }, 500);
-  };
-
   const handleNotesChange = (newNotes: string) => {
     if (isDayCompleted) return;
     setNotes(newNotes);
@@ -779,21 +709,6 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
         )}
       </div>
 
-      {/* AI Motivational Message */}
-      {motivationalMessage && (
-        <Card className="border border-primary/20 rounded-md bg-card">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold text-foreground mb-1">AI Coach</h3>
-                <p className="text-muted-foreground">{motivationalMessage}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Core Routines Checklist */}
           <Card className="border border-border rounded-md bg-card text-card-foreground">
             <CardHeader className="border-b border-border pb-4">
@@ -894,76 +809,43 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       </Card>
 
       {/* Scoring Section */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Auto-Calculated Score */}
-        <Card className="border border-border rounded-md bg-card text-card-foreground">
-          <CardHeader className="border-b border-border pb-4">
-            <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
-              <Target className="w-5 h-5 text-muted-foreground" />
-              Performance
-            </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">Auto-calculated score</p>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center mb-4">
-              <span className="text-2xl font-bold text-primary">{punctualityScore[0]}</span>
-              <span className="text-lg text-muted-foreground ml-2">/ 5</span>
+      <Card className="border border-border rounded-md bg-card text-card-foreground">
+        <CardHeader className="border-b border-border pb-4">
+          <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+            <Target className="w-5 h-5 text-muted-foreground" />
+            Performance
+          </CardTitle>
+          <p className="text-sm text-muted-foreground mt-1">Auto-calculated score</p>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center mb-4">
+            <span className="text-2xl font-bold text-primary">{punctualityScore[0]}</span>
+            <span className="text-lg text-muted-foreground ml-2">/ 5</span>
+          </div>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <div className="flex justify-between">
+              <span>100% completion:</span>
+              <span className="font-medium text-foreground">5 points</span>
             </div>
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <div className="flex justify-between">
-                <span>100% completion:</span>
-                <span className="font-medium text-foreground">5 points</span>
-              </div>
-              <div className="flex justify-between">
-                <span>80-99% completion:</span>
-                <span className="font-medium text-foreground">4 points</span>
-              </div>
-              <div className="flex justify-between">
-                <span>60-79% completion:</span>
-                <span className="font-medium text-foreground">3 points</span>
-              </div>
-              <div className="flex justify-between">
-                <span>40-59% completion:</span>
-                <span className="font-medium text-foreground">2 points</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Below 40%:</span>
-                <span className="font-medium text-foreground">1 point</span>
-              </div>
+            <div className="flex justify-between">
+              <span>80-99% completion:</span>
+              <span className="font-medium text-foreground">4 points</span>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Manual Override (Optional) */}
-        <Card className="rounded-md bg-card text-card-foreground border border-border">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
-              <Settings className="h-5 w-5 text-muted-foreground" />
-              Manual Adjustment
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-4">
-              <Slider
-                value={adherenceScore}
-                onValueChange={(value) => handleScoreChange('adherence', value)}
-                max={5}
-                min={1}
-                step={1}
-                disabled={isDayCompleted}
-                className="w-full"
-              />
-              <div className="flex justify-between text-sm text-muted-foreground mt-2">
-                <span>Poor (1)</span>
-                <span>Perfect (5)</span>
-              </div>
+            <div className="flex justify-between">
+              <span>60-79% completion:</span>
+              <span className="font-medium text-foreground">3 points</span>
             </div>
-            <div className="text-center">
-              <span className="text-lg font-bold text-primary">{adherenceScore[0]}</span>
+            <div className="flex justify-between">
+              <span>40-59% completion:</span>
+              <span className="font-medium text-foreground">2 points</span>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="flex justify-between">
+              <span>Below 40%:</span>
+              <span className="font-medium text-foreground">1 point</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Daily Notes */}
       <Card className="rounded-md bg-card text-card-foreground border border-border">

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Brain, Sparkles, Loader2 } from "lucide-react";
+import { Brain, RefreshCw } from "lucide-react";
 
 interface HabitDifficultyProps {
   difficultyRating?: number;
@@ -50,7 +50,7 @@ export function ReanalyzeButton({ habitId, hasDifficulty, onAnalyze, isAnalyzing
   if (isAnalyzing) {
     return (
       <Button size="icon" variant="ghost" disabled data-testid={`button-reanalyze-${habitId}`}>
-        <Loader2 className="w-4 h-4 animate-spin" />
+        <RefreshCw className="w-4 h-4 animate-spin" />
       </Button>
     );
   }
@@ -62,7 +62,7 @@ export function ReanalyzeButton({ habitId, hasDifficulty, onAnalyze, isAnalyzing
       variant="ghost"
       data-testid={hasDifficulty ? `button-reanalyze-${habitId}` : `button-analyze-${habitId}`}
     >
-      {hasDifficulty ? <Sparkles className="w-4 h-4" /> : <Brain className="w-4 h-4" />}
+      {hasDifficulty ? <RefreshCw className="w-4 h-4" /> : <Brain className="w-4 h-4" />}
     </Button>
   );
 }

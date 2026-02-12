@@ -56,7 +56,7 @@ const iconMap = {
   Award: "certificate-badge-1",
   BarChart3: "bar-chart-4",
   BookOpen: "book-1",
-  Bot: "open-ai",
+  Bot: "copilot",
   Brain: "bulb-4",
   Calendar: "calendar-days",
   CalendarDays: "calendar-days",
