@@ -1,98 +1,156 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Brain, CheckCircle2, Moon, Sun, Target, Trophy, TrendingUp, Shield, BarChart3, Sparkles, Zap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useLocation } from "wouter";
-import { useEffect, useState, useRef, KeyboardEvent } from "react";
+import { usePrefersReducedMotion } from "@/hooks/use-gsap";
 import { applyTheme, getStoredDarkMode, getStoredTheme } from "@/lib/theme";
+import {
+  ArrowRight,
+  BarChart3,
+  Brain,
+  Compass,
+  Moon,
+  ShieldCheck,
+  Sparkles,
+  Sun,
+  Target,
+  Trophy,
+  Zap,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 
-type Habit = {
-  name: string;
-  streak: number;
-  done: boolean;
-  insight: string;
-  compliance: number;
+type Feature = {
+  icon: LucideIcon;
+  title: string;
+  detail: string;
 };
 
-function AnimatedNumber({ value, suffix = "" }: { value: string; suffix?: string }) {
-  const [displayed, setDisplayed] = useState("0");
-  const ref = useRef<HTMLDivElement>(null);
-  const hasAnimated = useRef(false);
+type Step = {
+  id: string;
+  title: string;
+  detail: string;
+};
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated.current) {
-          hasAnimated.current = true;
-          const numericValue = parseFloat(value.replace(/[^0-9.]/g, ""));
-          const duration = 1200;
-          const startTime = performance.now();
+type DashboardRow = {
+  name: string;
+  streak: number;
+  completion: number;
+  note: string;
+};
 
-          const animate = (currentTime: number) => {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            const current = Math.floor(eased * numericValue);
+type Testimonial = {
+  name: string;
+  role: string;
+  quote: string;
+};
 
-            if (value.includes("k")) {
-              setDisplayed(current >= 1000 ? `${(current / 1000).toFixed(0)}k` : String(current));
-            } else if (value.includes(".")) {
-              setDisplayed((eased * numericValue).toFixed(1));
-            } else {
-              setDisplayed(String(current));
-            }
+const HERO_STATS = [
+  { label: "Avg weekly consistency", value: "91%" },
+  { label: "Active habit loops", value: "23" },
+  { label: "Saved focus sessions", value: "1.8k" },
+] as const;
 
-            if (progress < 1) {
-              requestAnimationFrame(animate);
-            } else {
-              setDisplayed(value);
-            }
-          };
-          requestAnimationFrame(animate);
-        }
-      },
-      { threshold: 0.5 }
-    );
+const DASHBOARD_ROWS: DashboardRow[] = [
+  {
+    name: "Deep Work",
+    streak: 14,
+    completion: 92,
+    note: "Best block: 8:00-9:30 AM",
+  },
+  {
+    name: "Training",
+    streak: 7,
+    completion: 76,
+    note: "Pairs well with late meetings",
+  },
+  {
+    name: "Reading",
+    streak: 18,
+    completion: 84,
+    note: "Retention rises before lunch",
+  },
+];
 
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [value]);
+const FEATURES: Feature[] = [
+  {
+    icon: Target,
+    title: "Adaptive habit tracking",
+    detail: "Set routines once and tune difficulty as your consistency curve changes.",
+  },
+  {
+    icon: Trophy,
+    title: "Momentum-based progression",
+    detail: "Streak quality and difficulty both contribute to rank and achievement unlocks.",
+  },
+  {
+    icon: Brain,
+    title: "Insight engine",
+    detail: "Weekly analysis highlights where your schedule supports or sabotages execution.",
+  },
+  {
+    icon: BarChart3,
+    title: "Signal-rich analytics",
+    detail: "Track completion, relapse risk, and trend velocity across daily and weekly horizons.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Private by default",
+    detail: "Your personal behavior data stays tied to your account with strict access control.",
+  },
+  {
+    icon: Compass,
+    title: "Clear next actions",
+    detail: "Every review ends with concrete adjustments instead of generic motivation.",
+  },
+];
 
-  return (
-    <div ref={ref} className="font-mono text-4xl font-bold text-blue-600 dark:text-blue-400 tabular-nums">
-      {displayed}{suffix}
-    </div>
-  );
-}
+const PLAYBOOK: Step[] = [
+  {
+    id: "01",
+    title: "Design your system",
+    detail: "Create habits with smart difficulty and tags that reflect the skills you want to build.",
+  },
+  {
+    id: "02",
+    title: "Run daily check-ins",
+    detail: "Log completions in seconds while keeping a clear view of streak strength and consistency.",
+  },
+  {
+    id: "03",
+    title: "Refine from feedback",
+    detail: "Use AI insights and trends to tighten timing, reduce friction, and stay in motion.",
+  },
+];
+
+const TESTIMONIALS: Testimonial[] = [
+  {
+    name: "Ari Chen",
+    role: "Product Lead",
+    quote:
+      "PushForward finally gave me structure without friction. I can see exactly what keeps my execution stable each week.",
+  },
+  {
+    name: "Maya Ortiz",
+    role: "Software Engineer",
+    quote:
+      "The feedback loop is the difference. Instead of random habit tracking, I get practical adjustments that actually stick.",
+  },
+  {
+    name: "Jordan Price",
+    role: "Creative Director",
+    quote:
+      "The design feels intentional and the analytics are clear. It helps me protect routines when my schedule gets chaotic.",
+  },
+];
 
 export function Landing() {
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const prefersReducedMotion = usePrefersReducedMotion();
+
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [habits, setHabits] = useState<Habit[]>([
-    {
-      name: "Deep Work",
-      streak: 12,
-      done: true,
-      compliance: 87,
-      insight: "You perform best with Deep Work before 9 AM. Keep the first 90 minutes interruption-free to maintain streak efficiency."
-    },
-    {
-      name: "Exercise",
-      streak: 5,
-      done: true,
-      compliance: 73,
-      insight: "Recovery windows are improving. Schedule exercise after your longest meeting block to preserve consistency."
-    },
-    {
-      name: "Reading",
-      streak: 26,
-      done: false,
-      compliance: 64,
-      insight: "Reading focus dips after 9 PM. Try moving this to early afternoon to improve retention."
-    }
-  ]);
-  const [activeHabitIndex, setActiveHabitIndex] = useState(0);
+  const [isReady, setIsReady] = useState(false);
+  const [activeTestimonial, setActiveTestimonial] = useState(0);
 
   useEffect(() => {
     const darkMode = getStoredDarkMode();
@@ -100,112 +158,112 @@ export function Landing() {
     applyTheme(getStoredTheme(), darkMode);
   }, []);
 
-  const toggleTheme = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    localStorage.setItem("darkMode", String(newMode));
-    applyTheme(getStoredTheme(), newMode);
-  };
-
   useEffect(() => {
     if (isAuthenticated) {
       setLocation("/app");
     }
   }, [isAuthenticated, setLocation]);
 
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setIsReady(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
+    const revealTargets = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-reveal], [data-reveal-stagger]")
+    );
+
+    if (prefersReducedMotion) {
+      revealTargets.forEach((element) => element.classList.add("is-visible"));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.18,
+        rootMargin: "0px 0px -8% 0px",
+      }
+    );
+
+    revealTargets.forEach((element) => observer.observe(element));
+
+    return () => observer.disconnect();
+  }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+
+    const ticker = window.setInterval(() => {
+      setActiveTestimonial((current) => (current + 1) % TESTIMONIALS.length);
+    }, 5800);
+
+    return () => window.clearInterval(ticker);
+  }, [prefersReducedMotion]);
+
+  const toggleTheme = () => {
+    const nextMode = !isDarkMode;
+    setIsDarkMode(nextMode);
+    localStorage.setItem("darkMode", String(nextMode));
+    applyTheme(getStoredTheme(), nextMode);
+  };
+
   const handleLogin = () => {
     window.location.href = "/api/login";
   };
 
-  const testimonials = [
-    {
-      name: "Priya K.",
-      role: "Product Manager",
-      company: "Tech Startup",
-      quote: "The System changed how I structure my mornings. The gamification keeps me showing up, and the AI insights actually surface patterns I missed.",
-      initials: "PK"
-    },
-    {
-      name: "Marcus T.",
-      role: "Software Engineer",
-      company: "Enterprise Co",
-      quote: "Finally, a habit tracker that respects the data. The achievement system makes consistency feel rewarding instead of tedious.",
-      initials: "MT"
-    },
-    {
-      name: "Elena R.",
-      role: "Designer",
-      company: "Creative Agency",
-      quote: "The weekly analysis alone is worth it. I can see exactly where my habits slip and what to adjust. Clean, focused, no fluff.",
-      initials: "ER"
-    }
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleHabitSelect = (index: number) => {
-    setActiveHabitIndex(index);
-  };
-
-  const handleHabitToggle = (index: number) => {
-    setHabits((prev) =>
-      prev.map((habit, i) =>
-        i === index ? { ...habit, done: !habit.done } : habit
-      )
-    );
-  };
-
-  const handleComplianceChange = (value: number) => {
-    setHabits((prev) =>
-      prev.map((habit, i) =>
-        i === activeHabitIndex ? { ...habit, compliance: value } : habit
-      )
-    );
-  };
-
-  const handleKeySelect = (event: KeyboardEvent<HTMLDivElement>, index: number) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      handleHabitSelect(index);
-    }
-  };
-
-  const activeHabit = habits[activeHabitIndex];
+  const currentQuote = TESTIMONIALS[activeTestimonial];
 
   return (
-    <div className="relative min-h-screen bg-white dark:bg-[#0A0A0A] text-gray-900 dark:text-white font-sans selection:bg-blue-100 dark:selection:bg-blue-500/20 transition-colors duration-300">
+    <div className={`landing-shell ${isReady ? "landing-ready" : ""}`}>
+      <div aria-hidden="true" className="landing-orb landing-orb-one" />
+      <div aria-hidden="true" className="landing-orb landing-orb-two" />
+      <div aria-hidden="true" className="landing-grid" />
 
-      {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-white/80 dark:bg-[#0A0A0A]/80 backdrop-blur-xl border-b border-gray-200 dark:border-white/10 transition-colors duration-300">
-        <div className="container mx-auto px-6 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="w-7 h-7 rounded-md bg-blue-600 dark:bg-blue-500 flex items-center justify-center">
-              <Zap className="h-4 w-4 text-white" strokeWidth={2.5} />
-            </div>
-            <span className="text-lg font-semibold tracking-tight text-gray-900 dark:text-white">System</span>
-          </div>
-          <nav className="hidden md:flex items-center gap-1 flex-wrap text-sm font-medium">
-            <a href="#features" data-testid="link-nav-features" className="text-gray-600 dark:text-white/60 hover-elevate px-3 py-1.5 rounded-md transition-colors">
+      <header className="sticky top-0 z-50 border-b border-[var(--landing-line)] bg-[var(--landing-panel)]/85 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+          <a className="flex items-center gap-3" href="/" data-testid="link-logo-home">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#ff6a3d,#ffa347)] text-white shadow-[0_10px_20px_rgba(255,106,61,0.35)]">
+              <Zap className="h-4 w-4" strokeWidth={2.2} />
+            </span>
+            <span className="landing-logo-wordmark text-xl font-extrabold tracking-[-0.03em]">PushForward</span>
+          </a>
+
+          <nav className="hidden items-center gap-2 text-sm md:flex">
+            <a className="landing-nav-link" href="#features" data-testid="link-nav-features">
               Features
             </a>
-            <a href="#stats" data-testid="link-nav-metrics" className="text-gray-600 dark:text-white/60 hover-elevate px-3 py-1.5 rounded-md transition-colors">
-              Metrics
+            <a className="landing-nav-link" href="#playbook" data-testid="link-nav-playbook">
+              Playbook
             </a>
-            <a href="#testimonials" data-testid="link-nav-reviews" className="text-gray-600 dark:text-white/60 hover-elevate px-3 py-1.5 rounded-md transition-colors">
-              Reviews
+            <a className="landing-nav-link" href="#results" data-testid="link-nav-reviews">
+              Results
             </a>
-            <div className="w-px h-5 bg-gray-200 dark:bg-white/10 mx-2"></div>
+          </nav>
+
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setLocation("/demo")}
+              variant="ghost"
+              size="sm"
+              className="hidden rounded-full border border-[var(--landing-line)] px-4 text-[var(--landing-ink)] hover:bg-[var(--landing-panel-strong)] sm:inline-flex"
+            >
+              Demo
+            </Button>
             <Button
               onClick={toggleTheme}
-              data-testid="button-theme-toggle"
-              size="icon"
               variant="ghost"
-              className="text-gray-500 dark:text-white/50"
+              size="icon"
+              data-testid="button-theme-toggle"
+              className="rounded-full border border-[var(--landing-line)] text-[var(--landing-ink)] hover:bg-[var(--landing-panel-strong)]"
               aria-label="Toggle theme"
             >
               {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -213,333 +271,263 @@ export function Landing() {
             <Button
               onClick={handleLogin}
               data-testid="button-login-header"
-              size="sm"
-              className="bg-blue-600 text-white dark:bg-blue-500 ml-2"
+              className="landing-primary-btn hidden h-9 rounded-full px-5 text-sm font-semibold sm:inline-flex"
             >
-              Log in
+              Start free
             </Button>
-          </nav>
+          </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-6">
-        <div className="container mx-auto max-w-4xl text-center relative z-10">
-          <div className="inline-flex items-center gap-2 border border-gray-200 dark:border-white/10 rounded-md px-3 py-1 mb-8 bg-gray-50 dark:bg-white/5">
-            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
-            <span className="text-xs font-mono font-medium text-gray-500 dark:text-white/50 tracking-wide uppercase">v2.0 Online</span>
-          </div>
+      <main>
+        <section className="relative px-4 pb-16 pt-14 sm:px-6 sm:pt-20 lg:pb-24">
+          <div className="mx-auto grid w-full max-w-6xl gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
+            <div>
+              <p className="landing-chip landing-fade-up" style={{ animationDelay: "80ms" }}>
+                <Sparkles className="h-3.5 w-3.5" />
+                Personal operating system for consistency
+              </p>
 
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-[1.1] tracking-tight">
-            Build the System. Master your discipline.
-          </h1>
+              <h1
+                className="landing-hero-playful landing-fade-up mt-6 text-4xl tracking-[-0.04em] text-[var(--landing-ink)] sm:text-5xl lg:text-6xl"
+                style={{ animationDelay: "170ms" }}
+              >
+                Build momentum like it&apos;s a product.
+              </h1>
 
-          <p className="text-lg text-gray-500 dark:text-white/50 max-w-xl mx-auto mb-10 leading-relaxed">
-            Log daily metrics. Analyze performance data. Elevate your baseline through structured gamification.
-          </p>
+              <p
+                className="landing-fade-up mt-6 max-w-xl text-base leading-relaxed text-[var(--landing-muted)] sm:text-lg"
+                style={{ animationDelay: "250ms" }}
+              >
+                PushForward turns your habits into a measurable feedback loop with guided difficulty,
+                progression, and weekly intelligence.
+              </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-16">
-            <Button
-              onClick={handleLogin}
-              data-testid="button-begin-initialization"
-              className="bg-blue-600 text-white dark:bg-blue-500"
-            >
-              Initialize System
-            </Button>
-            <Button
-              onClick={() => setLocation("/demo")}
-              data-testid="button-view-demo"
-              variant="outline"
-              className="border-gray-200 dark:border-white/15 text-gray-700 dark:text-white/70"
-            >
-              View Demo
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Dashboard Preview */}
-          <div className="relative max-w-3xl mx-auto">
-            <div className="border border-gray-200 dark:border-white/10 rounded-lg overflow-hidden bg-white dark:bg-[#111111]">
-              {/* Dashboard Header Bar */}
-              <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02]">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                  <span className="text-xs font-mono text-gray-400 dark:text-white/40 uppercase tracking-wider">Active Habits</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400" />
-                  <span className="text-xs font-mono text-gray-400 dark:text-white/40">Today: Wed, Oct 24</span>
-                </div>
+              <div className="landing-fade-up mt-8 flex flex-wrap items-center gap-3" style={{ animationDelay: "340ms" }}>
+                <Button
+                  onClick={handleLogin}
+                  data-testid="button-begin-initialization"
+                  className="landing-primary-btn h-11 rounded-full px-6 text-sm font-semibold"
+                >
+                  Launch your system
+                </Button>
+                <Button
+                  onClick={() => setLocation("/demo")}
+                  data-testid="button-view-demo"
+                  variant="outline"
+                  className="landing-secondary-btn h-11 rounded-full border px-6 text-sm font-semibold"
+                >
+                  Explore demo
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2">
-                {/* Left: Habit List */}
-                <div className="p-5 space-y-2">
-                  {habits.map((habit, i) => {
-                    const isActive = i === activeHabitIndex;
-                    return (
-                      <div
-                        key={habit.name}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => handleHabitSelect(i)}
-                        onKeyDown={(event) => handleKeySelect(event, i)}
-                        data-testid={`card-habit-${i}`}
-                        className={`flex items-center justify-between gap-2 p-3 rounded-md border cursor-pointer transition-all hover-elevate ${isActive ? 'border-blue-500/50 bg-blue-50/50 dark:bg-blue-500/5 dark:border-blue-500/30' : 'border-gray-100 dark:border-white/5 bg-white dark:bg-transparent'}`}
-                        aria-pressed={isActive}
-                      >
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <div
-                            role="checkbox"
-                            tabIndex={0}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleHabitToggle(i);
-                            }}
-                            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); handleHabitToggle(i); } }}
-                            data-testid={`button-habit-toggle-${i}`}
-                            className={`w-5 h-5 rounded flex items-center justify-center border cursor-pointer transition-colors ${habit.done ? 'bg-blue-600 dark:bg-blue-500 border-blue-600 dark:border-blue-500 text-white' : 'border-gray-300 dark:border-white/20'}`}
-                            aria-checked={habit.done}
-                            aria-label={`Mark ${habit.name} as ${habit.done ? "not done" : "done"}`}
-                          >
-                            {habit.done && <CheckCircle2 className="h-3 w-3" />}
-                          </div>
-                          <div className="flex flex-col">
-                            <span className={`text-sm font-medium ${habit.done ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-white/70'}`}>{habit.name}</span>
-                            <span className="text-[11px] font-mono text-gray-400 dark:text-white/30 uppercase tracking-wider">Streak: {habit.streak}d</span>
-                          </div>
-                        </div>
-                        {isActive && (
-                          <span className="text-[10px] font-mono font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wider">Active</span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Right: Analysis Panel */}
-                <div className="p-5 space-y-4 border-l border-gray-100 dark:border-white/5 hidden md:block">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-mono text-gray-400 dark:text-white/40 uppercase tracking-wider">System Analysis</span>
-                    <Brain className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400" />
+              <div
+                className="landing-fade-up mt-8 grid gap-3 sm:grid-cols-3"
+                style={{ animationDelay: "430ms" }}
+              >
+                {HERO_STATS.map((item) => (
+                  <div key={item.label} className="landing-stat-card">
+                    <div className="landing-display text-2xl font-extrabold tracking-[-0.03em]">{item.value}</div>
+                    <p className="mt-1 text-xs text-[var(--landing-muted)]">{item.label}</p>
                   </div>
-                  <div className="p-3 rounded-md border border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02]">
-                    <p className="text-sm text-gray-600 dark:text-white/60 leading-relaxed">
-                      &ldquo;{activeHabit.insight}&rdquo;
-                    </p>
-                    <div className="mt-2 flex items-center gap-1.5 text-[10px] font-mono text-blue-600 dark:text-blue-400 uppercase tracking-wider">
-                      <Brain className="h-3 w-3" />
-                      AI Insight
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between gap-2 text-xs font-mono text-gray-400 dark:text-white/30">
-                      <span>Compliance Rate</span>
-                      <span className="text-blue-600 dark:text-blue-400 font-medium">{activeHabit.compliance}%</span>
-                    </div>
-                    <div className="h-1 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all"
-                        style={{ width: `${activeHabit.compliance}%` }}
-                      ></div>
-                    </div>
-                    <input
-                      type="range"
-                      min={50}
-                      max={100}
-                      value={activeHabit.compliance}
-                      onChange={(event) => handleComplianceChange(Number(event.target.value))}
-                      data-testid="input-compliance-slider"
-                      className="mt-2 w-full accent-blue-600 dark:accent-blue-500 cursor-pointer h-1"
-                      aria-label="Adjust compliance rate"
-                    />
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Stats Section */}
-      <section id="stats" className="py-20 px-6 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02]">
-        <div className="container mx-auto max-w-5xl">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { label: "Active Users", value: "500", suffix: "+" },
-              { label: "Habits Tracked", value: "12000", suffix: "+" },
-              { label: "Success Rate", value: "95", suffix: "%" },
-              { label: "System Rating", value: "4.9", suffix: "" }
-            ].map((item) => (
-              <div key={item.label} className="text-center">
-                <AnimatedNumber value={item.value === "12000" ? "12k" : item.value} suffix={item.suffix} />
-                <div className="text-xs font-mono text-gray-400 dark:text-white/40 uppercase tracking-wider mt-2" data-testid={`text-stat-${item.label.toLowerCase().replace(/\s/g, '-')}`}>{item.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Grid */}
-      <section id="features" className="py-24 px-6 bg-white dark:bg-[#0A0A0A]">
-        <div className="container mx-auto max-w-5xl">
-          <div className="text-center mb-16">
-            <span className="text-xs font-mono text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em] mb-3 block">System Modules</span>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              Everything to maintain momentum.
-            </h2>
-            <p className="text-gray-500 dark:text-white/50 max-w-lg mx-auto">
-              A complete toolkit to analyze behavior and optimize output.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              {
-                icon: Target,
-                module: "01",
-                title: "Habit Tracking",
-                desc: "Define up to 23 habits with custom difficulty levels and track daily completions."
-              },
-              {
-                icon: Trophy,
-                module: "02",
-                title: "Achievements",
-                desc: "Unlock 50+ badges, progress through 10 tiers, and build lasting consistency."
-              },
-              {
-                icon: Brain,
-                module: "03",
-                title: "AI Insights",
-                desc: "Get personalized weekly analysis powered by pattern recognition."
-              },
-              {
-                icon: BarChart3,
-                module: "04",
-                title: "Advanced Analytics",
-                desc: "Monitor completion rates, habit health scores, and long-term trends."
-              },
-              {
-                icon: TrendingUp,
-                module: "05",
-                title: "Progress Tracking",
-                desc: "Monitor daily, weekly, and monthly progress with streak counters."
-              },
-              {
-                icon: Shield,
-                module: "06",
-                title: "Secure Data",
-                desc: "Your data is encrypted and private. No sharing with third parties."
-              }
-            ].map((feature, idx) => (
-              <div
-                key={idx}
-                data-testid={`card-feature-${idx}`}
-                className="group p-6 rounded-lg border border-gray-200 dark:border-white/8 hover-elevate transition-all bg-white dark:bg-transparent"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-md bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 flex items-center justify-center flex-shrink-0">
-                    <feature.icon className="h-5 w-5 text-blue-600 dark:text-blue-400" strokeWidth={1.5} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-[10px] font-mono text-gray-400 dark:text-white/30 uppercase tracking-wider">M{feature.module}</span>
-                    </div>
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{feature.title}</h3>
-                    <p className="text-sm text-gray-500 dark:text-white/40 leading-relaxed">
-                      {feature.desc}
-                    </p>
-                  </div>
+            <aside
+              className="landing-panel landing-fade-up rounded-3xl p-4 shadow-[0_24px_60px_rgba(19,34,58,0.16)] sm:p-6"
+              style={{ animationDelay: "250ms" }}
+              aria-label="Dashboard preview"
+            >
+              <div className="flex items-center justify-between gap-4 border-b border-[var(--landing-line)] pb-4">
+                <div>
+                  <p className="landing-mono text-[11px] text-[var(--landing-muted)]">Today&apos;s Console</p>
+                  <p className="landing-display mt-1 text-lg font-bold tracking-[-0.02em]">Momentum Overview</p>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section id="testimonials" className="py-24 px-6 bg-[#111111] dark:bg-[#080808] relative overflow-hidden">
-        <div className="container mx-auto max-w-2xl text-center relative z-10">
-          <span className="text-xs font-mono text-blue-400 uppercase tracking-[0.2em] mb-3 block">User Feedback</span>
-          <h2 className="text-2xl font-bold text-white mb-16">
-            Trusted by builders and high-performers.
-          </h2>
-
-          <div className="relative border border-white/10 rounded-lg p-8 md:p-12 bg-white/[0.02]">
-            <blockquote className="text-lg md:text-xl font-light text-white/80 leading-relaxed mb-8">
-              "{testimonials[currentTestimonial].quote}"
-            </blockquote>
-
-            <div className="flex items-center justify-center gap-3 flex-wrap">
-              <div className="w-10 h-10 rounded-md bg-blue-600/20 border border-blue-500/30 flex items-center justify-center">
-                <span className="text-blue-400 font-mono font-bold text-sm">
-                  {testimonials[currentTestimonial].initials}
+                <span className="rounded-full bg-[var(--landing-accent-soft)] px-3 py-1 text-xs font-semibold text-[var(--landing-accent)]">
+                  +12% this week
                 </span>
               </div>
-              <div className="text-left">
-                <div className="font-semibold text-white text-sm">
-                  {testimonials[currentTestimonial].name}
+
+              <div className="mt-5 space-y-3">
+                {DASHBOARD_ROWS.map((habit) => (
+                  <div key={habit.name} className="rounded-2xl border border-[var(--landing-line)] bg-[var(--landing-panel)] p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-[var(--landing-ink)]">{habit.name}</p>
+                        <p className="mt-1 text-xs text-[var(--landing-muted)]">{habit.note}</p>
+                      </div>
+                      <span className="landing-mono text-[10px] text-[var(--landing-muted)]">{habit.streak}d streak</span>
+                    </div>
+                    <div className="mt-3 h-2 rounded-full bg-black/10 dark:bg-white/15">
+                      <div
+                        className="h-full rounded-full bg-[linear-gradient(90deg,#ff6a3d,#11a6bd)]"
+                        style={{ width: `${habit.completion}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border border-[var(--landing-line)] bg-[var(--landing-cool-soft)] p-3">
+                  <p className="landing-mono text-[11px] text-[var(--landing-muted)]">Focus Signal</p>
+                  <p className="mt-2 text-sm text-[var(--landing-ink)]">Deep work is strongest before 10:00 AM.</p>
                 </div>
-                <div className="text-xs font-mono text-white/30 uppercase tracking-wider">
-                  {testimonials[currentTestimonial].role}
+                <div className="rounded-2xl border border-[var(--landing-line)] bg-[var(--landing-accent-soft)] p-3">
+                  <p className="landing-mono text-[11px] text-[var(--landing-muted)]">Risk Alert</p>
+                  <p className="mt-2 text-sm text-[var(--landing-ink)]">Exercise misses rise after travel-heavy days.</p>
                 </div>
               </div>
+            </aside>
+          </div>
+        </section>
+
+        <section id="features" className="px-4 py-16 sm:px-6 lg:py-20">
+          <div className="mx-auto w-full max-w-6xl">
+            <div data-reveal className="mx-auto max-w-2xl text-center">
+              <p className="landing-mono text-[11px] text-[var(--landing-muted)]">Core Modules</p>
+              <h2 className="landing-display mt-4 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
+                Built for real execution, not streak theater.
+              </h2>
+              <p className="mt-4 text-[var(--landing-muted)]">
+                Each component exists to keep your routine measurable, adaptable, and durable over time.
+              </p>
             </div>
 
-            <div className="flex justify-center gap-2 mt-10">
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentTestimonial(index)}
-                  data-testid={`button-testimonial-${index}`}
-                  className={`w-8 h-1 rounded-full transition-all ${index === currentTestimonial ? 'bg-blue-500' : 'bg-white/10'}`}
-                  aria-label={`View testimonial ${index + 1}`}
-                />
+            <div
+              data-reveal-stagger
+              className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+            >
+              {FEATURES.map((feature) => (
+                <article
+                  key={feature.title}
+                  className="landing-panel group rounded-3xl p-5 transition-transform duration-300 hover:-translate-y-1"
+                >
+                  <div className="flex items-start gap-4">
+                    <span className="mt-1 inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--landing-cool-soft)] text-[var(--landing-cool)]">
+                      <feature.icon className="h-5 w-5" strokeWidth={1.8} />
+                    </span>
+                    <div>
+                      <h3 className="landing-display text-lg font-bold tracking-[-0.02em]">{feature.title}</h3>
+                      <p className="mt-2 text-sm leading-relaxed text-[var(--landing-muted)]">{feature.detail}</p>
+                    </div>
+                  </div>
+                </article>
               ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* CTA Section */}
-      <section className="py-24 px-6 bg-white dark:bg-[#0A0A0A] border-t border-gray-100 dark:border-white/5">
-        <div className="container mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Start building better habits.
-          </h2>
-          <p className="text-gray-500 dark:text-white/50 mb-8 max-w-md mx-auto">
-            Join the builders who track, measure, and grow — one habit at a time.
-          </p>
-          <Button
-            onClick={handleLogin}
-            data-testid="button-cta-initialize"
-            className="bg-blue-600 text-white dark:bg-blue-500"
-          >
-            Get Started Free
-          </Button>
-          <p className="mt-4 text-xs font-mono text-gray-400 dark:text-white/30 uppercase tracking-wider">
-            No credit card required
-          </p>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-8 px-6 border-t border-gray-100 dark:border-white/5 bg-white dark:bg-[#0A0A0A]">
-        <div className="container mx-auto max-w-5xl flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="w-5 h-5 rounded bg-blue-600 dark:bg-blue-500 flex items-center justify-center">
-              <Zap className="h-3 w-3 text-white" strokeWidth={2.5} />
+        <section id="playbook" className="px-4 py-16 sm:px-6 lg:py-20">
+          <div className="mx-auto w-full max-w-6xl">
+            <div data-reveal className="mx-auto max-w-2xl text-center">
+              <p className="landing-mono text-[11px] text-[var(--landing-muted)]">Three-Step Loop</p>
+              <h2 className="landing-display mt-4 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
+                A workflow that compounds every week.
+              </h2>
             </div>
-            <span className="text-sm font-semibold text-gray-900 dark:text-white">System</span>
+
+            <ol data-reveal-stagger className="mt-10 grid gap-4 md:grid-cols-3">
+              {PLAYBOOK.map((step) => (
+                <li key={step.id} className="landing-panel rounded-3xl p-6">
+                  <p className="landing-mono text-[11px] text-[var(--landing-muted)]">Step {step.id}</p>
+                  <h3 className="landing-display mt-3 text-xl font-bold tracking-[-0.02em]">{step.title}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-[var(--landing-muted)]">{step.detail}</p>
+                </li>
+              ))}
+            </ol>
           </div>
-          <div className="text-xs font-mono text-gray-400 dark:text-white/30 tracking-wider">
-            2025 The System. All rights reserved.
+        </section>
+
+        <section id="results" className="px-4 py-16 sm:px-6 lg:py-20">
+          <div className="mx-auto w-full max-w-5xl">
+            <div data-reveal className="landing-panel rounded-[2rem] p-6 sm:p-10">
+              <p className="landing-mono text-[11px] text-[var(--landing-muted)]">What Users Notice First</p>
+
+              <blockquote
+                key={`${currentQuote.name}-${activeTestimonial}`}
+                className="landing-quote-enter mt-5 landing-display text-2xl font-semibold leading-tight tracking-[-0.03em] sm:text-3xl"
+              >
+                &ldquo;{currentQuote.quote}&rdquo;
+              </blockquote>
+
+              <div className="mt-6 flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <p className="text-sm font-semibold text-[var(--landing-ink)]">{currentQuote.name}</p>
+                  <p className="text-xs text-[var(--landing-muted)]">{currentQuote.role}</p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {TESTIMONIALS.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setActiveTestimonial(index)}
+                      data-testid={`button-testimonial-${index}`}
+                      className={`h-2.5 rounded-full transition-all ${
+                        activeTestimonial === index
+                          ? "w-8 bg-[var(--landing-accent)]"
+                          : "w-3 bg-[var(--landing-line)]"
+                      }`}
+                      aria-label={`Show testimonial ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex gap-6 flex-wrap text-xs font-mono text-gray-400 dark:text-white/30">
-            <a href="#" data-testid="link-privacy" className="hover-elevate px-2 py-1 rounded-md transition-colors">Privacy</a>
-            <a href="#" data-testid="link-terms" className="hover-elevate px-2 py-1 rounded-md transition-colors">Terms</a>
-            <a href="#" data-testid="link-contact" className="hover-elevate px-2 py-1 rounded-md transition-colors">Contact</a>
+        </section>
+
+        <section className="px-4 pb-20 pt-8 sm:px-6 lg:pb-24">
+          <div
+            data-reveal
+            className="mx-auto flex w-full max-w-6xl flex-col items-start justify-between gap-8 rounded-[2rem] border border-[var(--landing-line)] bg-[linear-gradient(135deg,rgba(255,106,61,0.12),rgba(17,166,189,0.14))] p-7 sm:p-10 lg:flex-row lg:items-center"
+          >
+            <div className="max-w-xl">
+              <p className="landing-mono text-[11px] text-[var(--landing-muted)]">Ready to Start</p>
+              <h2 className="landing-display mt-4 text-3xl font-extrabold tracking-[-0.03em] sm:text-4xl">
+                Turn intention into a repeatable system.
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-[var(--landing-muted)] sm:text-base">
+                Start with a few key habits, measure what matters, and refine your routine with better feedback.
+              </p>
+            </div>
+
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+              <Button
+                onClick={handleLogin}
+                data-testid="button-cta-initialize"
+                className="landing-primary-btn h-11 rounded-full px-6 text-sm font-semibold"
+              >
+                Create account
+              </Button>
+              <Button
+                onClick={() => setLocation("/demo")}
+                variant="outline"
+                className="landing-secondary-btn h-11 rounded-full border px-6 text-sm font-semibold"
+              >
+                Open demo
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="border-t border-[var(--landing-line)] px-4 py-8 text-sm sm:px-6">
+        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 text-[var(--landing-muted)] sm:flex-row">
+          <p>{new Date().getFullYear()} PushForward. Built for disciplined growth.</p>
+          <div className="flex items-center gap-4">
+            <a href="#" data-testid="link-privacy" className="landing-nav-link !px-0 !py-0 text-xs">
+              Privacy
+            </a>
+            <a href="#" data-testid="link-terms" className="landing-nav-link !px-0 !py-0 text-xs">
+              Terms
+            </a>
+            <a href="#" data-testid="link-contact" className="landing-nav-link !px-0 !py-0 text-xs">
+              Contact
+            </a>
           </div>
         </div>
       </footer>

@@ -28,11 +28,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication middleware
   await setupAuth(app);
 
+  const ensureUserRecord = async (req: any) => {
+    const claims = req?.user?.claims || {};
+    const userId = claims.sub;
+    if (!userId) {
+      throw new Error("Missing authenticated user id");
+    }
+
+    let user = await storage.getUser(userId);
+    if (!user) {
+      user = await storage.upsertUser({
+        id: userId,
+        email: claims.email,
+        firstName: claims.first_name,
+        lastName: claims.last_name,
+        profileImageUrl: claims.profile_image_url,
+      });
+    }
+    return user;
+  };
+
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await ensureUserRecord(req);
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -42,7 +61,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/user/progress', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const user = await ensureUserRecord(req);
+      const userId = user.id;
       const progress = await storage.getUserProgress(userId);
       if (!progress) {
         res.status(404).json({ message: "User not found" });

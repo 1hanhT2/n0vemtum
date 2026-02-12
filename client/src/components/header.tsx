@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
+import { Settings, Sparkles, UserCircle2, Zap } from "lucide-react";
 import { Link } from "wouter";
-import { SystemLogo } from "./SystemLogo";
-import { Navigation, type NavigationView } from "./navigation";
+import { Navigation, navigationItems, type NavigationView } from "./navigation";
 
 interface HeaderProps {
   onSettingsClick: () => void;
@@ -17,41 +18,66 @@ export function Header({
   currentView,
   onViewChange,
 }: HeaderProps) {
+  const { user } = useAuth();
+  const activeView = navigationItems.find((item) => item.value === currentView);
+  const userLabel =
+    (user as any)?.firstName ||
+    (user as any)?.username ||
+    (user as any)?.email?.split("@")[0] ||
+    "Operator";
+
   return (
-    <header className="fixed top-0 w-full z-50 bg-background/95 dark:bg-[#0A0A0A]/95 backdrop-blur-sm border-b border-gray-200 dark:border-white/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-3 py-3 lg:py-0">
-          <div className="flex items-center gap-4 lg:h-20">
-            {/* Logo */}
-            <Link href="/app">
-              <SystemLogo
-                variant="wordmark"
-                className="cursor-pointer py-2 lg:py-0 lg:translate-y-0.5"
-                textClassName="text-3xl sm:text-4xl"
-              />
+    <header className="app-header-shell">
+      <div className="mx-auto w-full max-w-7xl px-4 pb-4 pt-5 sm:px-6 lg:px-8 lg:pt-6">
+        <div className="app-header-panel">
+          <div className="flex items-center gap-3">
+            <Link href="/app" className="app-brand" data-testid="link-app-logo">
+              <span className="app-brand-mark">
+                <Zap className="h-4 w-4" strokeWidth={2.2} />
+              </span>
+              <div className="min-w-0">
+                <p className="app-display truncate text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">
+                  PushForward
+                </p>
+                <p className="app-mono text-[10px] text-[var(--app-muted)] sm:text-[11px]">Execution Console</p>
+              </div>
             </Link>
 
-            <div className="hidden sm:flex flex-1 px-4">
-              <Navigation
-                currentView={currentView}
-                onViewChange={onViewChange}
-                listClassName="sm:w-full sm:justify-between sm:mx-0"
-              />
+            <div className="ml-auto hidden items-center gap-2 lg:flex">
+              <div className={cn("app-inline-chip", isGuestMode ? "app-chip-warn" : "")}>
+                <Sparkles className="h-3.5 w-3.5" />
+                {isGuestMode ? "Demo session" : activeView?.label || "Console"}
+              </div>
+              <div className="app-inline-chip">
+                <UserCircle2 className="h-3.5 w-3.5" />
+                {userLabel}
+              </div>
             </div>
 
-            {/* Settings button */}
             <Button
               onClick={onSettingsClick}
               variant="ghost"
               size="icon"
-              className="ml-auto sm:ml-0 text-gray-500 dark:text-white/65 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
+              className="app-settings-btn ml-auto lg:ml-0"
+              data-testid="button-open-settings"
             >
-              <Settings className="h-5 w-5" />
+              <Settings className="h-4 w-4" />
             </Button>
           </div>
 
-          <div className="sm:hidden pb-2">
-            <Navigation currentView={currentView} onViewChange={onViewChange} />
+          <div className="mt-4 hidden md:block">
+            <Navigation
+              currentView={currentView}
+              onViewChange={onViewChange}
+            />
+          </div>
+
+          <div className="mt-4 md:hidden">
+            <Navigation
+              currentView={currentView}
+              onViewChange={onViewChange}
+              itemClassName="px-3 py-2 text-xs"
+            />
           </div>
         </div>
       </div>

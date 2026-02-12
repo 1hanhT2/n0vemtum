@@ -144,7 +144,7 @@ export function PlayerStatus() {
     { key: 'agility', label: 'AGI', icon: Zap, color: 'text-yellow-500 dark:text-yellow-400' },
     { key: 'intelligence', label: 'INT', icon: Brain, color: 'text-blue-500 dark:text-blue-400' },
     { key: 'vitality', label: 'VIT', icon: Activity, color: 'text-green-500 dark:text-green-400' },
-    { key: 'perception', label: 'PER', icon: Eye, color: 'text-purple-500 dark:text-purple-400' },
+    { key: 'perception', label: 'PER', icon: Eye, color: 'text-cyan-600 dark:text-cyan-400' },
   ];
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -185,36 +185,36 @@ export function PlayerStatus() {
   return (
     <div ref={containerRef} className="space-y-4" style={{ opacity: 0 }}>
 
-      <div className="panel bg-card text-foreground">
-        <div className="p-6 pb-2 border-b border-border relative z-10">
+      <div className="panel app-status-panel bg-card text-foreground">
+        <div className="relative z-10 border-b border-[var(--app-line)] p-6 pb-3">
           <div className="flex justify-between items-end">
             <div>
-               <div className="text-xs font-mono text-blue-600 dark:text-blue-400 tracking-wider uppercase mb-1">Status</div>
-               <div className="font-bold text-2xl tracking-wide flex items-center gap-2">
+               <div className="app-mono mb-1 text-[10px] tracking-[0.14em] text-[var(--app-muted)] uppercase">Status</div>
+               <div className="app-display flex items-center gap-2 text-2xl font-bold tracking-[-0.02em] text-[var(--app-ink)]">
                  {(user as any)?.username || "User"}
-                 <span className="text-sm font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-md border border-border">
+                 <span className="rounded-full border border-[var(--app-line)] bg-[var(--app-panel)] px-2.5 py-0.5 text-xs font-medium text-[var(--app-muted)]">
                    {userClass}
                  </span>
                </div>
             </div>
             <div className="text-right">
-              <div className="text-xs text-muted-foreground font-mono uppercase mb-1">Level</div>
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 font-mono leading-none">{level}</div>
+              <div className="app-mono mb-1 text-[10px] uppercase text-[var(--app-muted)]">Level</div>
+              <div className="app-level-readout text-3xl font-bold font-mono leading-none">{level}</div>
             </div>
           </div>
         </div>
 
-        <div className="p-6 pt-6 space-y-4 relative z-10">
+        <div className="relative z-10 space-y-4 p-6 pt-5">
           {/* XP Bar */}
           <div className="space-y-2">
-            <div className="flex justify-between text-xs font-mono text-muted-foreground">
+            <div className="app-mono flex justify-between text-[10px] text-[var(--app-muted)]">
               <span>EXP</span>
               <span>{xp} / {xpToNext}</span>
             </div>
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
+            <div className="h-2 overflow-hidden rounded-full bg-[var(--app-track)]">
               <div
                 ref={xpBarRef}
-                className="h-full bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-500 dark:to-blue-400"
+                className="app-xp-fill h-full"
                 style={{ width: 0 }}
               />
             </div>
@@ -223,36 +223,36 @@ export function PlayerStatus() {
           {/* Stats Grid */}
           <div ref={statsGridRef} className="grid grid-cols-3 gap-2">
              {statConfig.map((stat) => (
-               <div key={stat.key} data-stat-tile className="bg-muted/40 dark:bg-muted rounded-md p-2 border border-border flex items-center justify-between gap-1 group hover-elevate transition-colors" style={{ fontSize: 'clamp(0.65rem, 1.5vw, 0.875rem)', opacity: 0 }}>
+               <div key={stat.key} data-stat-tile className="app-stat-tile flex items-center justify-between gap-1 rounded-xl border border-[var(--app-line)] p-2 transition-colors" style={{ fontSize: 'clamp(0.65rem, 1.5vw, 0.875rem)', opacity: 0 }}>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <stat.icon className={`flex-shrink-0 ${stat.color}`} style={{ width: 'clamp(0.75rem, 1.8vw, 1rem)', height: 'clamp(0.75rem, 1.8vw, 1rem)' }} />
-                    <span className="font-mono text-foreground/80">{stat.label}</span>
+                    <span className="app-mono text-[var(--app-muted)]">{stat.label}</span>
                   </div>
-                  <span className="font-mono font-bold flex-shrink-0">{formatStatValue((stats as any)[stat.key] ?? 10)}</span>
+                  <span className="font-mono font-bold text-[var(--app-ink)] flex-shrink-0">{formatStatValue((stats as any)[stat.key] ?? 10)}</span>
                </div>
              ))}
           </div>
         </div>
       </div>
 
-      <div className="bg-card border border-border rounded-md p-4">
+      <div className="app-status-panel rounded-2xl border border-[var(--app-line)] bg-[var(--app-panel-strong)] p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="w-4 h-4 text-primary" />
-          <div className="text-xs uppercase tracking-[0.1em] text-muted-foreground font-mono">Challenges</div>
+          <Sparkles className="h-4 w-4 text-[var(--app-accent)]" />
+          <div className="app-mono text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Challenges</div>
         </div>
         {!user && (
-          <p className="text-sm text-muted-foreground">Sign in to get personalized challenges.</p>
+          <p className="text-sm text-[var(--app-muted)]">Sign in to get personalized challenges.</p>
         )}
         {user && (
           <>
-            {challengesLoading && <p className="text-sm text-muted-foreground">Fetching fresh challenges…</p>}
-            {challengesError && <p className="text-sm text-muted-foreground">Couldn&apos;t load challenges right now.</p>}
+            {challengesLoading && <p className="text-sm text-[var(--app-muted)]">Fetching fresh challenges…</p>}
+            {challengesError && <p className="text-sm text-[var(--app-muted)]">Couldn&apos;t load challenges right now.</p>}
             {!challengesLoading && !challengesError && (
               <div className="mb-2">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 px-2 text-xs"
+                  className="h-8 rounded-full px-3 text-xs text-[var(--app-ink)] hover:bg-[var(--app-soft)]"
                   onClick={() => reshuffleChallenges.mutate()}
                   disabled={reshuffleChallenges.isPending}
                 >
@@ -267,8 +267,10 @@ export function PlayerStatus() {
                   return (
                     <li
                       key={challenge.key}
-                      className={`text-sm text-foreground/90 border rounded-lg px-3 py-2 transition-colors cursor-pointer ${
-                        checked ? "bg-green-500/10 border-green-500/60" : "bg-muted/50 border-border/60"
+                      className={`cursor-pointer rounded-xl border px-3 py-2 text-sm transition-colors ${
+                        checked
+                          ? "border-emerald-500/50 bg-emerald-500/10 text-[var(--app-ink)]"
+                          : "border-[var(--app-line)] bg-[var(--app-soft)] text-[var(--app-ink)]"
                       }`}
                       onClick={() => completeChallenge.mutate({ id: challenge.id, completed: !checked })}
                       role="button"
@@ -279,14 +281,14 @@ export function PlayerStatus() {
                           <Checkbox
                             checked={checked}
                             onCheckedChange={() => completeChallenge.mutate({ id: challenge.id, completed: !checked })}
-                            className="data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
+                            className="data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500"
                             onClick={(e) => e.stopPropagation()}
                           />
-                          <span className={checked ? "line-through text-muted-foreground" : ""}>
+                          <span className={checked ? "text-[var(--app-muted)] line-through" : ""}>
                             {challenge.label}
                           </span>
                         </div>
-                        <span className={`text-xs font-mono ${checked ? "text-green-600" : "text-primary"}`}>
+                        <span className={`text-xs font-mono ${checked ? "text-emerald-600 dark:text-emerald-400" : "text-[var(--app-cool)]"}`}>
                           +{challenge.xp} XP
                         </span>
                       </div>
@@ -294,7 +296,7 @@ export function PlayerStatus() {
                   );
                 })}
                 {normalizedChallenges.length === 0 && (
-                  <li className="text-sm text-muted-foreground">No suggestions yet—complete a habit to get tailored challenges.</li>
+                  <li className="text-sm text-[var(--app-muted)]">No suggestions yet—complete a habit to get tailored challenges.</li>
                 )}
               </ul>
             )}

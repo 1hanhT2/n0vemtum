@@ -665,6 +665,52 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     );
   }
 
+  if (habitsError) {
+    return (
+      <Card className="border border-destructive/30 rounded-md bg-card text-card-foreground">
+        <CardContent className="pt-6 space-y-3">
+          <h3 className="text-base font-semibold text-foreground">Could not load habits</h3>
+          <p className="text-sm text-muted-foreground">
+            {habitsError instanceof Error
+              ? habitsError.message
+              : "The habits API returned an error. Please reload and try again."}
+          </p>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            Reload
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!habits || habits.length === 0) {
+    return (
+      <div
+        ref={todayContainerRef}
+        className="space-y-6"
+        style={{ opacity: 0 }}
+      >
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Sun className="h-5 w-5 text-primary" />
+            <h2 className="text-2xl font-semibold text-foreground">Today's Progress</h2>
+          </div>
+          <p className="text-muted-foreground">{formatDate(today)}</p>
+        </div>
+
+        <Card className="border border-border rounded-md bg-card text-card-foreground">
+          <CardContent className="pt-6 space-y-2">
+            <h3 className="text-base font-semibold text-foreground">No habits yet</h3>
+            <p className="text-sm text-muted-foreground">
+              Open <span className="font-medium text-foreground">Settings</span>, add a habit (or tap an AI suggestion),
+              then press <span className="font-medium text-foreground">Save Changes</span>.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={todayContainerRef}

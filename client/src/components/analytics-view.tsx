@@ -4,7 +4,7 @@ import { useDailyEntries } from "@/hooks/use-daily-entries";
 import { useCreateGoal, useDeleteGoal, useGoals } from "@/hooks/use-goals";
 import { HabitHealthDashboard } from "@/components/habit-health-dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, LineChart, Plus, Target } from "lucide-react";
+import { Activity, AlertTriangle, ArrowLeft, ArrowRight, LineChart, Plus, Target } from "lucide-react";
 import { getMockHabits } from "@/lib/mockData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,23 @@ import { getDateKeyForZone } from "@/lib/utils";
 interface AnalyticsViewProps {
   isGuestMode?: boolean;
 }
+
+type RelapseSignal = {
+  id: number;
+  name: string;
+  emoji: string;
+  risk: number;
+  recentRate: number;
+  missStreak: number;
+};
+
+const getDayDifference = (newer: string, older: string) => {
+  const newerDate = new Date(`${newer}T00:00:00Z`);
+  const olderDate = new Date(`${older}T00:00:00Z`);
+  if (Number.isNaN(newerDate.getTime()) || Number.isNaN(olderDate.getTime())) return 0;
+  const diff = newerDate.getTime() - olderDate.getTime();
+  return Math.max(0, Math.round(diff / (1000 * 60 * 60 * 24)));
+};
 
 export function AnalyticsView({ isGuestMode = false }: AnalyticsViewProps) {
   const timeZone = useTimeZone();
@@ -45,6 +62,98 @@ export function AnalyticsView({ isGuestMode = false }: AnalyticsViewProps) {
   const habitsById = useMemo(() => {
     return new Map((habits || []).map((habit) => [habit.id, habit]));
   }, [habits]);
+
+  const sortedEntries = useMemo(
+    () => [...dailyEntries].sort((a, b) => a.date.localeCompare(b.date)),
+    [dailyEntries]
+  );
+
+  const completionSeries = useMemo(() => {
+    const habitCount = habits?.length || 0;
+    if (habitCount === 0) return [];
+
+    return sortedEntries.map((entry) => {
+      const completions = entry.habitCompletions as Record<string, boolean>;
+      const completed = Object.values(completions || {}).filter(Boolean).length;
+      return {
+        date: entry.date,
+        completionRate: (completed / habitCount) * 100,
+      };
+    });
+  }, [habits, sortedEntries]);
+
+  const trendVelocity = useMemo(() => {
+    if (completionSeries.length < 4) return 0;
+
+    const windowSize = Math.min(7, Math.floor(completionSeries.length / 2));
+    if (windowSize < 2) return 0;
+
+    const recentWindow = completionSeries.slice(-windowSize);
+    const priorWindow = completionSeries.slice(-windowSize * 2, -windowSize);
+    if (priorWindow.length === 0) return 0;
+
+    const avg = (values: typeof completionSeries) =>
+      values.reduce((sum, item) => sum + item.completionRate, 0) / values.length;
+
+    const delta = avg(recentWindow) - avg(priorWindow);
+    return Math.round(delta * 10) / 10;
+  }, [completionSeries]);
+
+  const relapseSignals = useMemo<RelapseSignal[]>(() => {
+    if (!habits || habits.length === 0) return [];
+
+    const recentWindow = sortedEntries.slice(-14);
+    const fallbackWindowLength = Math.max(1, recentWindow.length);
+
+    return habits
+      .map((habit) => {
+        const recentCompletions = recentWindow.reduce((sum, entry) => {
+          const completions = entry.habitCompletions as Record<string, boolean>;
+          return sum + (completions?.[habit.id.toString()] ? 1 : 0);
+        }, 0);
+        const recentRate = (recentCompletions / fallbackWindowLength) * 100;
+
+        let lastCompletedDate = habit.lastCompleted || "";
+        if (!lastCompletedDate) {
+          for (let index = sortedEntries.length - 1; index >= 0; index -= 1) {
+            const completions = sortedEntries[index].habitCompletions as Record<string, boolean>;
+            if (completions?.[habit.id.toString()]) {
+              lastCompletedDate = sortedEntries[index].date;
+              break;
+            }
+          }
+        }
+
+        const missStreak = lastCompletedDate
+          ? getDayDifference(endDate, lastCompletedDate)
+          : Math.max(3, Math.min(14, fallbackWindowLength));
+        const consistencyPenalty = Math.max(0, 100 - recentRate) * 0.55;
+        const missPenalty = Math.min(40, missStreak * 10);
+        const streakPenalty = (habit.streak || 0) >= 3 ? 0 : 10;
+        const difficultyPenalty = (habit.difficultyRating || 3) >= 4 ? 8 : 0;
+        const risk = Math.round(
+          Math.max(0, Math.min(100, consistencyPenalty + missPenalty + streakPenalty + difficultyPenalty))
+        );
+
+        return {
+          id: habit.id,
+          name: habit.name,
+          emoji: habit.emoji,
+          risk,
+          recentRate,
+          missStreak,
+        };
+      })
+      .sort((a, b) => b.risk - a.risk);
+  }, [habits, sortedEntries, endDate]);
+
+  const averageRelapseRisk = useMemo(() => {
+    if (relapseSignals.length === 0) return 0;
+    const totalRisk = relapseSignals.reduce((sum, signal) => sum + signal.risk, 0);
+    return Math.round(totalRisk / relapseSignals.length);
+  }, [relapseSignals]);
+
+  const outlookScore = Math.max(0, Math.min(100, Math.round(averageRelapseRisk - trendVelocity * 0.8)));
 
   const tagDistribution = useMemo(() => {
     return habitTagOptions
@@ -128,6 +237,91 @@ export function AnalyticsView({ isGuestMode = false }: AnalyticsViewProps) {
           Comprehensive overview of your habit performance and progress
         </p>
       </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              Relapse Risk
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <p className="text-3xl font-bold text-foreground">{averageRelapseRisk}%</p>
+            <p className="text-xs text-muted-foreground mt-1">Daily horizon across active habits</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <LineChart className="h-4 w-4" />
+              Trend Velocity
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex items-center gap-2">
+              <p className="text-3xl font-bold text-foreground">
+                {trendVelocity > 0 ? "+" : ""}
+                {trendVelocity}
+              </p>
+              {trendVelocity >= 0 ? (
+                <ArrowRight className="h-5 w-5 text-emerald-600" />
+              ) : (
+                <ArrowLeft className="h-5 w-5 text-rose-600" />
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Weekly horizon (percentage-point change)</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              Execution Outlook
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <p className="text-3xl font-bold text-foreground">{outlookScore}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {outlookScore < 40
+                ? "Low risk this week"
+                : outlookScore < 65
+                  ? "Watchlist: tighten weak spots"
+                  : "Intervention needed on high-risk habits"}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">At-Risk Habits</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {relapseSignals.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Complete habits for a few days to unlock relapse signals.</p>
+          ) : (
+            relapseSignals.slice(0, 4).map((signal) => (
+              <div key={signal.id} className="rounded-md border border-border p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span>{signal.emoji}</span>
+                    <span className="text-sm font-medium text-foreground truncate">{signal.name}</span>
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">{signal.risk}% risk</span>
+                </div>
+                <Progress value={signal.risk} />
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{signal.missStreak}d since last completion</span>
+                  <span>{Math.round(signal.recentRate)}% in last 14 days</span>
+                </div>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-2 items-stretch min-w-0">
         <Card className="min-w-0 h-full flex flex-col">

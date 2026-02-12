@@ -164,7 +164,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
     }
 
     try {
-      // Handle new habits
+      // Handle new and existing habits
       for (const habit of habitSettings) {
         if (habit.isNew) {
           await createHabit.mutateAsync({
@@ -203,6 +203,10 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
       // Apply theme
       applyTheme(selectedTheme, isDarkMode);
 
+      // Ensure all screens pick up latest habit data immediately
+      await queryClient.invalidateQueries({ queryKey: ["/api/habits"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/habits"], type: "active" });
+
       toast({
         title: "Settings saved successfully!",
         description: "Your preferences are synced across all devices.",
@@ -210,17 +214,12 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
 
       onClose();
     } catch (error) {
+      const message = error instanceof Error ? error.message : "Please try again.";
       toast({
         title: "Error saving settings",
-        description: "Changes saved locally. Will sync when connection is restored.",
-        variant: "default",
+        description: message,
+        variant: "destructive",
       });
-
-      // Fallback to localStorage
-      localStorage.setItem('theme', selectedTheme);
-      localStorage.setItem('darkMode', isDarkMode.toString());
-      applyTheme(selectedTheme, isDarkMode);
-      onClose();
     }
   };
 
@@ -311,11 +310,21 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
   };
 
   const addSuggestedHabit = (suggestion: { name: string; emoji: string }) => {
+    const normalizedName = suggestion.name.trim().toLowerCase();
+    const alreadyExists = habitSettings.some((habit) => habit.name.trim().toLowerCase() === normalizedName);
+    if (alreadyExists) {
+      toast({
+        title: "Habit already added",
+        description: "This suggested habit is already in your list.",
+      });
+      return;
+    }
+
     const newId = Math.max(...habitSettings.map(h => h.id), 0) + 1;
     setHabitSettings(prev => [...prev, {
       id: newId,
-      name: suggestion.name,
-      emoji: suggestion.emoji,
+      name: suggestion.name.trim(),
+      emoji: suggestion.emoji || "✨",
       tags: [],
       isNew: true,
     }]);
@@ -392,7 +401,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 min-h-0 overflow-y-auto settings-scroll px-6 pb-6">
+          <div data-lenis-prevent className="flex-1 min-h-0 overflow-y-auto overscroll-contain settings-scroll px-6 pb-6">
             <Tabs defaultValue="general" className="space-y-6">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="general">General</TabsTrigger>
@@ -717,10 +726,17 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
             <div className="mt-6 flex flex-col sm:flex-row sm:space-x-3 gap-3 sm:gap-0 bg-card pt-4 px-6 pb-6 border-t border-border rounded-md">
               <Button
                 onClick={handleSaveSettings}
-                disabled={updateHabit.isPending}
+                disabled={
+                  updateHabit.isPending ||
+                  createHabit.isPending ||
+                  deleteHabit.isPending ||
+                  setSetting.isPending
+                }
                 className="flex-1 gradient-bg text-white"
               >
-                {updateHabit.isPending ? "Saving..." : "Save Changes"}
+                {updateHabit.isPending || createHabit.isPending || deleteHabit.isPending || setSetting.isPending
+                  ? "Saving..."
+                  : "Save Changes"}
               </Button>
               <Button
                 onClick={() => setShowResetDialog(true)}

@@ -9,6 +9,8 @@ import { Home } from "@/pages/Home";
 import { ErrorBoundary } from '@/components/error-boundary';
 import { useEffect } from "react";
 import { applyTheme, getStoredDarkMode, getStoredTheme } from "@/lib/theme";
+import { usePrefersReducedMotion } from "@/hooks/use-gsap";
+import Lenis from "lenis";
 
 function AuthenticatedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -68,11 +70,39 @@ function Router() {
 }
 
 function App() {
+  const prefersReducedMotion = usePrefersReducedMotion();
+
   useEffect(() => {
     const theme = getStoredTheme();
     const darkMode = getStoredDarkMode();
     applyTheme(theme, darkMode);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || prefersReducedMotion) return;
+
+    const lenis = new Lenis({
+      duration: 1.05,
+      smoothWheel: true,
+      wheelMultiplier: 0.9,
+      touchMultiplier: 1.1,
+      syncTouch: false,
+      gestureOrientation: "vertical",
+    });
+
+    let rafId = 0;
+    const raf = (time: number) => {
+      lenis.raf(time);
+      rafId = window.requestAnimationFrame(raf);
+    };
+
+    rafId = window.requestAnimationFrame(raf);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      lenis.destroy();
+    };
+  }, [prefersReducedMotion]);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -258,13 +258,28 @@ export class DatabaseStorage implements IStorage {
   ): Promise<void> {
     if (!tags?.length || delta === 0) return;
 
-    const [userRecord] = await executor
+    let [userRecord] = await executor
       .select({
         stats: users.stats,
         bonusXp: users.xp,
       })
       .from(users)
       .where(eq(users.id, userId));
+
+    if (!userRecord) {
+      await executor
+        .insert(users)
+        .values({ id: userId })
+        .onConflictDoNothing();
+
+      [userRecord] = await executor
+        .select({
+          stats: users.stats,
+          bonusXp: users.xp,
+        })
+        .from(users)
+        .where(eq(users.id, userId));
+    }
 
     if (!userRecord) return;
 
@@ -723,6 +738,15 @@ export class DatabaseStorage implements IStorage {
     const [review] = await db
       .insert(weeklyReviews)
       .values(insertReview)
+      .onConflictDoUpdate({
+        target: [weeklyReviews.userId, weeklyReviews.weekStartDate],
+        set: {
+          accomplishment: insertReview.accomplishment ?? "",
+          breakdown: insertReview.breakdown ?? "",
+          adjustment: insertReview.adjustment ?? "",
+          aiInsights: insertReview.aiInsights ?? {},
+        },
+      })
       .returning();
     return review;
   }
@@ -1122,9 +1146,7 @@ export class DatabaseStorage implements IStorage {
 
       // Calculate daily completion streak
       const dailyStreak = await this.getStreak('daily_completion', userId);
-      const yesterday = new Date(date);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      const yesterdayStr = this.getPreviousDate(date);
 
       let newCurrentStreak = 1;
 
@@ -1268,7 +1290,7 @@ export class DatabaseStorage implements IStorage {
       const habitStartDate = habit.createdAt
         ? habit.createdAt.toISOString().split('T')[0]
         : date;
-      const totalDays = this.getDaysBetween(habitStartDate, date) + 1;
+      const totalDays = Math.max(1, this.getDaysBetween(habitStartDate, date) + 1);
       const completionRate = Math.min(100, Math.floor((newTotalCompletions / totalDays) * 100));
 
       if (habit.tags && habit.tags.length > 0) {
@@ -1451,8 +1473,8 @@ export class DatabaseStorage implements IStorage {
     const start = new Date(startDate + 'T00:00:00Z');
     const end = new Date(endDate + 'T00:00:00Z');
     const diffTime = end.getTime() - start.getTime();
-    // Use Math.round to handle any floating point precision issues
-    return Math.round(Math.abs(diffTime) / (1000 * 60 * 60 * 24));
+    // Signed day difference, rounded for floating-point stability
+    return Math.round(diffTime / (1000 * 60 * 60 * 24));
   }
 
   private ACHIEVEMENT_BASE_XP: Record<string, number> = {
@@ -1538,9 +1560,13 @@ export class DatabaseStorage implements IStorage {
           break;
         case 'completion':
           if (dailyEntry.habitCompletions) {
-            const completionRate = Object.values(dailyEntry.habitCompletions as Record<string, boolean>)
-              .filter(Boolean).length / Object.keys(dailyEntry.habitCompletions as Record<string, boolean>).length * 100;
-            shouldUnlock = completionRate >= achievement.requirement;
+            const completions = dailyEntry.habitCompletions as Record<string, boolean>;
+            const total = Object.keys(completions).length;
+            if (total > 0) {
+              const completionRate =
+                (Object.values(completions).filter(Boolean).length / total) * 100;
+              shouldUnlock = completionRate >= achievement.requirement;
+            }
           }
           break;
         case 'milestone': {

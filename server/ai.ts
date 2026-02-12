@@ -193,13 +193,126 @@ type WeeklyInsights = {
   strengths: string;
   improvements: string;
   motivation: string;
+  scheduleSupport: string;
+  scheduleRisk: string;
+  nextActions: string[];
 };
+
+function getCompletionRateForEntry(entry: DailyEntry, habitCount: number): number {
+  if (habitCount <= 0) return 0;
+  const completedHabits = Object.values(entry.habitCompletions as Record<string, boolean>).filter(Boolean).length;
+  return (completedHabits / habitCount) * 100;
+}
+
+function getWeekdayLabel(dateKey: string): string {
+  const labels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const date = new Date(`${dateKey}T00:00:00Z`);
+  const index = Number.isNaN(date.getTime()) ? 0 : date.getUTCDay();
+  return labels[index] || "Monday";
+}
+
+function buildFallbackWeeklyInsights(dailyEntries: DailyEntry[], habits: Habit[]): WeeklyInsights {
+  const safeHabitCount = Math.max(1, habits.length);
+  const completionRate = dailyEntries.length > 0
+    ? dailyEntries.reduce((sum, entry) => sum + getCompletionRateForEntry(entry, safeHabitCount), 0) / dailyEntries.length
+    : 0;
+
+  const weekdayStats = new Map<string, { total: number; count: number }>();
+  dailyEntries.forEach((entry) => {
+    const label = getWeekdayLabel(entry.date);
+    const current = weekdayStats.get(label) || { total: 0, count: 0 };
+    current.total += getCompletionRateForEntry(entry, safeHabitCount);
+    current.count += 1;
+    weekdayStats.set(label, current);
+  });
+
+  const rankedDays = Array.from(weekdayStats.entries())
+    .map(([day, stats]) => ({
+      day,
+      avg: stats.count > 0 ? stats.total / stats.count : 0,
+    }))
+    .sort((a, b) => b.avg - a.avg);
+
+  const supportDay = rankedDays[0];
+  const riskDay = rankedDays[rankedDays.length - 1];
+
+  const scheduleSupport = supportDay
+    ? `${supportDay.day} is your strongest execution window (${Math.round(supportDay.avg)}% completion).`
+    : "Your best execution window is still forming. Keep logging daily entries for clearer signals.";
+  const scheduleRisk = riskDay
+    ? `${riskDay.day} shows the most breakdown risk (${Math.round(riskDay.avg)}% completion).`
+    : "No clear breakdown window yet. Watch for days where routines slip after schedule changes.";
+
+  const nextActions: string[] = [];
+  if (completionRate < 60) {
+    nextActions.push("Reduce one low-performing habit to a 5-minute minimum version.");
+  } else {
+    nextActions.push("Keep current scope and add one consistency trigger to your weakest habit.");
+  }
+
+  if (riskDay) {
+    nextActions.push(`Protect ${riskDay.day} with a fixed start time and backup routine.`);
+  }
+
+  if (supportDay && (!riskDay || supportDay.day !== riskDay.day)) {
+    nextActions.push(`Anchor your hardest habit on ${supportDay.day}, your strongest day.`);
+  }
+
+  while (nextActions.length < 3) {
+    nextActions.push("Review daily notes and remove one friction point before next week.");
+  }
+
+  return {
+    patterns: completionRate > 80
+      ? "Strong consistency pattern observed in your habit tracking."
+      : "Completion varies across the week, with room to stabilize your routine.",
+    strengths: completionRate > 60
+      ? "You are building positive momentum with regular habit execution."
+      : "You are maintaining enough activity to build a stronger baseline next week.",
+    improvements: "Focus on one bottleneck window and simplify habit scope on lower-energy days.",
+    motivation: completionRate > 70
+      ? "Your system is compounding. Keep the loop tight and consistent."
+      : "Progress is still compounding. Small daily wins will stabilize momentum.",
+    scheduleSupport,
+    scheduleRisk,
+    nextActions: nextActions.slice(0, 3),
+  };
+}
+
+function normalizeWeeklyInsights(raw: unknown, fallback: WeeklyInsights): WeeklyInsights {
+  const source = (typeof raw === "object" && raw !== null) ? (raw as Record<string, unknown>) : {};
+  const nextActionsRaw = Array.isArray(source.nextActions) ? source.nextActions : [];
+  const nextActions = nextActionsRaw
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 3);
+
+  const readText = (key: keyof WeeklyInsights): string => {
+    const value = source[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+    return fallback[key] as string;
+  };
+
+  return {
+    patterns: readText("patterns"),
+    strengths: readText("strengths"),
+    improvements: readText("improvements"),
+    motivation: readText("motivation"),
+    scheduleSupport: readText("scheduleSupport"),
+    scheduleRisk: readText("scheduleRisk"),
+    nextActions: nextActions.length > 0 ? nextActions : fallback.nextActions,
+  };
+}
 
 export async function generateWeeklyInsights(
   dailyEntries: DailyEntry[], 
   habits: Habit[],
   personalization?: string
 ): Promise<WeeklyInsights> {
+  const fallbackInsights = buildFallbackWeeklyInsights(dailyEntries, habits);
   const personalizationBlock = formatPersonalizationContext(personalization);
   const completionData = dailyEntries.map(entry => ({
     date: entry.date,
@@ -225,10 +338,23 @@ ${notesData || 'No daily notes recorded this period.'}
 HABITS BEING TRACKED: ${habits.map(h => `${h.emoji} ${h.name}`).join(', ')}
 
 Provide insights that incorporate both quantitative data and qualitative notes. Reference specific insights from the user's own reflections when available.
+Highlight where the schedule helps execution and where it breaks down.
 
 Output ONLY valid JSON with insights:
 
-{"patterns": "pattern observation incorporating notes context", "strengths": "what went well based on data and notes", "improvements": "actionable suggestions informed by reflections", "motivation": "encouraging message that acknowledges their thoughts"}`;
+{
+  "patterns": "pattern observation incorporating notes context",
+  "strengths": "what went well based on data and notes",
+  "improvements": "actionable suggestions informed by reflections",
+  "motivation": "encouraging message that acknowledges their thoughts",
+  "scheduleSupport": "specific schedule window that supports execution",
+  "scheduleRisk": "specific schedule window that sabotages execution",
+  "nextActions": [
+    "concrete action with clear behavior change",
+    "concrete action with timing or constraint",
+    "concrete action that reduces friction"
+  ]
+}`;
 
   try {
     const response = await callGemini(prompt, "analysis");
@@ -239,40 +365,25 @@ Output ONLY valid JSON with insights:
     const objectMatch = cleanedResponse.match(/\{[\s\S]*\}/);
     if (objectMatch) {
       try {
-        return JSON.parse(objectMatch[0]);
+        const parsed = JSON.parse(objectMatch[0]);
+        return normalizeWeeklyInsights(parsed, fallbackInsights);
       } catch (parseError) {
         // If JSON parsing fails, create structured response from text
-        const insights: WeeklyInsights = {
-          patterns: extractInsight(response, 'patterns') || 'Consistent habit completion observed',
-          strengths: extractInsight(response, 'strengths') || 'Good dedication to daily routines',
-          improvements: extractInsight(response, 'improvements') || 'Continue building momentum',
-          motivation: extractInsight(response, 'motivation') || 'Keep up the great work!'
+        const insights = {
+          patterns: extractInsight(response, 'patterns'),
+          strengths: extractInsight(response, 'strengths'),
+          improvements: extractInsight(response, 'improvements'),
+          motivation: extractInsight(response, 'motivation'),
+          scheduleSupport: extractInsight(response, 'scheduleSupport'),
+          scheduleRisk: extractInsight(response, 'scheduleRisk'),
         };
-        return insights;
+        return normalizeWeeklyInsights(insights, fallbackInsights);
       }
     }
     throw new Error('No insights found');
   } catch (error) {
     console.error('Error generating weekly insights:', error);
-    // Fallback to static insights if API fails
-    const completionRate = dailyEntries.length > 0 
-      ? (dailyEntries.reduce((sum, entry) => 
-          sum + Object.values(entry.habitCompletions as Record<string, boolean>).filter(Boolean).length, 0
-        ) / (dailyEntries.length * habits.length)) * 100 
-      : 0;
-
-    return {
-      patterns: completionRate > 80 
-        ? "Strong consistency pattern observed in your habit tracking."
-        : "Room for improvement in maintaining daily consistency.",
-      strengths: completionRate > 60 
-        ? "You're building positive momentum with regular habit completion."
-        : "You're taking important steps toward building better habits.",
-      improvements: "Focus on completing your habits at the same time each day to build stronger routines.",
-      motivation: completionRate > 70 
-        ? "Your dedication is paying off - keep up the excellent work!"
-        : "Every day is a new opportunity to strengthen your habits."
-    };
+    return fallbackInsights;
   }
 }
 

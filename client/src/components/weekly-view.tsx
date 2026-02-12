@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,16 @@ interface WeeklyViewProps {
   isGuestMode?: boolean;
 }
 
+type WeeklyInsights = {
+  patterns?: string;
+  strengths?: string;
+  improvements?: string;
+  motivation?: string;
+  scheduleSupport?: string;
+  scheduleRisk?: string;
+  nextActions?: string[];
+};
+
 export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
   const { toast } = useToast();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -55,7 +65,31 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
   const [accomplishment, setAccomplishment] = useState('');
   const [breakdown, setBreakdown] = useState('');
   const [adjustment, setAdjustment] = useState('');
-  const [aiInsights, setAiInsights] = useState<any>(null);
+  const [aiInsights, setAiInsights] = useState<WeeklyInsights | null>(null);
+
+  const suggestedActions = useMemo(() => {
+    if (!Array.isArray(aiInsights?.nextActions)) return [];
+    return aiInsights.nextActions
+      .filter((item): item is string => typeof item === "string")
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .slice(0, 3);
+  }, [aiInsights]);
+
+  const appendActionToAdjustment = (action: string) => {
+    const normalized = action.trim();
+    if (!normalized) return;
+    const bullet = `- ${normalized}`;
+    setAdjustment((current) => {
+      if (!current.trim()) return bullet;
+      if (current.includes(normalized)) return current;
+      return `${current.trimEnd()}\n${bullet}`;
+    });
+    toast({
+      title: "Action added",
+      description: "Added to this week's adjustment plan.",
+    });
+  };
 
   // Load existing weekly review data
   useEffect(() => {
@@ -63,7 +97,7 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
       setAccomplishment(weeklyReview.accomplishment || '');
       setBreakdown(weeklyReview.breakdown || '');
       setAdjustment(weeklyReview.adjustment || '');
-      setAiInsights(weeklyReview.aiInsights || null);
+      setAiInsights((weeklyReview.aiInsights as WeeklyInsights) || null);
     }
   }, [weeklyReview]);
 
@@ -75,7 +109,7 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
   }, [weeklyReviewError, weekStartDate, isGuestMode]);
 
   // Handle AI insights response
-  const persistAiInsights = async (insights: any) => {
+  const persistAiInsights = async (insights: WeeklyInsights) => {
     if (isGuestMode) return;
 
     const payload = {
@@ -126,8 +160,18 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
     weeklyInsightsMutation.mutate(undefined, {
       onSuccess: async (data) => {
         console.log('Weekly insights received:', data);
-        setAiInsights(data);
-        await persistAiInsights(data);
+        setAiInsights(data as WeeklyInsights);
+        const actions = Array.isArray((data as WeeklyInsights)?.nextActions)
+          ? (data as WeeklyInsights).nextActions
+              ?.filter((item): item is string => typeof item === "string")
+              .map((item) => item.trim())
+              .filter(Boolean)
+              .slice(0, 3) || []
+          : [];
+        if (!adjustment.trim() && actions.length > 0) {
+          setAdjustment(actions.map((item) => `- ${item}`).join("\n"));
+        }
+        await persistAiInsights(data as WeeklyInsights);
         toast({
           title: "Insights refreshed",
           description: "AI insights have been generated and saved.",
@@ -200,11 +244,29 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
   ];
 
   const handleSaveReview = async () => {
+    const fallbackAdjustment = suggestedActions.length > 0
+      ? suggestedActions.map((action) => `- ${action}`).join("\n")
+      : "";
+    const resolvedAdjustment = adjustment.trim() ? adjustment : fallbackAdjustment;
+
+    if (!resolvedAdjustment.trim()) {
+      toast({
+        title: "Add one concrete adjustment",
+        description: "Weekly reviews should end with at least one next action.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (resolvedAdjustment !== adjustment) {
+      setAdjustment(resolvedAdjustment);
+    }
+
     const reviewData = {
       weekStartDate,
       accomplishment,
       breakdown,
-      adjustment,
+      adjustment: resolvedAdjustment,
       aiInsights: aiInsights || {},
     };
 
@@ -419,6 +481,39 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
                 <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
                   <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">Motivation</h4>
                   <p className="text-purple-700 dark:text-purple-300 text-sm">{aiInsights.motivation}</p>
+                </div>
+              )}
+              {aiInsights.scheduleSupport && (
+                <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                  <h4 className="font-semibold text-emerald-800 dark:text-emerald-200 mb-2">Schedule Support</h4>
+                  <p className="text-emerald-700 dark:text-emerald-300 text-sm">{aiInsights.scheduleSupport}</p>
+                </div>
+              )}
+              {aiInsights.scheduleRisk && (
+                <div className="p-4 bg-rose-50 dark:bg-rose-900/20 rounded-lg border border-rose-200 dark:border-rose-800">
+                  <h4 className="font-semibold text-rose-800 dark:text-rose-200 mb-2">Schedule Risk</h4>
+                  <p className="text-rose-700 dark:text-rose-300 text-sm">{aiInsights.scheduleRisk}</p>
+                </div>
+              )}
+              {suggestedActions.length > 0 && (
+                <div className="p-4 bg-slate-50 dark:bg-slate-900/30 rounded-lg border border-slate-200 dark:border-slate-800">
+                  <h4 className="font-semibold text-slate-800 dark:text-slate-100 mb-3">Concrete Next Actions</h4>
+                  <div className="space-y-2">
+                    {suggestedActions.map((action, index) => (
+                      <div key={`${action}-${index}`} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-sm text-slate-700 dark:text-slate-300">{action}</p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => appendActionToAdjustment(action)}
+                          className="sm:shrink-0"
+                        >
+                          Use in adjustment
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, index, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, index, real, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -115,13 +115,15 @@ export const dailyEntries = pgTable("daily_entries", {
 export const weeklyReviews = pgTable("weekly_reviews", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").notNull(),
-  weekStartDate: text("week_start_date").notNull().unique(), // YYYY-MM-DD format (Monday)
+  weekStartDate: text("week_start_date").notNull(), // YYYY-MM-DD format (Monday)
   accomplishment: text("accomplishment").default(""),
   breakdown: text("breakdown").default(""),
   adjustment: text("adjustment").default(""),
   aiInsights: jsonb("ai_insights").default({}),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  uniqueIndex("unique_user_week_review").on(table.userId, table.weekStartDate),
+]);
 
 export const settings = pgTable("settings", {
   id: serial("id").primaryKey(),

@@ -3,33 +3,34 @@ import { cn } from "@/lib/utils";
 
 export type NavigationView = 'today' | 'weekly' | 'history' | 'achievements' | 'analytics' | 'assistant';
 
+export const navigationItems = [
+  { value: "today" as const, icon: CalendarDays, label: "Today" },
+  { value: "weekly" as const, icon: TrendingUp, label: "Weekly" },
+  { value: "history" as const, icon: History, label: "History" },
+  { value: "achievements" as const, icon: Trophy, label: "Achievements" },
+  { value: "analytics" as const, icon: BarChart3, label: "Analytics" },
+  { value: "assistant" as const, icon: MessageSquareText, label: "Assistant" },
+];
+
 interface NavigationProps {
   currentView: NavigationView;
   onViewChange: (view: NavigationView) => void;
   className?: string;
   listClassName?: string;
+  itemClassName?: string;
 }
 
-export function Navigation({ currentView, onViewChange, className, listClassName }: NavigationProps) {
-  const navItems = [
-    { value: 'today' as const, icon: CalendarDays, label: 'Today' },
-    { value: 'weekly' as const, icon: TrendingUp, label: 'Weekly' },
-    { value: 'history' as const, icon: History, label: 'History' },
-    { value: 'achievements' as const, icon: Trophy, label: 'Achievements' },
-    { value: 'analytics' as const, icon: BarChart3, label: 'Analytics' },
-    { value: 'assistant' as const, icon: MessageSquareText, label: 'Assistant' },
-  ];
-
+export function Navigation({ currentView, onViewChange, className, listClassName, itemClassName }: NavigationProps) {
   return (
     <nav className={cn("w-full", className)}>
-      <div className="w-full overflow-x-auto scrollbar-hide">
+      <div className="app-nav-scroll">
         <div
           className={cn(
-            "flex w-full items-center justify-between bg-card border border-border rounded-md p-1 mx-auto sm:mx-0 sm:w-max sm:justify-start",
+            "app-nav-track",
             listClassName,
           )}
         >
-          {navItems.map((item) => {
+          {navigationItems.map((item) => {
             const Icon = item.icon;
             return (
               <button
@@ -37,14 +38,15 @@ export function Navigation({ currentView, onViewChange, className, listClassName
                 data-testid={`nav-${item.value}`}
                 onClick={() => onViewChange(item.value)}
                 className={cn(
-                  "flex items-center gap-2 whitespace-nowrap rounded-md font-medium text-sm transition-all duration-200 px-3 sm:px-4 lg:px-5 py-2",
+                  "app-nav-item",
                   currentView === item.value
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover-elevate",
+                    ? "app-nav-item-active"
+                    : "app-nav-item-idle",
+                  itemClassName,
                 )}
               >
                 <Icon className="h-4 w-4" />
-                <span className="hidden lg:inline">{item.label}</span>
+                <span>{item.label}</span>
               </button>
             );
           })}

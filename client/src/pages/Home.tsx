@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { type NavigationView } from "@/components/navigation";
+import { navigationItems, type NavigationView } from "@/components/navigation";
 import { Header } from "@/components/header";
 import { TodayView } from "@/components/today-view";
 import { WeeklyView } from "@/components/weekly-view";
@@ -10,9 +10,9 @@ import { AnalyticsView } from "@/components/analytics-view";
 import { SettingsModal } from "@/components/settings-modal";
 import { PlayerStatus } from "@/components/system/PlayerStatus";
 import { AssistantView } from "@/components/assistant-view";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Eye, LogIn, Sparkles } from "lucide-react";
+import { Eye, LogIn } from "lucide-react";
+import { StickyNotesBoard } from "@/components/sticky-notes-board";
 
 type View = NavigationView;
 
@@ -24,6 +24,36 @@ export function Home({ isGuestMode = false }: HomeProps) {
   const { user } = useAuth();
   const [currentView, setCurrentView] = useState<View>('today');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const activeNavItem = navigationItems.find((item) => item.value === currentView);
+
+  const viewCopy: Record<View, { eyebrow: string }> = useMemo(
+    () => ({
+      today: {
+        eyebrow: "Daily Execution",
+      },
+      weekly: {
+        eyebrow: "Weekly Intelligence",
+      },
+      history: {
+        eyebrow: "Behavior Archive",
+      },
+      achievements: {
+        eyebrow: "Progression Ledger",
+      },
+      analytics: {
+        eyebrow: "Signal Dashboard",
+      },
+      assistant: {
+        eyebrow: "AI Copilot",
+      },
+    }),
+    []
+  );
+
+  const stickyStorageKey = useMemo(() => {
+    const userScope = isGuestMode ? "demo" : String((user as any)?.id ?? "anon");
+    return `sticky-notes:${userScope}:${currentView}`;
+  }, [currentView, isGuestMode, user]);
 
   const renderCurrentView = () => {
     switch (currentView) {
@@ -45,7 +75,11 @@ export function Home({ isGuestMode = false }: HomeProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-primary/10 selection:text-primary">
+    <div className="app-shell min-h-screen text-foreground selection:bg-primary/10 selection:text-primary">
+      <div aria-hidden="true" className="app-orb app-orb-a" />
+      <div aria-hidden="true" className="app-orb app-orb-b" />
+      <div aria-hidden="true" className="app-grid" />
+
       <Header
         onSettingsClick={() => setIsSettingsOpen(true)}
         isGuestMode={isGuestMode}
@@ -53,47 +87,70 @@ export function Home({ isGuestMode = false }: HomeProps) {
         onViewChange={setCurrentView}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-24 pb-8">
+      <main className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
         {isGuestMode && (
-          <div className="mb-8">
-            <div className="bg-card border border-border rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <Eye className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium">Demo Mode Active</p>
-                    <p className="text-sm text-muted-foreground">Sign in to save your progress and unlock all features</p>
-                  </div>
+          <section className="app-demo-banner mb-6 md:mb-8">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="app-demo-icon">
+                  <Eye className="h-4 w-4" />
                 </div>
-                <Button 
-                  onClick={() => window.location.href = "/api/login"}
-                  data-testid="button-demo-sign-in"
-                >
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Sign In
-                </Button>
+                <div>
+                  <p className="text-sm font-semibold text-[var(--app-ink)]">Demo mode is active</p>
+                  <p className="text-sm text-[var(--app-muted)]">
+                    Your changes are temporary. Sign in to persist progress, achievements, and AI history.
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => (window.location.href = "/api/login")}
+                data-testid="button-demo-sign-in"
+                className="app-primary-btn h-10 rounded-full px-5 text-sm font-semibold"
+              >
+                <LogIn className="h-4 w-4" />
+                Sign In
+              </Button>
+            </div>
+          </section>
+        )}
+
+        <section className="app-overview-panel">
+          <StickyNotesBoard
+            storageKey={stickyStorageKey}
+            contextLabel={activeNavItem ? `${viewCopy[currentView].eyebrow} · ${activeNavItem.label}` : viewCopy[currentView].eyebrow}
+          />
+        </section>
+
+        <section className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
+          <div className="space-y-6">
+            <div className="app-content-panel">
+              {renderCurrentView()}
+            </div>
+
+            <div className="space-y-6 xl:hidden">
+              <PlayerStatus />
+              <div className="app-tip-card">
+                <p className="app-mono text-[10px] text-[var(--app-muted)]">Execution Tip</p>
+                <p className="mt-2 text-sm text-[var(--app-ink)]">
+                  Keep Today and Weekly in the same cadence: execute during the day, then tighten process in weekly review.
+                </p>
               </div>
             </div>
           </div>
-        )}
-        
-        {/* Mobile Status Window */}
-        <div className="lg:hidden mb-8">
-          <PlayerStatus />
-        </div>
 
-        <div className="mt-8 grid lg:grid-cols-3 gap-8">
-          {/* Main Content Area */}
-          <div className="lg:col-span-2 space-y-8">
-             {renderCurrentView()}
-          </div>
-
-          {/* Side Panel - System Stats */}
-          <div className="hidden lg:block lg:sticky lg:top-24 lg:self-start space-y-6 lg:mt-8">
-             <PlayerStatus />
-          </div>
-        </div>
-      </div>
+          <aside className="hidden xl:block">
+            <div className="sticky top-6 space-y-6">
+              <PlayerStatus />
+              <div className="app-tip-card">
+                <p className="app-mono text-[10px] text-[var(--app-muted)]">Execution Tip</p>
+                <p className="mt-2 text-sm text-[var(--app-ink)]">
+                  Treat habit tracking as product telemetry: review anomalies quickly and adjust system design weekly.
+                </p>
+              </div>
+            </div>
+          </aside>
+        </section>
+      </main>
 
       <SettingsModal
         isOpen={isSettingsOpen}
