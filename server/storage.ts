@@ -506,6 +506,11 @@ export class DatabaseStorage implements IStorage {
       .insert(habits)
       .values(insertHabit)
       .returning();
+    try {
+      await this.checkAccountAchievementProgress(habit.userId);
+    } catch (error) {
+      console.warn(`Failed to recheck account achievements after habit creation for user ${habit.userId}:`, error);
+    }
     return habit;
   }
 
@@ -656,14 +661,45 @@ export class DatabaseStorage implements IStorage {
     await this.ensureInitialized();
     try {
       console.log('Creating daily entry with data:', insertEntry);
+      const [existingEntry] = await db
+        .select()
+        .from(dailyEntries)
+        .where(and(eq(dailyEntries.date, insertEntry.date), eq(dailyEntries.userId, insertEntry.userId)));
+
+      const nextCompleted =
+        typeof insertEntry.isCompleted === "boolean" ? insertEntry.isCompleted : false;
+      const nextCompletedAt =
+        nextCompleted
+          ? (insertEntry.completedAt ?? existingEntry?.completedAt ?? new Date())
+          : null;
+
       const [entry] = await db
         .insert(dailyEntries)
-        .values(insertEntry)
+        .values({
+          ...insertEntry,
+          isCompleted: nextCompleted,
+          completedAt: nextCompletedAt,
+          updatedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: [dailyEntries.userId, dailyEntries.date],
+          set: {
+            habitCompletions: insertEntry.habitCompletions,
+            subtaskCompletions: insertEntry.subtaskCompletions,
+            punctualityScore: insertEntry.punctualityScore,
+            adherenceScore: insertEntry.adherenceScore,
+            notes: insertEntry.notes ?? "",
+            isCompleted: nextCompleted,
+            completedAt: nextCompletedAt,
+            updatedAt: new Date(),
+          },
+        })
         .returning();
       console.log('Daily entry created in database:', entry);
 
-      // Calculate streaks when day is completed
-      if (insertEntry.isCompleted === true) {
+      // Calculate streaks and achievements only when transitioning to completed
+      const transitionedToCompleted = !existingEntry?.isCompleted && entry.isCompleted === true;
+      if (transitionedToCompleted) {
         console.log('Day completed, calculating streaks...');
         await this.calculateStreaks(insertEntry.date, insertEntry.userId);
       }
@@ -679,9 +715,37 @@ export class DatabaseStorage implements IStorage {
     await this.ensureInitialized();
     try {
       console.log('Updating daily entry for date:', date, 'user:', userId, 'with data:', updateData);
+
+      const [existingEntry] = await db
+        .select()
+        .from(dailyEntries)
+        .where(and(eq(dailyEntries.date, date), eq(dailyEntries.userId, userId)));
+
+      if (!existingEntry) {
+        throw new Error(`Daily entry for date ${date} not found`);
+      }
+
+      const resolvedIsCompleted =
+        typeof updateData.isCompleted === "boolean" ? updateData.isCompleted : existingEntry.isCompleted;
+
+      let resolvedCompletedAt = existingEntry.completedAt ?? null;
+      if (typeof updateData.isCompleted === "boolean") {
+        resolvedCompletedAt = updateData.isCompleted
+          ? (existingEntry.completedAt ?? new Date())
+          : null;
+      }
+      if (updateData.completedAt !== undefined) {
+        resolvedCompletedAt = updateData.completedAt ?? null;
+      }
+
       const [entry] = await db
         .update(dailyEntries)
-        .set({ ...updateData, updatedAt: new Date() })
+        .set({
+          ...updateData,
+          isCompleted: resolvedIsCompleted,
+          completedAt: resolvedCompletedAt,
+          updatedAt: new Date(),
+        })
         .where(and(eq(dailyEntries.date, date), eq(dailyEntries.userId, userId)))
         .returning();
 
@@ -690,14 +754,11 @@ export class DatabaseStorage implements IStorage {
       }
       console.log('Daily entry updated in database:', entry);
 
-      // Only calculate streaks and achievements when day is actually completed, not on every update
-      if (updateData.isCompleted === true) {
+      // Only calculate streaks/achievements when transitioning from incomplete -> complete
+      const transitionedToCompleted = !existingEntry.isCompleted && entry.isCompleted === true;
+      if (transitionedToCompleted) {
         console.log('Day completed, calculating streaks and achievements...');
-        // Run streak calculation and achievement checking in parallel
-        await Promise.all([
-          this.calculateStreaks(date, userId),
-          this.checkAchievements(0, entry) // Pass 0 as placeholder, will get actual streak inside
-        ]);
+        await this.calculateStreaks(date, userId);
       }
 
       return entry;
@@ -748,6 +809,11 @@ export class DatabaseStorage implements IStorage {
         },
       })
       .returning();
+    try {
+      await this.checkAccountAchievementProgress(insertReview.userId);
+    } catch (error) {
+      console.warn(`Failed to recheck account achievements after weekly review save for user ${insertReview.userId}:`, error);
+    }
     return review;
   }
 
@@ -760,6 +826,11 @@ export class DatabaseStorage implements IStorage {
 
     if (!review) {
       throw new Error(`Weekly review for week ${weekStartDate} not found`);
+    }
+    try {
+      await this.checkAccountAchievementProgress(userId);
+    } catch (error) {
+      console.warn(`Failed to recheck account achievements after weekly review update for user ${userId}:`, error);
     }
     return review;
   }
@@ -871,7 +942,12 @@ export class DatabaseStorage implements IStorage {
   async unlockAchievement(id: number, userId: string): Promise<Achievement> {
     await this.ensureInitialized();
 
-    // First check if the achievement exists for this user
+    const unlocked = await this.tryUnlockAchievement(id, userId);
+    if (unlocked) {
+      return unlocked;
+    }
+
+    // Either already unlocked or missing; return existing row if present.
     const existingAchievement = await db
       .select()
       .from(achievements)
@@ -883,18 +959,7 @@ export class DatabaseStorage implements IStorage {
       return null as any; // Return null instead of throwing error
     }
 
-    // If already unlocked, return it
-    if (existingAchievement[0].isUnlocked) {
-      return existingAchievement[0];
-    }
-
-    const [achievement] = await db
-      .update(achievements)
-      .set({ isUnlocked: true, unlockedAt: new Date() })
-      .where(and(eq(achievements.id, id), eq(achievements.userId, userId)))
-      .returning();
-
-    return achievement;
+    return existingAchievement[0];
   }
 
   async initializeAchievements(userId: string): Promise<void> {
@@ -1503,15 +1568,6 @@ export class DatabaseStorage implements IStorage {
     "Habit Creator": 110,
   };
 
-  private NON_REPEATABLE_ACHIEVEMENTS = new Set<string>(["First Steps", "Spark Starter"]);
-
-  private async refreshAchievementTimestamp(id: number, userId: string) {
-    await db
-      .update(achievements)
-      .set({ unlockedAt: new Date(), isUnlocked: true })
-      .where(and(eq(achievements.id, id), eq(achievements.userId, userId)));
-  }
-
   private async applyUserXpBonus(userId: string, xpDelta: number): Promise<void> {
     if (xpDelta === 0) return;
 
@@ -1540,6 +1596,97 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId));
   }
 
+  private async tryUnlockAchievement(id: number, userId: string): Promise<Achievement | undefined> {
+    const [achievement] = await db
+      .update(achievements)
+      .set({ isUnlocked: true, unlockedAt: new Date() })
+      .where(and(eq(achievements.id, id), eq(achievements.userId, userId), eq(achievements.isUnlocked, false)))
+      .returning();
+    return achievement || undefined;
+  }
+
+  private async unlockAchievementWithXp(achievement: Achievement, userId: string): Promise<void> {
+    const unlocked = await this.tryUnlockAchievement(achievement.id, userId);
+    if (!unlocked) return;
+
+    const baseXp = this.ACHIEVEMENT_BASE_XP[achievement.name] ?? 100;
+    await this.applyUserXpBonus(userId, baseXp);
+  }
+
+  private async shouldUnlockAchievement(
+    achievement: Achievement,
+    currentStreak: number,
+    userId: string,
+    dailyEntry?: DailyEntry,
+  ): Promise<boolean> {
+    switch (achievement.type) {
+      case "streak":
+        return currentStreak >= achievement.requirement;
+      case "completion": {
+        if (!dailyEntry || !dailyEntry.isCompleted || !dailyEntry.habitCompletions) {
+          return false;
+        }
+        const completions = dailyEntry.habitCompletions as Record<string, boolean>;
+        const total = Object.keys(completions).length;
+        if (total === 0) return false;
+        const completionRate =
+          (Object.values(completions).filter(Boolean).length / total) * 100;
+        return completionRate >= achievement.requirement;
+      }
+      case "milestone": {
+        const totalCompletedDays = await db
+          .select({ id: dailyEntries.id })
+          .from(dailyEntries)
+          .where(and(eq(dailyEntries.isCompleted, true), eq(dailyEntries.userId, userId)));
+        return totalCompletedDays.length >= achievement.requirement;
+      }
+      case "consistency": {
+        const reviews = await db
+          .select({ id: weeklyReviews.id })
+          .from(weeklyReviews)
+          .where(eq(weeklyReviews.userId, userId));
+        return reviews.length >= achievement.requirement;
+      }
+      case "special": {
+        if (achievement.name === "Habit Creator") {
+          const userHabits = await db
+            .select({ id: habits.id })
+            .from(habits)
+            .where(eq(habits.userId, userId));
+          return userHabits.length >= achievement.requirement;
+        }
+        if (achievement.name === "Note Taker") {
+          const noteEntries = await db
+            .select({ date: dailyEntries.date, notes: dailyEntries.notes })
+            .from(dailyEntries)
+            .where(eq(dailyEntries.userId, userId))
+            .orderBy(dailyEntries.date);
+
+          const noteDates = noteEntries
+            .filter((entry) => (entry.notes || "").trim().length > 0)
+            .map((entry) => entry.date);
+
+          let longest = 0;
+          let current = 0;
+          let previousDate: string | null = null;
+          for (const noteDate of noteDates) {
+            if (previousDate && this.compareDateStrings(noteDate, this.addDays(previousDate, 1)) === 0) {
+              current += 1;
+            } else {
+              current = 1;
+            }
+            longest = Math.max(longest, current);
+            previousDate = noteDate;
+          }
+          return longest >= achievement.requirement;
+        }
+        return false;
+      }
+      default:
+        return false;
+    }
+  }
+
   private async checkAchievements(currentStreak: number, dailyEntry: DailyEntry): Promise<void> {
     const allAchievements = await db
       .select()
@@ -1547,55 +1694,65 @@ export class DatabaseStorage implements IStorage {
       .where(eq(achievements.userId, dailyEntry.userId));
 
     for (const achievement of allAchievements) {
-      const repeatable = !this.NON_REPEATABLE_ACHIEVEMENTS.has(achievement.name);
-      const alreadyUnlocked = achievement.isUnlocked;
+      if (achievement.isUnlocked) continue;
 
-      if (alreadyUnlocked && !repeatable) continue;
-
-      let shouldUnlock = false;
-
-      switch (achievement.type) {
-        case 'streak':
-          shouldUnlock = currentStreak >= achievement.requirement;
-          break;
-        case 'completion':
-          if (dailyEntry.habitCompletions) {
-            const completions = dailyEntry.habitCompletions as Record<string, boolean>;
-            const total = Object.keys(completions).length;
-            if (total > 0) {
-              const completionRate =
-                (Object.values(completions).filter(Boolean).length / total) * 100;
-              shouldUnlock = completionRate >= achievement.requirement;
-            }
-          }
-          break;
-        case 'milestone': {
-          const totalCompletedDays = await db
-            .select()
-            .from(dailyEntries)
-            .where(and(eq(dailyEntries.isCompleted, true), eq(dailyEntries.userId, dailyEntry.userId)));
-          shouldUnlock = totalCompletedDays.length >= achievement.requirement;
-          break;
-        }
-      }
+      const shouldUnlock = await this.shouldUnlockAchievement(
+        achievement,
+        currentStreak,
+        dailyEntry.userId,
+        dailyEntry,
+      );
 
       if (shouldUnlock) {
         try {
-          const isFirstCompletion = !alreadyUnlocked;
-          const baseXp = this.ACHIEVEMENT_BASE_XP[achievement.name] ?? 100;
-          const xpGain = isFirstCompletion ? baseXp : Math.floor(baseXp * 0.5);
-
-          if (isFirstCompletion) {
-            await this.unlockAchievement(achievement.id, dailyEntry.userId);
-          } else if (repeatable) {
-            await this.refreshAchievementTimestamp(achievement.id, dailyEntry.userId);
-          }
-
-          await this.applyUserXpBonus(dailyEntry.userId, xpGain);
+          await this.unlockAchievementWithXp(achievement, dailyEntry.userId);
         } catch (error) {
           console.warn(`Failed to unlock achievement ${achievement.id} for user ${dailyEntry.userId}:`, error);
           // Continue processing other achievements instead of failing completely
         }
+      }
+    }
+  }
+
+  private async checkAccountAchievementProgress(userId: string): Promise<void> {
+    let allAchievements = await db
+      .select()
+      .from(achievements)
+      .where(eq(achievements.userId, userId));
+
+    if (allAchievements.length === 0) {
+      await this.initializeAchievements(userId);
+      allAchievements = await db
+        .select()
+        .from(achievements)
+        .where(eq(achievements.userId, userId));
+    }
+
+    const dailyStreak = await this.getStreak("daily_completion", userId);
+    const [latestCompletedEntry] = await db
+      .select()
+      .from(dailyEntries)
+      .where(and(eq(dailyEntries.userId, userId), eq(dailyEntries.isCompleted, true)))
+      .orderBy(desc(dailyEntries.date))
+      .limit(1);
+
+    for (const achievement of allAchievements) {
+      if (achievement.isUnlocked) continue;
+      if (achievement.type === "streak" || achievement.type === "completion") continue;
+
+      const shouldUnlock = await this.shouldUnlockAchievement(
+        achievement,
+        dailyStreak?.currentStreak ?? 0,
+        userId,
+        latestCompletedEntry,
+      );
+
+      if (!shouldUnlock) continue;
+
+      try {
+        await this.unlockAchievementWithXp(achievement, userId);
+      } catch (error) {
+        console.warn(`Failed to unlock account achievement ${achievement.id} for user ${userId}:`, error);
       }
     }
   }

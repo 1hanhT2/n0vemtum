@@ -110,7 +110,9 @@ export const dailyEntries = pgTable("daily_entries", {
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  uniqueIndex("unique_user_daily_entry").on(table.userId, table.date),
+]);
 
 export const weeklyReviews = pgTable("weekly_reviews", {
   id: serial("id").primaryKey(),

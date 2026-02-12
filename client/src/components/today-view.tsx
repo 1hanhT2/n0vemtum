@@ -39,6 +39,7 @@ import { useDebounce, usePendingProtection } from '@/hooks/use-debounce';
 import { SubtaskManager } from "@/components/subtask-manager";
 import { getHabitTagConfig } from "@/lib/habit-tags";
 import { useTimeZone } from "@/hooks/use-timezone";
+import { usePrefersReducedMotion } from "@/hooks/use-gsap";
 
 interface TodayViewProps {
   isGuestMode?: boolean;
@@ -46,6 +47,7 @@ interface TodayViewProps {
 
 export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const { toast } = useToast();
+  const prefersReducedMotion = usePrefersReducedMotion();
   const timeZone = useTimeZone();
   const today = useMemo(() => getTodayKey(timeZone), [timeZone]);
   const previousDateKey = useMemo(() => getYesterdayKey(timeZone), [timeZone]);
@@ -159,14 +161,30 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
   const habitListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!todayContainerRef.current) return;
-    gsap.fromTo(
-      todayContainerRef.current,
-      { opacity: 0, y: 16 },
-      { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }
-    );
-    return () => { gsap.killTweensOf(todayContainerRef.current); };
-  }, []);
+    const element = todayContainerRef.current;
+    if (!element) return;
+
+    try {
+      if (prefersReducedMotion) {
+        gsap.set(element, { opacity: 1, y: 0 });
+        return;
+      }
+
+      gsap.fromTo(
+        element,
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }
+      );
+    } catch (error) {
+      // Never leave the primary task view hidden if animation fails.
+      element.style.opacity = "1";
+      element.style.transform = "translateY(0)";
+    }
+
+    return () => {
+      gsap.killTweensOf(element);
+    };
+  }, [prefersReducedMotion]);
 
   useEffect(() => {
     if (!habitListRef.current || !habits?.length) return;
@@ -518,7 +536,10 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       if (dailyEntry) {
         await updateDailyEntry.mutateAsync({ ...entryData });
       } else {
-        await createDailyEntry.mutateAsync({ userId: 'current', ...entryData });
+        if (!user?.id) {
+          throw new Error("Not authenticated");
+        }
+        await createDailyEntry.mutateAsync({ userId: user.id, ...entryData });
       }
 
       // Clear temporary storage
@@ -688,7 +709,6 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
       <div
         ref={todayContainerRef}
         className="space-y-6"
-        style={{ opacity: 0 }}
       >
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -715,7 +735,6 @@ export function TodayView({ isGuestMode = false }: TodayViewProps) {
     <div
       ref={todayContainerRef}
       className="space-y-6"
-      style={{ opacity: 0 }}
     >
       <div className="mb-8 space-y-6">
         <div className="space-y-1">
