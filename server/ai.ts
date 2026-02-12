@@ -1,6 +1,7 @@
 import type { Habit, DailyEntry, WeeklyReview, Goal, ChatMessage, User } from "@shared/schema";
 import { GoogleGenAI } from "@google/genai";
 import { aiCache } from "./cache";
+import { type GeminiModelId } from "@shared/ai-models";
 
 // Gemini configuration
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
@@ -19,39 +20,50 @@ type GeminiTask =
   | "analysis"
   | "default";
 
-async function callGemini(prompt: string, kind: GeminiTask = "default"): Promise<string> {
-  const modelPriority: Record<GeminiTask, string[]> = {
-    chat: [
-      "gemini-3-pro-preview",
-      "gemini-3-flash-preview",
-      "gemini-2.5-flash",
-      "gemini-2.5-flash-lite",
-    ],
-    simple: [
-      "gemini-2.5-flash-lite",
-      "gemini-2.5-flash",
-      "gemini-3-flash-preview",
-    ],
-    difficulty: [
-      "gemini-2.5-flash",
-      "gemini-3-flash-preview",
-      "gemini-2.5-flash-lite",
-    ],
-    analysis: [
-      "gemini-2.5-flash",
-      "gemini-3-flash-preview",
-      "gemini-2.5-flash-lite",
-    ],
-    default: [
-      "gemini-3-flash-preview",
-      "gemini-2.5-flash",
-      "gemini-2.5-flash-lite",
-    ],
-  };
+const modelPriority: Record<GeminiTask, GeminiModelId[]> = {
+  chat: [
+    "gemini-3-pro-preview",
+    "gemini-3-flash-preview",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+  ],
+  simple: [
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-flash",
+    "gemini-3-flash-preview",
+    "gemini-3-pro-preview",
+  ],
+  difficulty: [
+    "gemini-2.5-flash",
+    "gemini-3-flash-preview",
+    "gemini-2.5-flash-lite",
+    "gemini-3-pro-preview",
+  ],
+  analysis: [
+    "gemini-2.5-flash",
+    "gemini-3-flash-preview",
+    "gemini-2.5-flash-lite",
+    "gemini-3-pro-preview",
+  ],
+  default: [
+    "gemini-3-flash-preview",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-3-pro-preview",
+  ],
+};
 
+async function callGemini(
+  prompt: string,
+  kind: GeminiTask = "default",
+  options?: { preferredModel?: GeminiModelId }
+): Promise<string> {
   const models = modelPriority[kind] || modelPriority.default;
+  const orderedModels = options?.preferredModel
+    ? [options.preferredModel, ...models.filter((model) => model !== options.preferredModel)]
+    : models;
 
-  for (const model of models) {
+  for (const model of orderedModels) {
     try {
       const response = await ai.models.generateContent({
         model,
@@ -83,7 +95,13 @@ function formatPersonalizationContext(personalization?: string) {
 
 export async function generateHabitSuggestions(
   existingHabits: Habit[],
-  options?: { difficulty?: number; type?: string; force?: boolean; personalization?: string }
+  options?: {
+    difficulty?: number;
+    type?: string;
+    force?: boolean;
+    personalization?: string;
+    preferredModel?: GeminiModelId;
+  }
 ): Promise<any[]> {
   // Create cache key based on habit names
   const habitNames = existingHabits.map(h => h.name).sort().join(", ");
@@ -120,7 +138,7 @@ Examples of good suggestions:
 - {"name": "Read 1 page of a book", "emoji": "📚", "xp": 15, "type": "mental"}`;
 
   try {
-    const response = await callGemini(prompt, "simple");
+    const response = await callGemini(prompt, "simple", { preferredModel: options?.preferredModel });
     // Extract JSON array from any text response - handle multiline arrays
     const arrayMatch = response.match(/\[[\s\S]*?\]/);
     if (!arrayMatch) {
@@ -310,7 +328,8 @@ function normalizeWeeklyInsights(raw: unknown, fallback: WeeklyInsights): Weekly
 export async function generateWeeklyInsights(
   dailyEntries: DailyEntry[], 
   habits: Habit[],
-  personalization?: string
+  personalization?: string,
+  preferredModel?: GeminiModelId
 ): Promise<WeeklyInsights> {
   const fallbackInsights = buildFallbackWeeklyInsights(dailyEntries, habits);
   const personalizationBlock = formatPersonalizationContext(personalization);
@@ -357,7 +376,7 @@ Output ONLY valid JSON with insights:
 }`;
 
   try {
-    const response = await callGemini(prompt, "analysis");
+    const response = await callGemini(prompt, "analysis", { preferredModel });
     // Clean up the response by removing markdown code blocks
     const cleanedResponse = response.replace(/```json\s*|\s*```/g, '').trim();
     
@@ -390,7 +409,8 @@ Output ONLY valid JSON with insights:
 export async function analyzeHabitDifficulty(
   habit: any,
   userCompletionData?: any[],
-  personalization?: string
+  personalization?: string,
+  preferredModel?: GeminiModelId
 ): Promise<{
   difficulty: number;
   analysis: string;
@@ -437,7 +457,7 @@ Respond with JSON format:
   "analysis": "[Brief 2-3 sentence explanation of the difficulty rating and key factors]"
 }`;
 
-    const response = await callGemini(prompt, "difficulty");
+    const response = await callGemini(prompt, "difficulty", { preferredModel });
     
     try {
       // Clean up the response by removing markdown code blocks
@@ -585,8 +605,9 @@ export async function generateAssistantReply(args: {
   user?: User;
   weeklyReview?: WeeklyReview | null;
   personalization?: string;
+  preferredModel?: GeminiModelId;
 }): Promise<string> {
-  const { message, chatHistory, habits, goals, dailyEntries, user, weeklyReview, personalization } = args;
+  const { message, chatHistory, habits, goals, dailyEntries, user, weeklyReview, personalization, preferredModel } = args;
   const tagSummary: Record<string, number> = {
     STR: 0,
     AGI: 0,
@@ -663,6 +684,6 @@ USER MESSAGE: ${message}
 
 Answer in plain text. Offer up to 3 bullet suggestions when appropriate.`;
 
-  const response = await callGemini(prompt, "chat");
+  const response = await callGemini(prompt, "chat", { preferredModel });
   return response.trim();
 }

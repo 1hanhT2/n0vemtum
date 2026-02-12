@@ -18,10 +18,16 @@ import { generateHabitSuggestions, generateWeeklyInsights, generateMotivationalM
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { validateDateParam, validateNumericParam, sanitizeBody } from "./validation";
 import { getDateKeyForZone, getTodayKey, getDateNDaysAgo, normalizeTimeZone } from "@shared/time";
+import { DEFAULT_GEMINI_MODEL, isGeminiModelId, type GeminiModelId } from "@shared/ai-models";
 
 const getRequestTimeZone = (req: any): string => {
   const header = req?.headers?.["x-timezone"];
   return normalizeTimeZone(typeof header === "string" ? header : Array.isArray(header) ? header[0] : undefined);
+};
+
+const getPreferredGeminiModel = async (userId: string): Promise<GeminiModelId> => {
+  const modelSetting = await storage.getSetting("geminiModel", userId);
+  return isGeminiModelId(modelSetting?.value) ? modelSetting.value : DEFAULT_GEMINI_MODEL;
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -481,6 +487,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (payload.key === "personalizationProfile" && typeof payload.value === "string") {
         payload.value = payload.value.trim().slice(0, 800);
       }
+      if (payload.key === "geminiModel") {
+        if (!isGeminiModelId(payload.value)) {
+          return res.status(400).json({ error: "Invalid Gemini model selection" });
+        }
+      }
       const settingData = insertSettingSchema.parse(payload);
       const setting = await storage.setSetting(settingData);
       res.json(setting);
@@ -569,8 +580,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const timeZone = getRequestTimeZone(req);
       const content = typeof req.body?.content === "string" ? req.body.content.trim() : "";
+      const requestedModel = req.body?.model;
       if (!content) {
         return res.status(400).json({ error: "Message content is required" });
+      }
+      if (typeof requestedModel !== "undefined" && !isGeminiModelId(requestedModel)) {
+        return res.status(400).json({ error: "Invalid Gemini model selection" });
       }
 
       const userMessageData = insertChatMessageSchema.parse({
@@ -590,6 +605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user,
         weeklyReview,
         personalizationSetting,
+        preferredModel,
       ] = await Promise.all([
         storage.getHabits(userId, timeZone),
         storage.getGoals(userId),
@@ -598,6 +614,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.getUser(userId),
         storage.getLatestWeeklyReview(userId),
         storage.getSetting("personalizationProfile", userId),
+        typeof requestedModel === "string"
+          ? Promise.resolve(requestedModel as GeminiModelId)
+          : getPreferredGeminiModel(userId),
       ]);
       const personalization = personalizationSetting?.value || "";
 
@@ -610,6 +629,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user,
         weeklyReview,
         personalization,
+        preferredModel,
       });
 
       const assistantMessageData = insertChatMessageSchema.parse({
@@ -760,12 +780,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const timeZone = getRequestTimeZone(req);
-      const [habits, personalizationSetting] = await Promise.all([
+      const [habits, personalizationSetting, preferredModel] = await Promise.all([
         storage.getHabits(userId, timeZone),
         storage.getSetting("personalizationProfile", userId),
+        getPreferredGeminiModel(userId),
       ]);
       const personalization = personalizationSetting?.value || "";
-      const suggestions = await generateHabitSuggestions(habits, { personalization });
+      const suggestions = await generateHabitSuggestions(habits, { personalization, preferredModel });
       res.json(suggestions);
     } catch (error) {
       console.error('AI habit suggestions error:', error);
@@ -778,14 +799,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const timeZone = getRequestTimeZone(req);
       const { startDate, endDate } = req.body;
-      const [dailyEntries, habits, personalizationSetting] = await Promise.all([
+      const [dailyEntries, habits, personalizationSetting, preferredModel] = await Promise.all([
         storage.getDailyEntries(userId, startDate, endDate),
         storage.getHabits(userId, timeZone),
         storage.getSetting("personalizationProfile", userId),
+        getPreferredGeminiModel(userId),
       ]);
       const personalization = personalizationSetting?.value || "";
       
-      const insights = await generateWeeklyInsights(dailyEntries, habits, personalization);
+      const insights = await generateWeeklyInsights(dailyEntries, habits, personalization, preferredModel);
       res.json(insights);
     } catch (error) {
       console.error('AI weekly insights error:', error);
@@ -831,9 +853,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         completed: (entry.habitCompletions as Record<number, boolean>)?.[habitId] || false
       }));
 
-      const personalizationSetting = await storage.getSetting("personalizationProfile", userId);
+      const [personalizationSetting, preferredModel] = await Promise.all([
+        storage.getSetting("personalizationProfile", userId),
+        getPreferredGeminiModel(userId),
+      ]);
       const personalization = personalizationSetting?.value || "";
-      const analysis = await analyzeHabitDifficulty(habit, completionData, personalization);
+      const analysis = await analyzeHabitDifficulty(habit, completionData, personalization, preferredModel);
       
       // Update the habit with the analysis
       await storage.updateHabitDifficulty(habitId, analysis.difficulty, analysis.analysis, userId);

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { ChatMessage } from "@shared/schema";
 import { detectClientTimeZone } from "@/lib/timezone";
+import type { GeminiModelId } from "@shared/ai-models";
 
 const messagesKeyPrefix = "/api/assistant/messages";
 const messagesQueryKey = "assistant-messages";
@@ -9,6 +10,11 @@ const messagesQueryKey = "assistant-messages";
 type AssistantResponse = {
   userMessage: ChatMessage;
   assistantMessage: ChatMessage;
+};
+
+type SendAssistantMessagePayload = {
+  content: string;
+  model?: GeminiModelId;
 };
 
 export function useAssistantMessages(limit = 50, options?: { enabled?: boolean }) {
@@ -31,11 +37,11 @@ export function useSendAssistantMessage() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (content: string) => {
+    mutationFn: async ({ content, model }: SendAssistantMessagePayload) => {
       const response = await apiRequest(messagesKeyPrefix, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content, model }),
       });
       return response.json() as Promise<AssistantResponse>;
     },

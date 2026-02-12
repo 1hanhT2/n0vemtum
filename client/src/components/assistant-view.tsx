@@ -5,31 +5,59 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAssistantMessages, useClearAssistantMessages, useSendAssistantMessage } from "@/hooks/use-assistant";
-import { Bot, Check, Copy, MessageSquareText, Paperclip, Send, Trash2, User } from "lucide-react";
+import { useSetSetting } from "@/hooks/use-settings";
+import { useAuth } from "@/hooks/useAuth";
+import { Bot, Check, Copy, MessageSquareText, Paperclip, PenTool, RefreshCw, Send, Trash2, User, X } from "lucide-react";
+import { DEFAULT_GEMINI_MODEL, geminiModelOptions, isGeminiModelId, type GeminiModelId } from "@shared/ai-models";
 
 interface AssistantViewProps {
   isGuestMode?: boolean;
 }
 
 export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
+  const { user } = useAuth();
   const { data: messages = [] } = useAssistantMessages(50, { enabled: !isGuestMode });
   const sendMessage = useSendAssistantMessage();
   const clearMessages = useClearAssistantMessages();
+  const setSetting = useSetSetting();
   const [input, setInput] = useState("");
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
+  const [selectedModel, setSelectedModel] = useState<GeminiModelId>(DEFAULT_GEMINI_MODEL);
   const bottomRef = useRef<HTMLDivElement | null>(null);
-  const modelLabel = "Gemini 3 Flash";
+  const composerRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    const storedModel = typeof window !== "undefined" ? window.localStorage.getItem("assistant:model") : null;
+    if (isGeminiModelId(storedModel)) {
+      setSelectedModel(storedModel);
+    }
+  }, []);
+
+  const handleModelChange = (model: GeminiModelId) => {
+    setSelectedModel(model);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("assistant:model", model);
+    }
+    if (user?.id) {
+      setSetting.mutate({ key: "geminiModel", value: model, userId: user.id });
+    }
+  };
+
   const handleSend = () => {
     const trimmed = input.trim();
     if (!trimmed || sendMessage.isPending) return;
-    sendMessage.mutate(trimmed, {
-      onSuccess: () => setInput(""),
+    sendMessage.mutate({ content: trimmed, model: selectedModel }, {
+      onSuccess: () => {
+        setInput("");
+        setEditingMessageId(null);
+      },
     });
   };
 
@@ -48,6 +76,28 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
     } catch {
       // ignore
     }
+  };
+
+  const handleEditMessage = (id: number, content: string) => {
+    setInput(content);
+    setEditingMessageId(id);
+    composerRef.current?.focus();
+  };
+
+  const getPromptForAssistantMessage = (messageIndex: number) => {
+    for (let i = messageIndex - 1; i >= 0; i -= 1) {
+      if (messages[i]?.role === "user") {
+        return messages[i].content;
+      }
+    }
+    return "";
+  };
+
+  const handleRegenerate = (messageIndex: number) => {
+    if (sendMessage.isPending) return;
+    const prompt = getPromptForAssistantMessage(messageIndex).trim();
+    if (!prompt) return;
+    sendMessage.mutate({ content: prompt, model: selectedModel });
   };
 
   if (isGuestMode) {
@@ -71,15 +121,24 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
         <CardHeader className="border-b border-border">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <CardTitle className="text-lg font-semibold">AI Coach Chat</CardTitle>
+              <CardTitle className="text-lg font-semibold">Assistant Chat</CardTitle>
               <p className="text-xs text-muted-foreground">
                 Ask about habits, tags, goals, and recent notes.
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="rounded-md border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground">
-                Model: {modelLabel}
-              </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value={selectedModel} onValueChange={(value) => handleModelChange(value as GeminiModelId)}>
+                <SelectTrigger className="h-9 w-[220px]" data-testid="select-assistant-model">
+                  <SelectValue placeholder="Select model" />
+                </SelectTrigger>
+                <SelectContent>
+                  {geminiModelOptions.map((model) => (
+                    <SelectItem key={model.id} value={model.id}>
+                      {model.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button
                 variant="ghost"
                 size="sm"
@@ -107,7 +166,12 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
                   </div>
                 </div>
               )}
-                {messages.map((message) => (
+                {messages.map((message, messageIndex) => {
+                  const regeneratePrompt = message.role === "assistant"
+                    ? getPromptForAssistantMessage(messageIndex).trim()
+                    : "";
+
+                  return (
                   <div
                     key={message.id}
                     className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
@@ -118,7 +182,7 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
                       </div>
                     )}
                     <div
-                      className={`relative max-w-[85%] rounded-md px-4 py-3 text-sm leading-relaxed ${
+                      className={`max-w-[85%] rounded-md px-4 py-3 text-sm leading-relaxed ${
                         message.role === "user"
                           ? "bg-primary/10 text-foreground"
                           : "bg-muted text-foreground border border-border"
@@ -130,20 +194,49 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
                       <div className="prose prose-sm max-w-none text-foreground prose-p:my-2 prose-li:my-1 prose-strong:text-foreground">
                         <ReactMarkdown>{message.content}</ReactMarkdown>
                       </div>
-                      {message.role !== "user" && message.content && (
-                        <button
+                      <div className={`mt-2 flex items-center gap-1 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
                           onClick={() => copyToClipboard(message.content, message.id)}
-                          className="absolute -right-2 -top-2 rounded-md border border-border bg-card/90 p-2 text-muted-foreground shadow-sm hover:text-foreground"
-                          title="Copy"
+                          title="Copy message"
+                          data-testid={`button-copy-message-${message.id}`}
                         >
                           {copiedId === message.id ? (
-                            <Check className="h-4 w-4" />
+                            <Check className="h-3.5 w-3.5" />
                           ) : (
-                            <Copy className="h-4 w-4" />
+                            <Copy className="h-3.5 w-3.5" />
                           )}
-                        </button>
-                      )}
+                        </Button>
+                        {message.role === "user" ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                            onClick={() => handleEditMessage(message.id, message.content)}
+                            title="Edit and resend"
+                            data-testid={`button-edit-message-${message.id}`}
+                          >
+                            <PenTool className="h-3.5 w-3.5" />
+                          </Button>
+                        ) : (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                            onClick={() => handleRegenerate(messageIndex)}
+                            disabled={!regeneratePrompt || sendMessage.isPending}
+                            title="Regenerate reply"
+                            data-testid={`button-regenerate-message-${message.id}`}
+                          >
+                            <RefreshCw className={`h-3.5 w-3.5 ${sendMessage.isPending ? "animate-spin" : ""}`} />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     {message.role === "user" && (
                       <div className="mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-md bg-muted">
@@ -151,12 +244,30 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
                       </div>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               <div ref={bottomRef} />
             </div>
           </ScrollArea>
 
           <div className="space-y-2">
+            {editingMessageId && (
+              <div className="flex items-center justify-between rounded-md border border-border/70 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                <span>Editing previous message before resend</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setEditingMessageId(null);
+                    setInput("");
+                  }}
+                  title="Cancel editing"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
             <div className="flex items-center gap-2 rounded-md border border-border bg-muted/30 p-2">
               <button
                 type="button"
@@ -167,6 +278,7 @@ export function AssistantView({ isGuestMode = false }: AssistantViewProps) {
                 <Paperclip className="h-5 w-5" />
               </button>
               <Textarea
+                ref={composerRef}
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 placeholder="Ask about progress, goals, or how to improve..."

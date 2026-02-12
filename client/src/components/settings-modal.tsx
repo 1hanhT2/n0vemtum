@@ -33,6 +33,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSetSetting } from "@/hooks/use-settings";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DEFAULT_GEMINI_MODEL, geminiModelOptions, isGeminiModelId, type GeminiModelId } from "@shared/ai-models";
 
 
 interface SettingsModalProps {
@@ -81,6 +82,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [challengeDifficulty, setChallengeDifficulty] = useState<number>(50);
   const [challengeType, setChallengeType] = useState<string>("balanced");
+  const [geminiModel, setGeminiModel] = useState<GeminiModelId>(DEFAULT_GEMINI_MODEL);
   const [personalizationProfile, setPersonalizationProfile] = useState("");
   const personalizationMaxLength = 800;
   const displayName = user
@@ -109,6 +111,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
     if (!userSettings) return;
     const difficultySetting = userSettings.find((s) => s.key === "challengeDifficulty");
     const typeSetting = userSettings.find((s) => s.key === "challengeType");
+    const modelSetting = userSettings.find((s) => s.key === "geminiModel");
     const personalizationSetting = userSettings.find((s) => s.key === "personalizationProfile");
     if (difficultySetting) {
       const parsed = Number(difficultySetting.value);
@@ -119,6 +122,9 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
     if (typeSetting) {
       setChallengeType(typeSetting.value || "balanced");
     }
+    if (isGeminiModelId(modelSetting?.value)) {
+      setGeminiModel(modelSetting.value);
+    }
     if (personalizationSetting && typeof personalizationSetting.value === "string") {
       setPersonalizationProfile(personalizationSetting.value);
     }
@@ -127,6 +133,10 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
   useEffect(() => {
     if (!isGuestMode) return;
     const storedProfile = localStorage.getItem('personalizationProfile');
+    const storedModel = localStorage.getItem('assistant:model');
+    if (isGeminiModelId(storedModel)) {
+      setGeminiModel(storedModel);
+    }
     if (storedProfile) {
       setPersonalizationProfile(storedProfile);
     }
@@ -138,6 +148,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
       localStorage.setItem('theme', selectedTheme);
       localStorage.setItem('darkMode', isDarkMode.toString());
       localStorage.setItem('personalizationProfile', personalizationProfile.trim());
+      localStorage.setItem('assistant:model', geminiModel);
       applyTheme(selectedTheme, isDarkMode);
 
       toast({
@@ -197,6 +208,7 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
       if (user?.id) {
         await setSetting.mutateAsync({ key: 'challengeDifficulty', value: String(Math.round(challengeDifficulty)), userId: user.id });
         await setSetting.mutateAsync({ key: 'challengeType', value: challengeType, userId: user.id });
+        await setSetting.mutateAsync({ key: 'geminiModel', value: geminiModel, userId: user.id });
         await setSetting.mutateAsync({ key: 'personalizationProfile', value: personalizationProfile.trim(), userId: user.id });
       }
 
@@ -603,6 +615,22 @@ export function SettingsModal({ isOpen, onClose, isGuestMode = false }: Settings
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground">Guide the AI toward the style of daily challenges you want.</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Gemini Model</Label>
+                      <Select value={geminiModel} onValueChange={(value) => setGeminiModel(value as GeminiModelId)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select model" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {geminiModelOptions.map((model) => (
+                            <SelectItem key={model.id} value={model.id}>
+                              {model.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">Used by assistant replies, weekly insights, and habit analysis.</p>
                     </div>
                   </div>
                 )}
