@@ -1301,56 +1301,68 @@ export class DatabaseStorage implements IStorage {
         });
       }
 
-      let newExperience = habit.experience;
-      let newStreak = habit.streak;
-      let newLongestStreak = habit.longestStreak;
-      let newTotalCompletions = habit.totalCompletions;
-      let newBadges = [...(habit.badges || [])];
+      const habitIdKey = habitId.toString();
+      const entriesForUser = await tx
+        .select({ date: dailyEntries.date, habitCompletions: dailyEntries.habitCompletions })
+        .from(dailyEntries)
+        .where(eq(dailyEntries.userId, effectiveUserId))
+        .orderBy(dailyEntries.date);
 
-      if (completed) {
-        // Only award XP if transitioning from incomplete to complete
-        const baseXP = 20;
-        const difficultyMultiplier = (habit.difficultyRating || 3) * 0.3 + 0.4; // 0.7x to 1.9x
-        const streakMultiplier = Math.min(1 + (habit.streak * 0.1), 2.0); // Up to 2x
-        const earnedXP = Math.floor(baseXP * difficultyMultiplier * streakMultiplier);
+      const completionDates = entriesForUser
+        .filter((entry) => {
+          const completions = (entry.habitCompletions as Record<string, boolean>) || {};
+          return !!completions[habitIdKey];
+        })
+        .map((entry) => entry.date);
+      const completionDateSet = new Set(completionDates);
 
-        newExperience += earnedXP;
-        newTotalCompletions += 1;
+      const getStreakEndingOnDate = (targetDate: string): number => {
+        let streak = 0;
+        let cursor = targetDate;
+        while (completionDateSet.has(cursor)) {
+          streak += 1;
+          cursor = this.getPreviousDate(cursor);
+        }
+        return streak;
+      };
 
-        // Update streak - build consecutive day chains
-        const previousDate = this.getPreviousDate(date);
-        if (habit.lastCompleted === previousDate) {
-          newStreak += 1;
-        } else if (habit.lastCompleted === date) {
-          newStreak = habit.streak;
+      const previousDate = this.getPreviousDate(date);
+      const streakBeforeToggle = getStreakEndingOnDate(previousDate);
+
+      const baseXP = 20;
+      const difficultyMultiplier = (habit.difficultyRating || 3) * 0.3 + 0.4; // 0.7x to 1.9x
+      const streakMultiplier = Math.min(1 + (streakBeforeToggle * 0.1), 2.0); // Up to 2x
+      const earnedXP = Math.floor(baseXP * difficultyMultiplier * streakMultiplier);
+      const xpDelta = completed ? earnedXP : -earnedXP;
+      const newExperience = Math.max(0, habit.experience + xpDelta);
+
+      const newTotalCompletions = completionDates.length;
+      const newLastCompleted = completionDates.length > 0 ? completionDates[completionDates.length - 1] : null;
+      const newStreak = newLastCompleted ? getStreakEndingOnDate(newLastCompleted) : 0;
+
+      let newLongestStreak = 0;
+      let previousCompletionDate = "";
+      let runningStreak = 0;
+      for (const completionDate of completionDates) {
+        if (previousCompletionDate && this.getPreviousDate(completionDate) === previousCompletionDate) {
+          runningStreak += 1;
         } else {
-          newStreak = 1;
+          runningStreak = 1;
         }
-
-        newLongestStreak = Math.max(newLongestStreak, newStreak);
-
-        // Award badges
-        if (newTotalCompletions === 1 && !newBadges.includes("first_completion")) {
-          newBadges.push("first_completion");
-        }
-        if (newStreak === 7 && !newBadges.includes("week_warrior")) {
-          newBadges.push("week_warrior");
-        }
-        if (newStreak === 30 && !newBadges.includes("month_master")) {
-          newBadges.push("month_master");
-        }
-        if (newStreak >= 5 && !newBadges.includes("streak_starter")) {
-          newBadges.push("streak_starter");
-        }
-      } else {
-        // Only adjust totals if transitioning from complete to incomplete
-        newTotalCompletions = Math.max(0, newTotalCompletions - 1);
-
-        // Reset streak if not completed today and yesterday
-        if (habit.lastCompleted !== date && habit.lastCompleted !== this.getPreviousDate(date)) {
-          newStreak = 0;
-        }
+        newLongestStreak = Math.max(newLongestStreak, runningStreak);
+        previousCompletionDate = completionDate;
       }
+
+      const badgeSet = new Set(habit.badges || []);
+      if (newTotalCompletions > 0) badgeSet.add("first_completion");
+      else badgeSet.delete("first_completion");
+      if (newLongestStreak >= 5) badgeSet.add("streak_starter");
+      else badgeSet.delete("streak_starter");
+      if (newLongestStreak >= 7) badgeSet.add("week_warrior");
+      else badgeSet.delete("week_warrior");
+      if (newLongestStreak >= 30) badgeSet.add("month_master");
+      else badgeSet.delete("month_master");
+      const newBadges = Array.from(badgeSet);
 
       const habitStartDate = habit.createdAt
         ? habit.createdAt.toISOString().split('T')[0]
@@ -1376,7 +1388,7 @@ export class DatabaseStorage implements IStorage {
           totalCompletions: newTotalCompletions,
           completionRate,
           badges: newBadges,
-          lastCompleted: completed ? date : habit.lastCompleted,
+          lastCompleted: newLastCompleted,
           lastDecayAt: completed ? date : habit.lastDecayAt,
         })
         .where(and(eq(habits.id, habitId), eq(habits.userId, effectiveUserId)))
