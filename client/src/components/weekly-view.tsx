@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { useDailyEntries } from "@/hooks/use-daily-entries";
 import { useWeeklyReview, useCreateWeeklyReview, useUpdateWeeklyReview } from "@/hooks/use-weekly-reviews";
 import { useWeeklyInsights } from "@/hooks/use-ai";
 import { getWeekDates, getWeekStartDate } from "@/lib/utils";
-import { motion } from "framer-motion";
+import gsap from "gsap";
 import { useToast } from "@/hooks/use-toast";
 import { BarChart3, CalendarRange, CheckCircle2, Sparkles, Star } from "lucide-react";
 import { getMockHabits } from "@/lib/mockData";
@@ -25,6 +25,7 @@ import {
   Cell,
 } from 'recharts';
 import { useTimeZone } from "@/hooks/use-timezone";
+import { usePrefersReducedMotion } from "@/hooks/use-gsap";
 
 interface WeeklyViewProps {
   isGuestMode?: boolean;
@@ -32,6 +33,8 @@ interface WeeklyViewProps {
 
 export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
   const { toast } = useToast();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
   const timeZone = useTimeZone();
   const weekDates = getWeekDates(new Date(), timeZone);
   const weekStartDate = getWeekStartDate(new Date(), timeZone);
@@ -92,6 +95,24 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
       });
     }
   };
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    if (prefersReducedMotion) {
+      gsap.set(containerRef.current, { opacity: 1, y: 0 });
+      return;
+    }
+
+    gsap.fromTo(
+      containerRef.current,
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }
+    );
+
+    return () => {
+      gsap.killTweensOf(containerRef.current);
+    };
+  }, [prefersReducedMotion]);
 
   const handleGenerateInsights = () => {
     if (isGuestMode) {
@@ -225,12 +246,7 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-6"
-    >
+    <div ref={containerRef} className="space-y-6" style={{ opacity: 0 }}>
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-2">
           <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -478,24 +494,19 @@ export function WeeklyView({ isGuestMode = false }: WeeklyViewProps) {
           </div>
           
           <div className="mt-6 text-center">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <Button
+              onClick={handleSaveReview}
+              disabled={createWeeklyReview.isPending || updateWeeklyReview.isPending}
+              className="gradient-bg text-white px-6 py-3 rounded-md font-semibold shadow-lg hover:shadow-xl transform transition-transform duration-200 hover:scale-105 active:scale-95"
             >
-              <Button
-                onClick={handleSaveReview}
-                disabled={createWeeklyReview.isPending || updateWeeklyReview.isPending}
-                className="gradient-bg text-white px-6 py-3 rounded-md font-semibold shadow-lg hover:shadow-xl"
-              >
-                {createWeeklyReview.isPending || updateWeeklyReview.isPending 
-                  ? "Saving..." 
-                  : "Save Review"
-                }
-              </Button>
-            </motion.div>
+              {createWeeklyReview.isPending || updateWeeklyReview.isPending
+                ? "Saving..."
+                : "Save Review"
+              }
+            </Button>
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 }

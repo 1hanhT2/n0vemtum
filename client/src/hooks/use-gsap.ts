@@ -1,5 +1,28 @@
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import gsap from "gsap";
+
+export function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handleChange = () => setPrefersReducedMotion(mediaQuery.matches);
+
+    handleChange();
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
+    }
+
+    mediaQuery.addListener(handleChange);
+    return () => mediaQuery.removeListener(handleChange);
+  }, []);
+
+  return prefersReducedMotion;
+}
 
 export function useGsapFadeIn<T extends HTMLElement>(
   options: {
@@ -13,6 +36,7 @@ export function useGsapFadeIn<T extends HTMLElement>(
   } = {}
 ) {
   const ref = useRef<T>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
   const {
     y = 16,
     x = 0,
@@ -27,6 +51,11 @@ export function useGsapFadeIn<T extends HTMLElement>(
     if (!ref.current || !enabled) return;
     const el = ref.current;
 
+    if (prefersReducedMotion) {
+      gsap.set(el, { opacity: 1, y: 0, x: 0, scale: 1 });
+      return;
+    }
+
     gsap.fromTo(
       el,
       { opacity: 0, y, x, scale },
@@ -36,7 +65,7 @@ export function useGsapFadeIn<T extends HTMLElement>(
     return () => {
       gsap.killTweensOf(el);
     };
-  }, [y, x, scale, duration, delay, ease, enabled]);
+  }, [y, x, scale, duration, delay, ease, enabled, prefersReducedMotion]);
 
   return ref;
 }
@@ -54,6 +83,7 @@ export function useGsapStagger<T extends HTMLElement>(
   } = {}
 ) {
   const containerRef = useRef<T>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
   const {
     y = 12,
     x = 0,
@@ -69,6 +99,11 @@ export function useGsapStagger<T extends HTMLElement>(
     const items = containerRef.current.querySelectorAll(selector);
     if (items.length === 0) return;
 
+    if (prefersReducedMotion) {
+      gsap.set(items, { opacity: 1, y: 0, x: 0 });
+      return;
+    }
+
     gsap.fromTo(
       items,
       { opacity: 0, y, x },
@@ -78,7 +113,7 @@ export function useGsapStagger<T extends HTMLElement>(
     return () => {
       gsap.killTweensOf(items);
     };
-  }, [selector, y, x, duration, stagger, delay, ease, enabled]);
+  }, [selector, y, x, duration, stagger, delay, ease, enabled, prefersReducedMotion]);
 
   return containerRef;
 }
@@ -95,6 +130,7 @@ export function useGsapCounter(
   } = {}
 ) {
   const ref = useRef<HTMLElement>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
   const {
     duration = 1.2,
     delay = 0.2,
@@ -107,6 +143,12 @@ export function useGsapCounter(
   useEffect(() => {
     if (!ref.current || !enabled) return;
     const el = ref.current;
+
+    if (prefersReducedMotion) {
+      el.textContent = targetValue.toFixed(decimals) + suffix;
+      return;
+    }
+
     const obj = { value: 0 };
 
     gsap.to(obj, {
@@ -122,7 +164,7 @@ export function useGsapCounter(
     return () => {
       gsap.killTweensOf(obj);
     };
-  }, [targetValue, duration, delay, ease, enabled, decimals, suffix]);
+  }, [targetValue, duration, delay, ease, enabled, decimals, suffix, prefersReducedMotion]);
 
   return ref;
 }
@@ -137,6 +179,7 @@ export function useGsapProgress(
   } = {}
 ) {
   const ref = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
   const {
     duration = 1,
     delay = 0.3,
@@ -148,6 +191,11 @@ export function useGsapProgress(
     if (!ref.current || !enabled) return;
     const el = ref.current;
 
+    if (prefersReducedMotion) {
+      gsap.set(el, { width: `${Math.min(100, Math.max(0, percentage))}%` });
+      return;
+    }
+
     gsap.fromTo(
       el,
       { width: "0%" },
@@ -157,7 +205,7 @@ export function useGsapProgress(
     return () => {
       gsap.killTweensOf(el);
     };
-  }, [percentage, duration, delay, ease, enabled]);
+  }, [percentage, duration, delay, ease, enabled, prefersReducedMotion]);
 
   return ref;
 }
@@ -231,6 +279,7 @@ export function useGsapPulse<T extends HTMLElement>(
   } = {}
 ) {
   const ref = useRef<T>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
   const {
     scale = 1.05,
     duration = 0.8,
@@ -241,6 +290,11 @@ export function useGsapPulse<T extends HTMLElement>(
   useEffect(() => {
     if (!ref.current || !enabled) return;
     const el = ref.current;
+
+    if (prefersReducedMotion) {
+      gsap.set(el, { scale: 1 });
+      return;
+    }
 
     gsap.to(el, {
       scale,
@@ -253,7 +307,7 @@ export function useGsapPulse<T extends HTMLElement>(
     return () => {
       gsap.killTweensOf(el);
     };
-  }, [scale, duration, repeat, enabled]);
+  }, [scale, duration, repeat, enabled, prefersReducedMotion]);
 
   return ref;
 }

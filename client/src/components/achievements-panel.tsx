@@ -1,15 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useEffect, useRef } from "react";
 import { useAchievements } from "@/hooks/use-achievements";
 import { useHabits } from "@/hooks/use-habits";
 import { useStreaks } from "@/hooks/use-streaks";
 import { useRanks } from "@/hooks/use-ranks";
 import { Skeleton } from "@/components/ui/skeleton";
-import { motion } from "framer-motion";
+import gsap from "gsap";
 import { getMockAchievements, getMockHabits, getMockRankInfo, getMockStreaks } from "@/lib/mockData";
 import { Crown, Flame, Medal, Star, Trophy } from "lucide-react";
 import { resolveBadgeIcon } from "@/lib/badgeIcons";
 import { rankDefinitions } from "@shared/ranks";
+import { usePrefersReducedMotion } from "@/hooks/use-gsap";
 
 interface AchievementsPanelProps {
   isGuestMode?: boolean;
@@ -52,6 +54,10 @@ const getXpLabel = (name: string) => {
 };
 
 export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const unlockedGridRef = useRef<HTMLDivElement>(null);
+  const lockedGridRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
   const { data: achievements, isLoading: achievementsLoading } = isGuestMode 
     ? { data: getMockAchievements(), isLoading: false }
     : useAchievements();
@@ -130,13 +136,68 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
     );
   };
 
+  useEffect(() => {
+    if (!containerRef.current) return;
+    if (prefersReducedMotion) {
+      gsap.set(containerRef.current, { opacity: 1, y: 0 });
+      return;
+    }
+
+    gsap.fromTo(
+      containerRef.current,
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }
+    );
+
+    return () => {
+      gsap.killTweensOf(containerRef.current);
+    };
+  }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    if (!unlockedGridRef.current || unlockedAchievements.length === 0) return;
+    const cards = unlockedGridRef.current.querySelectorAll("[data-animate-achievement]");
+    if (cards.length === 0) return;
+
+    if (prefersReducedMotion) {
+      gsap.set(cards, { opacity: 1, scale: 1, y: 0 });
+      return;
+    }
+
+    gsap.fromTo(
+      cards,
+      { opacity: 0, scale: 0.8, y: 8 },
+      { opacity: 1, scale: 1, y: 0, duration: 0.35, stagger: 0.06, ease: "power2.out" }
+    );
+
+    return () => {
+      gsap.killTweensOf(cards);
+    };
+  }, [unlockedAchievements.length, prefersReducedMotion]);
+
+  useEffect(() => {
+    if (!lockedGridRef.current || lockedAchievements.length === 0) return;
+    const cards = lockedGridRef.current.querySelectorAll("[data-animate-achievement]");
+    if (cards.length === 0) return;
+
+    if (prefersReducedMotion) {
+      gsap.set(cards, { opacity: 1, scale: 1, y: 0 });
+      return;
+    }
+
+    gsap.fromTo(
+      cards,
+      { opacity: 0, scale: 0.8, y: 8 },
+      { opacity: 1, scale: 1, y: 0, duration: 0.35, stagger: 0.06, delay: 0.05, ease: "power2.out" }
+    );
+
+    return () => {
+      gsap.killTweensOf(cards);
+    };
+  }, [lockedAchievements.length, prefersReducedMotion]);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-6"
-    >
+    <div ref={containerRef} className="space-y-6" style={{ opacity: 0 }}>
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-2">
           <Trophy className="h-5 w-5 text-amber-500" />
@@ -275,12 +336,11 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div ref={unlockedGridRef} className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {unlockedAchievements.map((achievement) => (
-                <motion.div
+                <div
                   key={achievement.id}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
+                  data-animate-achievement
                   className="text-center p-4 rounded-md bg-card border border-amber-200 dark:border-amber-700/40"
                 >
                   <div className="flex justify-center mb-2">
@@ -301,7 +361,7 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
                   <Badge variant="secondary" className="mt-2 text-xs">
                     Unlocked
                   </Badge>
-                </motion.div>
+                </div>
               ))}
             </div>
           </CardContent>
@@ -316,12 +376,11 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div ref={lockedGridRef} className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {lockedAchievements.map((achievement) => (
-              <motion.div
+              <div
                 key={achievement.id}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
+                data-animate-achievement
                 className="text-center p-4 rounded-md bg-card border border-border opacity-75"
               >
                 <div className="flex justify-center mb-2 grayscale">
@@ -345,7 +404,7 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
                   {achievement.type === 'milestone' && `${achievement.requirement} total days`}
                   {achievement.type === 'consistency' && `${achievement.requirement} reviews`}
                 </Badge>
-              </motion.div>
+              </div>
             ))}
           </div>
         </CardContent>
@@ -389,6 +448,6 @@ export function AchievementsPanel({ isGuestMode = false }: AchievementsPanelProp
           )}
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 }

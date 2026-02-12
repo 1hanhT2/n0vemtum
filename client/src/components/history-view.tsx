@@ -184,7 +184,7 @@ export function HistoryView({ isGuestMode = false }: HistoryViewProps) {
               </Badge>
             </div>
           )}
-        </motion.div>
+        </div>
       );
     }
 

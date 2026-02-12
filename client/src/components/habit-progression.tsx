@@ -1,13 +1,15 @@
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { useEffect, useRef } from "react";
 import {
   Trophy,
   Flame,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import gsap from "gsap";
 import { resolveBadgeIcon } from "@/lib/badgeIcons";
 import { DifficultyBadge } from "@/components/habit-difficulty-display";
+import { usePrefersReducedMotion } from "@/hooks/use-gsap";
 
 interface HabitProgressionProps {
   habit: {
@@ -118,14 +120,31 @@ export function LevelUpButton({ habit, onLevelUp }: HabitProgressionProps) {
   const experience = habit.experience || 0;
   const experienceToNext = habit.experienceToNext || 100;
   const experiencePercentage = experienceToNext > 0 ? (experience / experienceToNext) * 100 : 0;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
+
+  useEffect(() => {
+    if (experiencePercentage < 100 || !containerRef.current) return;
+    if (prefersReducedMotion) {
+      gsap.set(containerRef.current, { opacity: 1, scale: 1 });
+      return;
+    }
+
+    gsap.fromTo(
+      containerRef.current,
+      { opacity: 0, scale: 0.9 },
+      { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" }
+    );
+
+    return () => {
+      gsap.killTweensOf(containerRef.current);
+    };
+  }, [experiencePercentage, prefersReducedMotion]);
 
   if (experiencePercentage < 100) return null;
 
   return (
-    <motion.div
-      initial={{ scale: 0.9, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-    >
+    <div ref={containerRef} style={{ opacity: 0 }}>
       <Button
         size="sm"
         onClick={() => onLevelUp?.(habit.id)}
@@ -134,7 +153,7 @@ export function LevelUpButton({ habit, onLevelUp }: HabitProgressionProps) {
         <Trophy className="w-3 h-3 mr-1" />
         Level Up
       </Button>
-    </motion.div>
+    </div>
   );
 }
 
